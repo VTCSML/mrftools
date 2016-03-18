@@ -18,7 +18,7 @@ class BeliefPropagator(object):
         """Initialize messages to default initialization (set to zeros)."""
         for var in self.mn.variables:
             for neighbor in self.mn.getNeighbors(var):
-                self.messages[(var, neighbor)] = np.ones(( self.mn.numStates[neighbor]))
+                self.messages[(var, neighbor)] = np.ones(( self.mn.numStates[neighbor])) / self.mn.numStates[neighbor]
 
     def initBeliefs(self):
         """Initialize beliefs."""
@@ -53,10 +53,14 @@ class BeliefPropagator(object):
             for neighbor in self.mn.getNeighbors(var):
                 if var < neighbor:
                     belief = self.mn.getPotential((var, neighbor))
-                    varMessages = self.varBeliefs[var] / self.messages[(neighbor, var)]
-                    belief = (belief.T * varMessages).T
-                    neighborMessages = self.varBeliefs[neighbor] / self.messages[(var, neighbor)]
-                    belief = belief * neighborMessages
+
+                    # compute product of all messages to var except from neighbor
+                    varMessageProduct = self.varBeliefs[var] / self.messages[(neighbor, var)]
+                    belief = (belief.T * varMessageProduct).T
+
+                    # compute product of all messages to neighbor except from var
+                    neighborMessageProduct = self.varBeliefs[neighbor] / self.messages[(var, neighbor)]
+                    belief = belief * neighborMessageProduct
 
                     Z = np.sum(np.sum(belief))
                     belief = belief / Z
@@ -66,13 +70,14 @@ class BeliefPropagator(object):
 
     def computeMessage(self, var, neighbor):
         """Compute the message from var to factor."""
+        # compute the product of all messages coming into var except the one from neighbor
         adjustedMessageProduct = self.varBeliefs[var] / self.messages[(neighbor, var)]
 
+        # sum over all states of var
         message = self.mn.getPotential((neighbor, var)).dot(adjustedMessageProduct)
+
         # normalize message
         message = message / np.sum(message)
-
-        # assert np.shape(self.messages[(var, neighbor)]) == np.shape(message)
 
         return message
 
@@ -92,6 +97,8 @@ class BeliefPropagator(object):
     def computeInconsistency(self):
         """Return the total disagreement between each unary belief and its pairwise beliefs."""
         disagreement = 0.0
+        self.computeBeliefs()
+        self.computePairwiseBeliefs()
         for var in self.mn.variables:
             unaryBelief = self.varBeliefs[var]
             for neighbor in self.mn.getNeighbors(var):
@@ -103,21 +110,20 @@ def main():
     """Test basic functionality of BeliefPropagator."""
     mn = MarkovNet()
 
+    np.random.seed(0)
+
     mn.setUnaryFactor(0, np.random.rand(4))
     mn.setUnaryFactor(1, np.random.rand(3))
-    # mn.setUnaryFactor(2, np.random.rand(5))
-    # mn.setUnaryFactor(3, np.random.rand(6))
+    mn.setUnaryFactor(2, np.random.rand(6))
+    mn.setUnaryFactor(3, np.random.rand(2))
 
     mn.setEdgeFactor((0,1), np.random.rand(4,3))
-    # mn.setEdgeFactor((1,2), np.random.rand(3,5))
-    # mn.setEdgeFactor((3,2), np.random.rand(6,5))
-
-    # close the loop
-    # mn.setEdgeFactor((3,0), np.random.rand(6,4))
+    mn.setEdgeFactor((1,2), np.random.rand(3,6))
+    mn.setEdgeFactor((3,2), np.random.rand(2,6))
+    mn.setEdgeFactor((3,0), np.random.rand(2,4))
 
     print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
     print("Neighbors of 1: " + repr(mn.getNeighbors(1)))
-    # print("Neighbors of 2: " + repr(mn.getNeighbors(2)))
 
     bp = BeliefPropagator(mn)
 
@@ -126,6 +132,19 @@ def main():
         disagreement = bp.computeInconsistency()
         print("Iteration %d, change in messages %f. Calibration disagreement: %f" % (t, change, disagreement))
     bp.computePairwiseBeliefs()
+
+    from BruteForce import BruteForce
+
+    bf = BruteForce(mn)
+
+    for i in range(2):
+        print "Brute force unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i)))
+        print "Belief prop unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i)))
+
+    print "Brute force pairwise marginal: " + repr(bf.pairwiseMarginal(0,1))
+    print "Belief prop pairwise marginal: " + repr(bp.pairBeliefs[(0,1)])
+
+
 
 
 if  __name__ =='__main__':

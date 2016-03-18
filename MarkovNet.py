@@ -2,7 +2,7 @@
 import numpy as np
 
 class MarkovNet(object):
-    """Object containing the definition of a Markov net."""
+    """Object containing the definition of a pairwise Markov net."""
 
     def __init__(self):
         """Initialize a Markov net."""
@@ -28,19 +28,28 @@ class MarkovNet(object):
         self.neighbors[edge[0]].add(edge[1])
         self.neighbors[edge[1]].add(edge[0])
 
-    def getPotential(self, variables):
+    def getPotential(self, pair):
         """Return the potential between pair[0] and pair[1]. If (pair[1], pair[0]) is in our dictionary instead, return the transposed potential."""
-        if len(variables) == 1:
-            return self.unaryPotentials[variables]
+        if pair in self.edgePotentials:
+            return self.edgePotentials[pair]
         else:
-            if variables in self.edgePotentials:
-                return self.edgePotentials[variables]
-            else:
-                return self.edgePotentials[(variables[1], variables[0])].T
+            return self.edgePotentials[(pair[1], pair[0])].T
 
     def getNeighbors(self, variable):
         """Return the neighbors of variable."""
         return self.neighbors[variable]
+
+    def evaluateState(self, states):
+        """Evaluate the energy of a state. states should be a dictionary of variable: state (int) pairs."""
+        energy = 1.0
+        for var in self.variables:
+            energy *= self.unaryPotentials[var][states[var]]
+
+            for neighbor in self.neighbors[var]:
+                if var < neighbor:
+                    energy *= self.getPotential((var, neighbor))[states[var], states[neighbor]]
+
+        return energy
 
 def main():
     """Test function for MarkovNet."""
@@ -56,6 +65,8 @@ def main():
     print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
     print("Neighbors of 1: " + repr(mn.getNeighbors(1)))
     print("Neighbors of 2: " + repr(mn.getNeighbors(2)))
+
+    print(mn.evaluateState([0,0,0]))
 
 if  __name__ =='__main__':
     main()
