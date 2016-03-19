@@ -41,13 +41,13 @@ class MarkovNet(object):
 
     def evaluateState(self, states):
         """Evaluate the energy of a state. states should be a dictionary of variable: state (int) pairs."""
-        energy = 1.0
+        energy = 0.0
         for var in self.variables:
-            energy *= self.unaryPotentials[var][states[var]]
+            energy += self.unaryPotentials[var][states[var]]
 
             for neighbor in self.neighbors[var]:
                 if var < neighbor:
-                    energy *= self.getPotential((var, neighbor))[states[var], states[neighbor]]
+                    energy += self.getPotential((var, neighbor))[states[var], states[neighbor]]
 
         return energy
 
@@ -55,12 +55,12 @@ def main():
     """Test function for MarkovNet."""
     mn = MarkovNet()
 
-    mn.setUnaryFactor(0, np.random.rand(4))
-    mn.setUnaryFactor(1, np.random.rand(3))
-    mn.setUnaryFactor(2, np.random.rand(5))
+    mn.setUnaryFactor(0, np.random.randn(4))
+    mn.setUnaryFactor(1, np.random.randn(3))
+    mn.setUnaryFactor(2, np.random.randn(5))
 
-    mn.setEdgeFactor((0,1), np.random.rand(4,3))
-    mn.setEdgeFactor((1,2), np.random.rand(3,5))
+    mn.setEdgeFactor((0,1), np.random.randn(4,3))
+    mn.setEdgeFactor((1,2), np.random.randn(3,5))
 
     print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
     print("Neighbors of 1: " + repr(mn.getNeighbors(1)))

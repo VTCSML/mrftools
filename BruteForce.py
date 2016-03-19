@@ -27,7 +27,7 @@ class BruteForce(object):
             for i in range(len(variables)):
                 states[variables[i]] = stateList[i]
 
-            Z += self.mn.evaluateState(states)
+            Z += np.exp(self.mn.evaluateState(states))
 
         return Z
 
@@ -46,7 +46,7 @@ class BruteForce(object):
             for i in range(len(variables)):
                 states[variables[i]] = stateList[i]
 
-            p[states[var]] += self.mn.evaluateState(states)
+            p[states[var]] += np.exp(self.mn.evaluateState(states))
 
         return p / np.sum(p)
 
@@ -65,6 +65,6 @@ class BruteForce(object):
             for i in range(len(variables)):
                 states[variables[i]] = stateList[i]
 
-            p[states[varI], states[varJ]] += self.mn.evaluateState(states)
+            p[states[varI], states[varJ]] += np.exp(self.mn.evaluateState(states))
 
         return p / np.sum(p)
