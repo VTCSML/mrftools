@@ -116,8 +116,50 @@ class BeliefPropagator(object):
             change = self.updateMessages()
             if display == "iter":
                 disagreement = self.computeInconsistency()
-                print("Iteration %d, change in messages %f. Calibration disagreement: %f" % (iteration, change, disagreement))
+                energyFunc = self.computeEnergyFunctional()
+                dualObj = self.computeDualObjective()
+                print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energyFunc, dualObj))
             iteration += 1
+
+    def computeBetheEntropy(self):
+        """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
+        entropy = 0.0
+
+        for var in self.mn.variables:
+            neighbors = self.mn.getNeighbors(var)
+            entropy += -(1 - len(neighbors)) * np.sum(np.exp(self.varBeliefs[var]) * self.varBeliefs[var])
+            for neighbor in neighbors:
+                if var < neighbor:
+                    entropy += -np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)])
+        return entropy
+
+    def computeEnergy(self):
+        """Compute the log-linear energy. Assume that the beliefs have been computed and are fresh."""
+        energy = 0.0
+
+        for var in self.mn.variables:
+            neighbors = self.mn.getNeighbors(var)
+            energy += np.sum(self.mn.unaryPotentials[var] * self.varBeliefs[var])
+            for neighbor in neighbors:
+                if var < neighbor:
+                    energy += np.sum(self.mn.getPotential((var, neighbor)) * self.pairBeliefs[(var, neighbor)])
+        return energy
+
+    def computeEnergyFunctional(self):
+        """Compute the energy functional."""
+        self.computeBeliefs()
+        self.computePairwiseBeliefs()
+        return self.computeEnergy() + self.computeBetheEntropy()
+
+    def computeDualObjective(self):
+        """Compute the value of the BP Lagrangian."""
+        objective = self.computeEnergyFunctional()
+        for var in self.mn.variables:
+            unaryBelief = np.exp(self.varBeliefs[var])
+            for neighbor in self.mn.getNeighbors(var):
+                pairBelief = np.sum(np.exp(self.pairBeliefs[(var, neighbor)]), 1)
+                objective += self.messages[(neighbor, var)].dot(pairBelief - unaryBelief)
+        return objective
 
 def main():
     """Test basic functionality of BeliefPropagator."""
@@ -160,6 +202,8 @@ def main():
 
     print "Brute force pairwise marginal: " + repr(bf.pairwiseMarginal(0,1))
     print "Belief prop pairwise marginal: " + repr(np.exp(bp.pairBeliefs[(0,1)]))
+
+    print "Bethe energy functional: %f" % bp.computeEnergyFunctional()
 
 
 

@@ -15,15 +15,19 @@ class MarkovNet(object):
     def setUnaryFactor(self, variable, potential):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
         self.unaryPotentials[variable] = potential
-        self.variables.add(variable)
-        self.neighbors[variable] = set()
-        self.numStates[variable] = np.size(potential)
+        if variable not in self.variables:
+            self.variables.add(variable)
+            self.neighbors[variable] = set()
+            self.numStates[variable] = np.size(potential)
 
     def setEdgeFactor(self, edge, potential):
         """Set a factor by inputting the involved variables then the potential function. The potential function should be a np matrix."""
         assert np.shape(potential) == (len(self.unaryPotentials[edge[0]]), len(self.unaryPotentials[edge[1]])), "potential size %d, %d incompatible with unary sizes %d, %d" % (np.shape(potential)[0], np.shape(potential)[1], len(self.unaryPotentials[edge[0]]), len(self.unaryPotentials[edge[1]]))
 
-        self.edgePotentials[edge] = potential
+        if edge[0] < edge[1]:
+            self.edgePotentials[edge] = potential
+        else:
+            self.edgePotentials[(edge[1], edge[0])] = potential.T
 
         self.neighbors[edge[0]].add(edge[1])
         self.neighbors[edge[1]].add(edge[0])
