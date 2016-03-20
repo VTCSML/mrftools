@@ -3,7 +3,7 @@
 from MarkovNet import MarkovNet
 from BeliefPropagator import BeliefPropagator
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import minimize, check_grad
 
 class ApproxMaxLikelihood(object):
     """Object that runs approximate maximum likelihood parameter training."""
@@ -85,10 +85,10 @@ class ApproxMaxLikelihood(object):
         for i in range(len(self.potentials)):
             if isinstance(self.potentials[i], tuple):
                 # get pairwise belief
-                table = self.bp.pairBeliefs[self.potentials[i]]
+                table = np.exp(self.bp.pairBeliefs[self.potentials[i]])
             else:
                 # get unary belief
-                table = self.bp.varBeliefs[self.potentials[i]]
+                table = np.exp(self.bp.varBeliefs[self.potentials[i]])
 
             # flatten table and append
             marginals.extend(table.reshape((-1, 1)).tolist())
@@ -98,7 +98,7 @@ class ApproxMaxLikelihood(object):
 
 
     def objective(self, weightVector):
-        """Compute the learning objective with the provided weight vector."""
+        """Compute the learning objective with the provided weight vector. Approximate negative log-likelihood."""
         self.setWeights(weightVector)
         marginals = self.getMarginalVector()
 
@@ -108,8 +108,10 @@ class ApproxMaxLikelihood(object):
         objective += self.l1Regularization * np.sum(np.abs(weightVector))
         objective += 0.5 * self.l2Regularization * weightVector.dot(weightVector)
 
-        # add likelihood penalty
-        objective += weightVector.dot(marginals - self.dataSum / len(self.data))
+        # add likelihood penalty log Z - labelEnergy
+        objective += self.bp.computeEnergyFunctional()
+        objective -= weightVector.dot(self.dataSum / len(self.data))
+
 
         return objective
 
@@ -133,6 +135,9 @@ class ApproxMaxLikelihood(object):
 
 def main():
     """Simple test function for maximum likelihood."""
+
+    np.random.seed(0)
+
     mn = MarkovNet()
 
     mn.setUnaryFactor(0, np.zeros(4))
@@ -144,6 +149,8 @@ def main():
 
     aml = ApproxMaxLikelihood(mn)
 
+    aml.setRegularization(0, 1)
+
     aml.addData({0:0, 1:0, 2:0})
     aml.addData({0:1, 1:1, 2:1})
     aml.addData({0:2, 1:2, 2:1})
@@ -151,6 +158,9 @@ def main():
     # print aml.data
 
     weights = np.random.randn(4 + 3 + 2 + 4*3 + 3*2)
+
+    print "\n\nGradient check:"
+    print check_grad(aml.objective, aml.gradient, weights)
 
     print aml.objective(weights)
     print aml.gradient(weights)

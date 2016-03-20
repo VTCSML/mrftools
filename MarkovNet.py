@@ -16,9 +16,15 @@ class MarkovNet(object):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
         self.unaryPotentials[variable] = potential
         if variable not in self.variables:
+            self.declareVariable(variable, np.size(potential))
+
+    def declareVariable(self, variable, numStates):
+        if variable not in self.variables:
             self.variables.add(variable)
             self.neighbors[variable] = set()
-            self.numStates[variable] = np.size(potential)
+            self.numStates[variable] = numStates
+        else:
+            print("Warning: declaring a variable %s that was previously declared." % repr(variable))
 
     def setEdgeFactor(self, edge, potential):
         """Set a factor by inputting the involved variables then the potential function. The potential function should be a np matrix."""

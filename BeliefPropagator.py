@@ -139,10 +139,10 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            energy += np.sum(self.mn.unaryPotentials[var] * self.varBeliefs[var])
+            energy += self.mn.unaryPotentials[var].dot(np.exp(self.varBeliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
-                    energy += np.sum(self.mn.getPotential((var, neighbor)) * self.pairBeliefs[(var, neighbor)])
+                    energy += np.sum(self.mn.getPotential((var, neighbor)) * np.exp(self.pairBeliefs[(var, neighbor)]))
         return energy
 
     def computeEnergyFunctional(self):
@@ -158,7 +158,7 @@ class BeliefPropagator(object):
             unaryBelief = np.exp(self.varBeliefs[var])
             for neighbor in self.mn.getNeighbors(var):
                 pairBelief = np.sum(np.exp(self.pairBeliefs[(var, neighbor)]), 1)
-                objective += self.messages[(neighbor, var)].dot(pairBelief - unaryBelief)
+                objective += self.messages[(neighbor, var)].dot(unaryBelief - pairBelief)
         return objective
 
 def main():
