@@ -1,7 +1,7 @@
 """BeliefPropagator class."""
 import numpy as np
 from MarkovNet import MarkovNet
-from util import logsumexp
+from scipy.misc import logsumexp
 
 class BeliefPropagator(object):
     """Object that can run belief propagation on a MarkovNet."""
@@ -77,8 +77,8 @@ class BeliefPropagator(object):
         # sum over all states of var
         message = logsumexp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct).T, 0).T
 
-        # normalize message
-        message = message - logsumexp(message)
+        # pseudo-normalize message
+        message = message - np.max(message)
 
         return message
 
@@ -189,7 +189,7 @@ def main():
     #     disagreement = bp.computeInconsistency()
     #     print("Iteration %d, change in messages %f. Calibration disagreement: %f" % (t, change, disagreement))
 
-    bp.runInference()
+    bp.runInference(display='full')
 
 
     bp.computePairwiseBeliefs()
