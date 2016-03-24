@@ -114,11 +114,13 @@ class BeliefPropagator(object):
         iteration = 0
         while change > tolerance:
             change = self.updateMessages()
-            if display == "iter":
+            if display == "full":
                 disagreement = self.computeInconsistency()
                 energyFunc = self.computeEnergyFunctional()
                 dualObj = self.computeDualObjective()
                 print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energyFunc, dualObj))
+            elif display == "iter":
+                print("Iteration %d, change in messages %f." % (iteration, change))
             iteration += 1
 
     def computeBetheEntropy(self):

@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from scipy.optimize import minimize, check_grad
 from BeliefPropagator import BeliefPropagator
+from MatrixCache import MatrixCache
 
 class LogLinearMLE(object):
     """Object that runs approximate maximum likelihood parameter training."""
@@ -65,6 +66,7 @@ class LogLinearMLE(object):
 
     def setWeights(self, weightVector):
         """Set weights of Markov net from vector using the order in self.potentials."""
+        weightCache = MatrixCache()
         for model in self.models:
             j = 0
             for i in range(len(self.potentials)):
@@ -72,13 +74,15 @@ class LogLinearMLE(object):
                     # set pairwise potential
                     pair = self.potentials[i]
                     size = (model.numStates[pair[0]], model.numStates[pair[1]])
-                    model.setEdgeFactor(pair, weightVector[j:j + np.prod(size)].reshape(size))
+                    factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
+                    model.setEdgeFactor(pair, factorWeights)
                     j += np.prod(size)
                 else:
                     # set unary potential
                     var = self.potentials[i]
                     size = (model.numStates[var], model.numFeatures[var])
-                    model.setUnaryWeights(var, weightVector[j:j + np.prod(size)].reshape(size))
+                    factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
+                    model.setUnaryWeights(var, factorWeights)
                     j += np.prod(size)
             model.setAllUnaryFactors()
 
@@ -129,6 +133,7 @@ class LogLinearMLE(object):
 
         for bp in self.beliefPropagators:
             objective += bp.computeEnergyFunctional() / len(self.labels)
+            print "Finished one inference"
 
         return objective
 
