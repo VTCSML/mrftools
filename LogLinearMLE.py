@@ -133,7 +133,7 @@ class LogLinearMLE(object):
 
         for bp in self.beliefPropagators:
             objective += bp.computeEnergyFunctional() / len(self.labels)
-            print "Finished one inference"
+            # print "Finished one inference"
 
         return objective
 
