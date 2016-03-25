@@ -41,7 +41,7 @@ class LogLinearMLE(object):
 
         # create vector representation of data using the same order as self.potentials
         for i in range(len(self.potentials)):
-            if isinstance(self.potentials[i], tuple):
+            if self.potentials[i] not in self.baseModel.variables:
                 # set pairwise state
                 pair = self.potentials[i]
                 table = np.zeros((model.numStates[pair[0]], model.numStates[pair[1]]))
