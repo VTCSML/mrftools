@@ -107,12 +107,12 @@ class BeliefPropagator(object):
                 disagreement += np.sum(np.abs(unaryBelief - pairBelief))
         return disagreement
 
-    def runInference(self, tolerance = 1e-8, display = 'iter'):
+    def runInference(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
 
         iteration = 0
-        while change > tolerance:
+        while change > tolerance and iteration < maxIter:
             change = self.updateMessages()
             if display == "full":
                 disagreement = self.computeInconsistency()
@@ -199,13 +199,13 @@ def main():
     bf = BruteForce(mn)
 
     for i in range(2):
-        print "Brute force unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i)))
-        print "Belief prop unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i)))
+        print ("Brute force unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i))))
+        print ("Belief prop unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i))))
 
-    print "Brute force pairwise marginal: " + repr(bf.pairwiseMarginal(0,1))
-    print "Belief prop pairwise marginal: " + repr(np.exp(bp.pairBeliefs[(0,1)]))
+    print ("Brute force pairwise marginal: " + repr(bf.pairwiseMarginal(0,1)))
+    print ("Belief prop pairwise marginal: " + repr(np.exp(bp.pairBeliefs[(0,1)])))
 
-    print "Bethe energy functional: %f" % bp.computeEnergyFunctional()
+    print ("Bethe energy functional: %f" % bp.computeEnergyFunctional())
 
 
 
