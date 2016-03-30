@@ -75,7 +75,8 @@ class BeliefPropagator(object):
         adjustedMessageProduct = self.varBeliefs[var] - self.messages[(neighbor, var)]
 
         # sum over all states of var
-        message = logsumexp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct).T, 0).T
+        # message = logsumexp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct), 1) # more numerically stable but slow
+        message = np.log(np.sum(np.exp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct)), 1))
 
         # pseudo-normalize message
         message = message - np.max(message)
@@ -110,7 +111,6 @@ class BeliefPropagator(object):
     def runInference(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
-
         iteration = 0
         while change > tolerance and iteration < maxIter:
             change = self.updateMessages()
@@ -122,6 +122,8 @@ class BeliefPropagator(object):
             elif display == "iter":
                 print("Iteration %d, change in messages %f." % (iteration, change))
             iteration += 1
+        if display == 'final' or display == 'full' or display == 'iter':
+            print("Belief propagation finished in %d iterations." % (iteration))
 
     def computeBetheEntropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
@@ -169,15 +171,18 @@ def main():
 
     np.random.seed(1)
 
-    mn.setUnaryFactor(0, np.random.randn(4))
-    mn.setUnaryFactor(1, np.random.randn(3))
-    mn.setUnaryFactor(2, np.random.randn(6))
-    mn.setUnaryFactor(3, np.random.randn(2))
+    k = [4, 3, 6, 2]
+    # k = [4, 4, 4, 4]
 
-    mn.setEdgeFactor((0,1), np.random.randn(4,3))
-    mn.setEdgeFactor((1,2), np.random.randn(3,6))
-    mn.setEdgeFactor((3,2), np.random.randn(2,6))
-    # mn.setEdgeFactor((3,0), np.random.randn(2,4)) # uncomment this to make loopy
+    mn.setUnaryFactor(0, np.random.randn(k[0]))
+    mn.setUnaryFactor(1, np.random.randn(k[1]))
+    mn.setUnaryFactor(2, np.random.randn(k[2]))
+    mn.setUnaryFactor(3, np.random.randn(k[3]))
+
+    mn.setEdgeFactor((0,1), np.random.randn(k[0], k[1]))
+    mn.setEdgeFactor((1,2), np.random.randn(k[1], k[2]))
+    mn.setEdgeFactor((3,2), np.random.randn(k[3], k[2]))
+    # mn.setEdgeFactor((3,0), np.random.randn(k[3], k[0])) # uncomment this to make loopy
 
     print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
     print("Neighbors of 1: " + repr(mn.getNeighbors(1)))

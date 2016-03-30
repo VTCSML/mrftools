@@ -18,6 +18,8 @@ class LogLinearMLE(object):
         self.l1Regularization = 1
         self.l2Regularization = 1
         self.featureSum = 0
+        self.prevWeights = 0
+        self.needInference = True
 
         # set up order of potentials
         self.potentials = []
@@ -66,6 +68,15 @@ class LogLinearMLE(object):
 
     def setWeights(self, weightVector):
         """Set weights of Markov net from vector using the order in self.potentials."""
+        if np.array_equal(weightVector, self.prevWeights):
+            # if using the same weight vector as previously, there is no need to rerun inference
+            # this often happens when computing the objective and the gradient with the same weights
+            self.needInference = False
+            return
+
+        self.prevWeights = weightVector
+        self.needInference = True
+
         weightCache = MatrixCache()
         for model in self.models:
             j = 0
@@ -96,9 +107,10 @@ class LogLinearMLE(object):
         for i in range(len(self.labels)):
             bp = self.beliefPropagators[i]
             model = self.models[i]
-            bp.runInference(display = 'off')
-            bp.computeBeliefs()
-            bp.computePairwiseBeliefs()
+            if self.needInference:
+                bp.runInference(display = 'off')
+                bp.computeBeliefs()
+                bp.computePairwiseBeliefs()
 
             # make vector form of marginals
             marginals = []
