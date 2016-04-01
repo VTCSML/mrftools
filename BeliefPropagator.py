@@ -1,7 +1,6 @@
 """BeliefPropagator class."""
 import numpy as np
 from MarkovNet import MarkovNet
-from scipy.misc import logsumexp
 
 class BeliefPropagator(object):
     """Object that can run belief propagation on a MarkovNet."""
@@ -19,7 +18,7 @@ class BeliefPropagator(object):
         """Initialize messages to default initialization (set to zeros)."""
         for var in self.mn.variables:
             for neighbor in self.mn.getNeighbors(var):
-                self.messages[(var, neighbor)] = - np.log(self.mn.numStates[neighbor])
+                self.messages[(var, neighbor)] = np.zeros(self.mn.numStates[neighbor])
 
     def initBeliefs(self):
         """Initialize beliefs."""
@@ -74,9 +73,10 @@ class BeliefPropagator(object):
         # compute the product of all messages coming into var except the one from neighbor
         adjustedMessageProduct = self.varBeliefs[var] - self.messages[(neighbor, var)]
 
-        # sum over all states of var
-        # message = logsumexp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct), 1) # more numerically stable but slow
-        message = np.log(np.sum(np.exp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct)), 1))
+        # partial log-sum-exp operation
+        matrix = self.mn.getPotential((neighbor, var)) + adjustedMessageProduct
+        # the dot product with ones is slightly faster than calling sum
+        message = np.log(np.exp(matrix - matrix.max()).dot(np.ones(matrix.shape[1])))
 
         # pseudo-normalize message
         message = message - np.max(message)
@@ -164,6 +164,11 @@ class BeliefPropagator(object):
                 pairBelief = np.sum(np.exp(self.pairBeliefs[(var, neighbor)]), 1)
                 objective += self.messages[(neighbor, var)].dot(unaryBelief - pairBelief)
         return objective
+
+def logsumexp(matrix, dim = None):
+    """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
+    maxVal = matrix.max()
+    return np.log(np.sum(np.exp(matrix - maxVal), dim)) + maxVal
 
 def main():
     """Test basic functionality of BeliefPropagator."""
