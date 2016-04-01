@@ -72,9 +72,9 @@ def main():
 
     num_states = 8
     # add node weights
-    weights = np.random.randn( num_states * d)
+    weights = np.zeros( num_states * d)
     # add edge weights
-    weights = np.append(weights, np.random.randn( num_states * num_states))
+    weights = np.append(weights, np.zeros( num_states * num_states))
 
     learner.setRegularization(0, 1) # gradient checking doesn't work well with the l1 regularizer
 
@@ -82,12 +82,15 @@ def main():
     print (learner.objective(weights))
     print ("Gradient:")
     print (learner.gradient(weights))
+    #
+    # print "Gradient check:"
+    # print check_grad(learner.objective, learner.gradient, weights)
 
-    print "Gradient check:"
-    print check_grad(learner.objective, learner.gradient, weights)
+    def printObjective(weights):
+        print("Objective: %f" % (learner.objective(weights)))
 
     print ("Optimization:")
-    res = minimize(learner.objective, weights, method='L-BFGS-B', jac = learner.gradient)
+    res = minimize(learner.objective, weights, method='L-BFGS-B', jac = learner.gradient, callback = printObjective)
     print (res)
 
     f = open('weights.txt','w')
