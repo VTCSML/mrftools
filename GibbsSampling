@@ -1,7 +1,9 @@
 import numpy as np
 from util import logsumexp
 from MarkovNet import MarkovNet
+import pandas as pd
 import random
+from collections import Counter
 
 class Gibbs(object):
     "Object that can run gibbs sampling on a MarkovNet"
@@ -58,13 +60,19 @@ class Gibbs(object):
         for i in range(0, s-1):
             self.updateStates()
 
+    def counter(self, Samples):
+        for var in self.mn.variables:
+            counts = Counter(pd.DataFrame(Samples)[var])
+            print(counts)
+
     def GibbsSampling(self, itr, num, s):
         self.mix(itr)
         self.Sampling(num, s)
-        print(self.Samples)
+        self.counter(self.Samples)
+
 
 def main():
-    """Test basic functionality of Gibbs Sampling."""
+    # """Test basic functionality of BeliefPropagator."""
     mn = MarkovNet()
 
     np.random.seed(1)
@@ -83,10 +91,11 @@ def main():
     gb.initStates()
     print(gb.States)
 
-    Itr = 1000
-    Num = 5
+    Itr = 10000
+    Num = 1000
     s = 1
     gb.GibbsSampling(Itr, Num, s)
+
 
 if  __name__ =='__main__':
     main()
