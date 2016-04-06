@@ -5,6 +5,7 @@ import copy
 from scipy.optimize import minimize, check_grad
 from BeliefPropagator import BeliefPropagator
 from MatrixCache import MatrixCache
+import math
 
 class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
     
@@ -12,9 +13,11 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         super(TemplatedLogLinearMLE, self).__init__(baseModel)
         self.tau_q = []
         self.tau_p = []
-        self.beliefPropagators_p = []
         self.H_p = 0
         self.H_q = 0
+        self.beliefPropagators_p = []
+        self.models_p = []
+        self.term_q_p = 0
 
 
 
@@ -45,37 +48,29 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
         example = []
-        H_q = 0
         model = copy.deepcopy(self.baseModel)
+        model_p = copy.deepcopy(self.baseModel)
         
         # create vector representation of data using the same order as self.potentials
         for i in range(len(self.potentials)):
-            if self.potentials[i] not in self.baseModel.variables:
-                # set pairwise state
-                pair = self.potentials[i]
-
-                table = np.zeros((model.numStates[pair[0]], model.numStates[pair[1]]))
-                if states[pair[0]] != -100 and states[pair[1]] != -100:
-                    table[states[pair[0]], states[pair[1]]] = 1
-            else:
+            if self.potentials[i] in self.baseModel.variables:
                 # set unary data
                 var = self.potentials[i]
                 
                 table = np.zeros((model.numStates[var], len(features[var])))
-                if states[var] != -100:
-                    table[states[var],:] = features[var]
-                
+                model_p.setUnaryFeatures(var, features[var])
                 # set model features
-                if states[var] == -100:
+                if states[var] ==  -100:
                     model.setUnaryFeatures(var, features[var])
                 else:
+                    table[states[var],:] = features[var]
                     factor = np.zeros(model.numStates[var])
                     indx = states[var]
                     factor[indx] = 1
-    #                print 'index: ' + str(indx)
-    #                print 'Unary Factor: '+ str(factor_q)
+#                    factor[indx] = -float('Inf')
                     model.setUnaryFactor(var,factor)
-            
+        
+        
             
             # flatten table and append
             example.extend(table.reshape((-1, 1)).tolist())
@@ -85,187 +80,203 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         self.beliefPropagators.append(bp)
         self.labels.append(np.array(example))
         self.featureSum += np.array(example)
+
+        self.models_p.append(model_p)
+        bp = BeliefPropagator(model_p)
+        self.beliefPropagators_p.append(bp)
         
-        self.tau_q = self.getFeatureExpectations()
-        self.H_q += bp.computeBetheEntropy()
-        
-            
-            
-            
-            
-    def addData_p(self, states, features):
-        example = []
-        model = copy.deepcopy(self.baseModel)
-        
-        # create vector representation of data using the same order as self.potentials
-        for i in range(len(self.potentials)):
-            if self.potentials[i] not in self.baseModel.variables:
-                # set pairwise state
-                pair = self.potentials[i]
-                
-                table = np.zeros((model.numStates[pair[0]], model.numStates[pair[1]]))
-                if states[pair[0]] != -100 and states[pair[1]] != -100:
-                    table[states[pair[0]], states[pair[1]]] = 1
-            else:
-                # set unary data
-                var = self.potentials[i]
-                
-                table = np.zeros((model.numStates[var], len(features[var])))
-                if states[var] != -100:
-                    table[states[var],:] = features[var]
-                
-                # set model features
-                if states[var] != -100:
-                    model.setUnaryFeatures(var, features[var])
-                else:
-                    factor = np.zeros(model.numStates[var])
-                    indx = states[var]
-                    factor[indx] = 1
-                    #                print 'index: ' + str(indx)
-                    #                print 'Unary Factor: '+ str(factor_q)
-                    model.setUnaryFactor(var,factor)
-            
-            
-            # flatten table and append
-            example.extend(table.reshape((-1, 1)).tolist())
-        
-        self.beliefPropagators = []
-        self.models = []
-        self.labels = []
-        self.featureSum = 0
-        
-        self.models.append(model)
-        bp = BeliefPropagator(model)
-        self.beliefPropagators.append(bp)
-        self.labels.append(np.array(example))
-        self.featureSum += np.array(example)
 
-
-        self.tau_p = self.getFeatureExpectations()
-        self.H_p += bp.computeBetheEntropy()
-
-
-    
-
-
-
-
-    def getlabels(self):
-        """Run inference and return the labels.
+    def getFeatureExpectations(self,mode):
+        """Run inference and return the marginal in vector form using the order of self.potentials.
             :rtype: numpy.ndarray
             """
-        Z = []
+        marginalSum = 0
+        self.H_q = 0
+        self.H_p = 0
         for i in range(len(self.labels)):
-            bp = self.beliefPropagators[i]
-            model = self.models[i]
-            if self.needInference:
-                bp.runInference(display = 'off')
-                bp.computeBeliefs()
-                bp.computePairwiseBeliefs()
-                Z1 = []
-                # make vector form of labels
-                Z1 = []
+            if mode == 'q':
+                bp = self.beliefPropagators[i]
+                model = self.models[i]
+                if self.needInference:
+                    bp.runInference(display = 'off')
+                    bp.computeBeliefs()
+                    bp.computePairwiseBeliefs()
+                    self.H_q += bp.computeBetheEntropy()
+        
+            elif mode == 'p':
+                bp = self.beliefPropagators_p[i]
+                model = self.models_p[i]
+                if self.needInference:
+                    bp.runInference(display = 'off')
+                    bp.computeBeliefs()
+                    bp.computePairwiseBeliefs()
+                    self.H_p += bp.computeBetheEntropy()
+            
+            
+            # make vector form of marginals
+            marginals = []
+            for i in range(len(self.potentials)):
+                if isinstance(self.potentials[i], tuple):
+                    # get pairwise belief
+                    table = np.exp(bp.pairBeliefs[self.potentials[i]])
+                else:
+                    # get unary belief and multiply by features
+                    var = self.potentials[i]
+                    table = np.outer(np.exp(bp.varBeliefs[var]), model.unaryFeatures[var])
                 
-                for item in self.potentials:
-                    if isinstance(item, tuple) == False:
-                        Z1.append(np.argmax(bp.varBeliefs[item]))
-#
-                Z.append(Z1)
-
+                # flatten table and append
+                marginals.extend(table.reshape((-1, 1)).tolist())
+            marginalSum += np.array(marginals)
         
-        return Z
+        return marginalSum / len(self.labels)
 
 
 
-
-    def objective(self, weightVector1):
-        """Compute the learning objective with the provided weight vector."""
-
-
-        fullWeightVector = self.createFullWeightVector(weightVector1)
+    def setWeights(self, weightVector,mode):
+        """Set weights of Markov net from vector using the order in self.potentials."""
+        if np.array_equal(weightVector, self.prevWeights):
+            # if using the same weight vector as previously, there is no need to rerun inference
+            # this often happens when computing the objective and the gradient with the same weights
+            self.needInference = False
+            return
         
-#        return super(TemplatedLogLinearMLE, self).objective(fullWeightVector)
-        weightVector = fullWeightVector
+        self.prevWeights = weightVector
+        self.needInference = True
+        if mode == 'q':
+            weightCache = MatrixCache()
+            for model in self.models:
+                j = 0
+                for i in range(len(self.potentials)):
+                    if isinstance(self.potentials[i], tuple):
+                        # set pairwise potential
+                        pair = self.potentials[i]
+                        size = (model.numStates[pair[0]], model.numStates[pair[1]])
+                        factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
+                        model.setEdgeFactor(pair, factorWeights)
+                        j += np.prod(size)
+                    else:
+                        # set unary potential
+                        var = self.potentials[i]
+                        size = (model.numStates[var], model.numFeatures[var])
+                        if np.sum(model.unaryPotentials[var]) != 1:
+#                        if -float('Inf') not in model.unaryPotentials[var]:
+                            factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
+        #                    model.setUnaryWeights(var, factorWeights)
+                            fac = factorWeights.dot(model.unaryFeatures[var])
+                            model.setUnaryFactor(var,fac)
+
+                        j += np.prod(size)
+
+            assert j == len(weightVector)
+
+        elif mode == 'p':
+            weightCache = MatrixCache()
+            for model in self.models_p:
+                j = 0
+                for i in range(len(self.potentials)):
+                    if isinstance(self.potentials[i], tuple):
+                        # set pairwise potential
+                        pair = self.potentials[i]
+                        size = (model.numStates[pair[0]], model.numStates[pair[1]])
+                        factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
+                        model.setEdgeFactor(pair, factorWeights)
+                        j += np.prod(size)
+                    else:
+                        # set unary potential
+                        var = self.potentials[i]
+                        size = (model.numStates[var], model.numFeatures[var])
+                        factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
+                        model.setUnaryWeights(var, factorWeights)
+                        j += np.prod(size)
+                       #                    print model.unaryPotentials[var]
+                model.setAllUnaryFactors()
+
+                assert j == len(weightVector)
+
+
+
+    def E_step(self,weights):
+        self.tau_q = 0
+        fullWeightVector = self.createFullWeightVector(weights)
+        self.setWeights(fullWeightVector,'q')
+        self.tau_q = self.getFeatureExpectations('q')
+        return  -(fullWeightVector.dot(self.tau_q) + self.H_q)
+
     
-#        self.setWeights(weightVector)
-#        featureExpectations = self.getFeatureExpectations()
-
-        objective = 0.0
+    
+    def M_step(self,weights,term_q):
+        self.tau_p = 0
+        self.tau_p = self.getFeatureExpectations('p')
+        fullWeightVector = self.createFullWeightVector(weights)
+        self.setWeights(fullWeightVector,'p')
+        term_p = fullWeightVector.dot(self.tau_p) + self.H_p
+        self.term_q_p = term_q+term_p
+        objective = self.Objective(weights)
+        gradient = self.Gradient(weights)
+#        check_grad(self.Objective, self.Gradient, weights)
+        res = minimize(self.Objective, weights, method='L-BFGS-B', jac = self.Gradient)
+        return res.x
+    
         
+    def Objective(self,weights):
+        #    Objective
+        fullWeightVector = self.createFullWeightVector(weights)
+        self.setWeights(fullWeightVector,'p')
+        
+        objec = 0.0
         # add regularization penalties
-        objective += self.l1Regularization * np.sum(np.abs(weightVector))
-        objective += 0.5 * self.l2Regularization * weightVector.dot(weightVector)
+        objec += self.l1Regularization * np.sum(np.abs(fullWeightVector))
+        objec += 0.5 * self.l2Regularization * fullWeightVector.dot(fullWeightVector)
+        objec += self.term_q_p
         
-        objective += weightVector.dot(self.tau_q) + self.H_q
-        
-        objective -= weightVector.dot(self.tau_p) - self.H_p
-        
-        # add likelihood penalty
-#        objective -= weightVector.dot(self.featureSum / len(self.labels))
-
-#        for bp in self.beliefPropagators:
-#            objective += bp.computeEnergyFunctional() / len(self.labels)
-        # print "Finished one inference"
-        
-        
-        return objective
+        return objec
     
-    
-    
-    
-    
-    def gradient(self, weightVector1):
         
-        fullWeightVector = self.createFullWeightVector(weightVector1)
-        weightVector = fullWeightVector
+    def Gradient(self,weights):
+        #   Gradient
+        fullWeightVector = self.createFullWeightVector(weights)
+        self.setWeights(fullWeightVector,'p')
         
-#        fullGradient = super(TemplatedLogLinearMLE, self).gradient(fullWeightVector)
-
-
-#        self.setWeights(weightVector)
-#        inferredExpectations = self.getFeatureExpectations()
-
-        gradient = np.zeros(len(weightVector))
-
-        # add regularization penalties
-        gradient += self.l1Regularization * np.sign(weightVector)
-        gradient += self.l2Regularization * weightVector
-
-        # add likelihood penalty
-#        gradient += np.squeeze(inferredExpectations - self.featureSum / len(self.labels))
-        gradient +=  np.squeeze(self.tau_q)
-        gradient -=  np.squeeze(self.tau_p)
-
-        fullGradient =   gradient
+        grad = np.zeros(len(fullWeightVector))
+      
+      # add regularization penalties
+        grad += self.l1Regularization * np.sign(fullWeightVector)
+        grad += self.l2Regularization * fullWeightVector
+      
+        grad -=  np.squeeze(self.tau_q)
+        grad +=  np.squeeze(self.tau_p)
+      
+        fullGradient =  grad
+                  
+        
         var = next(iter(self.baseModel.variables))
         numStates = self.baseModel.numStates[var]
         numFeatures = self.baseModel.numFeatures[var]
-        
+      
         unaryGradient = np.zeros(numStates * numFeatures)
         pairwiseGradient = np.zeros(numStates * numStates)
-        
-        # aggregate gradient to templated dimensions
+      
+      # aggregate gradient to templated dimensions
         j = 0
         for i in range(len(self.potentials)):
             if self.potentials[i] in self.baseModel.variables:
-                # set unary potential
-                var = self.potentials[i]
-                size = (numStates, numFeatures)
-                unaryGradient += fullGradient[j:j + np.prod(size)]
-                j += np.prod(size)
+              # set unary potential
+                  var = self.potentials[i]
+                  size = (numStates, numFeatures)
+                  unaryGradient += fullGradient[j:j + np.prod(size)]
+                  j += np.prod(size)
             else:
-                # set pairwise potential
-                pair = self.potentials[i]
-                size = (numStates, numStates)
-                pairwiseGradient += fullGradient[j:j + np.prod(size)]
-                j += np.prod(size)
+                  # set pairwise potential
+                  pair = self.potentials[i]
+                  size = (numStates, numStates)
+                  pairwiseGradient += fullGradient[j:j + np.prod(size)]
+                  j += np.prod(size)
+              
+        grad = np.append(unaryGradient, pairwiseGradient)
         
-            return np.append(unaryGradient, pairwiseGradient)
-
-
-
-
-
-
+        return grad
+        
+        
+                  
 
 
