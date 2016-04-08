@@ -45,7 +45,6 @@ def main():
     weights = np.random.randn( num_states * d)
     # add edge weights
     weights = np.append(weights, np.random.randn( num_states * num_states))
-    print weights
 
 
 
@@ -87,15 +86,14 @@ def main():
         # =====================================
         # E-step: inference
         # =====================================
-        term_q = learner.E_step(weights)
+        learner.E_step(weights)
 
 
         # =====================================
         # M-step: learning parameters
         # =====================================
-        weights = learner.M_step(weights,term_q)
+        weights = learner.M_step(weights)
         print weights
-
 
 
 
