@@ -21,30 +21,6 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
 
 
 
-    def createFullWeightVector(self, weightVector):
-        var = next(iter(self.baseModel.variables))
-        numStates = self.baseModel.numStates[var]
-        numFeatures = self.baseModel.numFeatures[var]
-        
-        assert len(weightVector) == numStates * numStates + numStates * numFeatures
-        
-        unaryWeights = weightVector[0:numStates * numFeatures].tolist()
-        pairWeights = weightVector[numStates * numFeatures:].tolist()
-        
-        fullWeightVector = []
-        
-        for i in range(len(self.potentials)):
-            if self.potentials[i] in self.baseModel.variables:
-                # set unary potential
-                fullWeightVector.extend(unaryWeights)
-            else:
-                # set pairwise potential
-                fullWeightVector.extend(pairWeights)
-        
-        return np.array(fullWeightVector)
-
-
-
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
         example = []
@@ -64,10 +40,9 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                     model.setUnaryFeatures(var, features[var])
                 else:
                     table[states[var],:] = features[var]
-                    factor = np.zeros(model.numStates[var])
+                    factor = np.zeros(model.numStates[var]) -float('Inf')
                     indx = states[var]
-                    factor[indx] = 1
-#                    factor[indx] = -float('Inf')
+                    factor[indx] = 0
                     model.setUnaryFactor(var,factor)
         
         
@@ -86,6 +61,18 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         self.beliefPropagators_p.append(bp)
         
 
+
+    def getBetheEntropy(self,bp,model):
+        betheEntropy = 0
+        if self.needInference:
+            bp.runInference(display = 'off')
+            bp.computeBeliefs()
+            bp.computePairwiseBeliefs()
+            betheEntropy = bp.computeBetheEntropy()
+        
+        return betheEntropy
+
+
     def getFeatureExpectations(self,mode):
         """Run inference and return the marginal in vector form using the order of self.potentials.
             :rtype: numpy.ndarray
@@ -93,30 +80,21 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         marginalSum = 0
         self.H_q = 0
         self.H_p = 0
+            
         for i in range(len(self.labels)):
             if mode == 'q':
                 bp = self.beliefPropagators[i]
                 model = self.models[i]
-                if self.needInference:
-                    bp.runInference(display = 'off')
-                    bp.computeBeliefs()
-                    bp.computePairwiseBeliefs()
-                    self.H_q += bp.computeBetheEntropy()
-        
+                self.H_q += self.getBetheEntropy(bp,model)
             elif mode == 'p':
                 bp = self.beliefPropagators_p[i]
                 model = self.models_p[i]
-                if self.needInference:
-                    bp.runInference(display = 'off')
-                    bp.computeBeliefs()
-                    bp.computePairwiseBeliefs()
-                    self.H_p += bp.computeBetheEntropy()
-            
-            
+                self.H_p += self.getBetheEntropy(bp,model)
+        
             # make vector form of marginals
             marginals = []
             for i in range(len(self.potentials)):
-                if isinstance(self.potentials[i], tuple):
+                if self.potentials[i] not in self.baseModel.variables:
                     # get pairwise belief
                     table = np.exp(bp.pairBeliefs[self.potentials[i]])
                 else:
@@ -127,6 +105,9 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 # flatten table and append
                 marginals.extend(table.reshape((-1, 1)).tolist())
             marginalSum += np.array(marginals)
+        
+        self.H_q = self.H_q / len(self.labels)
+        self.H_p = self.H_p / len(self.labels)
         
         return marginalSum / len(self.labels)
 
@@ -147,7 +128,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             for model in self.models:
                 j = 0
                 for i in range(len(self.potentials)):
-                    if isinstance(self.potentials[i], tuple):
+                    if self.potentials[i] not in self.baseModel.variables:
                         # set pairwise potential
                         pair = self.potentials[i]
                         size = (model.numStates[pair[0]], model.numStates[pair[1]])
@@ -158,8 +139,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                         # set unary potential
                         var = self.potentials[i]
                         size = (model.numStates[var], model.numFeatures[var])
-                        if np.sum(model.unaryPotentials[var]) != 1:
-#                        if -float('Inf') not in model.unaryPotentials[var]:
+                        if -float('Inf') not in model.unaryPotentials[var]:
                             factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
         #                    model.setUnaryWeights(var, factorWeights)
                             fac = factorWeights.dot(model.unaryFeatures[var])
@@ -174,7 +154,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             for model in self.models_p:
                 j = 0
                 for i in range(len(self.potentials)):
-                    if isinstance(self.potentials[i], tuple):
+                    if self.potentials[i] not in self.baseModel.variables:
                         # set pairwise potential
                         pair = self.potentials[i]
                         size = (model.numStates[pair[0]], model.numStates[pair[1]])
@@ -196,21 +176,12 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
 
 
     def E_step(self,weights):
-        self.tau_q = 0
         fullWeightVector = self.createFullWeightVector(weights)
         self.setWeights(fullWeightVector,'q')
         self.tau_q = self.getFeatureExpectations('q')
-        return  -(fullWeightVector.dot(self.tau_q) + self.H_q)
-
     
     
-    def M_step(self,weights,term_q):
-        self.tau_p = 0
-        self.tau_p = self.getFeatureExpectations('p')
-        fullWeightVector = self.createFullWeightVector(weights)
-        self.setWeights(fullWeightVector,'p')
-        term_p = fullWeightVector.dot(self.tau_p) + self.H_p
-        self.term_q_p = term_q+term_p
+    def M_step(self,weights):
         objective = self.Objective(weights)
         gradient = self.Gradient(weights)
 #        check_grad(self.Objective, self.Gradient, weights)
@@ -219,9 +190,12 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
     
         
     def Objective(self,weights):
-        #    Objective
         fullWeightVector = self.createFullWeightVector(weights)
         self.setWeights(fullWeightVector,'p')
+        self.tau_p = self.getFeatureExpectations('p')
+        term_p = fullWeightVector.dot(self.tau_p) + self.H_p
+        term_q = -(fullWeightVector.dot(self.tau_q) + self.H_q)
+        self.term_q_p = term_q+term_p
         
         objec = 0.0
         # add regularization penalties
