@@ -80,7 +80,7 @@ def main():
             
            
            
-    maxIter = 10
+    maxIter = 20
     for i in range(maxIter):
         print 'step: ' + str(i)
         # =====================================
@@ -94,9 +94,6 @@ def main():
         # =====================================
         weights = learner.M_step(weights)
         print weights
-
-
-
 
 
 # =====================================
@@ -119,7 +116,7 @@ def main():
             bp.runInference()
             bp.computePairwiseBeliefs()
 
-
+            
             Z = []
             for i in range(1,num_pixels+1):
                 Z.append(np.argmax(bp.varBeliefs[i]))
