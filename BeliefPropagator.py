@@ -1,6 +1,10 @@
 """BeliefPropagator class."""
 import numpy as np
 from MarkovNet import MarkovNet
+from scipy.misc import logsumexp
+from blaze import nan
+from numba.targets.builtins import NAN
+from scipy import NaN
 
 class BeliefPropagator(object):
     """Object that can run belief propagation on a MarkovNet."""
@@ -18,7 +22,7 @@ class BeliefPropagator(object):
         """Initialize messages to default initialization (set to zeros)."""
         for var in self.mn.variables:
             for neighbor in self.mn.getNeighbors(var):
-                self.messages[(var, neighbor)] = np.zeros(self.mn.numStates[neighbor])
+                self.messages[(var, neighbor)] = - np.log(self.mn.numStates[neighbor])
 
     def initBeliefs(self):
         """Initialize beliefs."""
@@ -41,6 +45,7 @@ class BeliefPropagator(object):
         """Compute unary beliefs based on current messages."""
         for var in self.mn.variables:
             belief = self.mn.unaryPotentials[var]
+#            print 'belief: ' + str(var) + str(belief)
             for neighbor in self.mn.getNeighbors(var):
                 belief = belief + self.messages[(neighbor, var)]
             logZ = logsumexp(belief)
@@ -73,10 +78,9 @@ class BeliefPropagator(object):
         # compute the product of all messages coming into var except the one from neighbor
         adjustedMessageProduct = self.varBeliefs[var] - self.messages[(neighbor, var)]
 
-        # partial log-sum-exp operation
-        matrix = self.mn.getPotential((neighbor, var)) + adjustedMessageProduct
-        # the dot product with ones is slightly faster than calling sum
-        message = np.log(np.exp(matrix - matrix.max()).dot(np.ones(matrix.shape[1])))
+        # sum over all states of var
+        # message = logsumexp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct), 1) # more numerically stable but slow
+        message = np.log(np.sum(np.exp((self.mn.getPotential((neighbor, var)) + adjustedMessageProduct)), 1))
 
         # pseudo-normalize message
         message = message - np.max(message)
@@ -131,10 +135,16 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            entropy += -(1 - len(neighbors)) * np.sum(np.exp(self.varBeliefs[var]) * self.varBeliefs[var])
+            if np.nan_to_num(np.sum(np.exp(self.varBeliefs[var]) * self.varBeliefs[var])) == 0:
+                entropy += -(1 - len(neighbors)) * 0
+            else:
+                entropy += -(1 - len(neighbors)) * np.sum(np.exp(self.varBeliefs[var]) * self.varBeliefs[var])
             for neighbor in neighbors:
                 if var < neighbor:
-                    entropy += -np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)])
+                    if np.nan_to_num(np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)])) == 0:
+                        entropy += 0
+                    else:
+                        entropy += -np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)])
         return entropy
 
     def computeEnergy(self):
@@ -164,11 +174,6 @@ class BeliefPropagator(object):
                 pairBelief = np.sum(np.exp(self.pairBeliefs[(var, neighbor)]), 1)
                 objective += self.messages[(neighbor, var)].dot(unaryBelief - pairBelief)
         return objective
-
-def logsumexp(matrix, dim = None):
-    """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
-    maxVal = matrix.max()
-    return np.log(np.sum(np.exp(matrix - maxVal), dim)) + maxVal
 
 def main():
     """Test basic functionality of BeliefPropagator."""
