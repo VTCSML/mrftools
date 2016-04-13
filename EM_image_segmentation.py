@@ -25,6 +25,7 @@ from PIL import Image
 import time
 from functions import *
 from TemplatedLogLinearMLE_EM import *
+import time
 
 
 
@@ -82,20 +83,29 @@ def main():
            
     maxIter = 20
     for i in range(maxIter):
-        print 'step: ' + str(i)
-        # =====================================
-        # E-step: inference
-        # =====================================
-        learner.E_step(weights)
+        tic = time.clock()
 
-
-        # =====================================
-        # M-step: learning parameters
-        # =====================================
-        weights = learner.M_step(weights)
+# #         print 'step: ' + str(i)
+#         # =====================================
+#         # E-step: inference
+#         # =====================================
+#         learner.E_step(weights)
+#  
+#  
+#         # =====================================
+#         # M-step: learning parameters
+#         # =====================================
+#         weights = learner.M_step(weights)
+        
+        
+        
+        weights = learner.pairdDual_Learning(weights)
         print weights
+        
+        
+        toc = time.clock()
 
-
+        print 'time: ' + str(toc - tic)
 # =====================================
 # Testing
 # =====================================
@@ -120,14 +130,17 @@ def main():
             Z = []
             for i in range(1,num_pixels+1):
                 Z.append(np.argmax(bp.varBeliefs[i]))
+            true_label =  Load_Resize_Label(test_path+file[:-4]+"_label.txt", height, width)
 
             Z1 = np.reshape(Z,(height,width))
+            
+#             print true_label
+#             print Z1            
 
             # Plot segmented image
-            Plot_Segmented(Z1,test_path+file)
+            Plot_Segmented(Z1,test_path+file,height,width)
+            print sum(true_label == Z1)
 
             
-
-
 if __name__ == "__main__":
     main()
