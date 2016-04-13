@@ -29,14 +29,33 @@ import time
 # =====================================
 # Plot images alog with segmentation
 # =====================================
-def Plot_Segmented(segment_image,original_image):
+def Plot_Segmented(segment_image,original_image,height,width):
+    lbl_small = Load_Resize_Label(original_image[:-4]+"_label.txt",height,width)
+    lbl_sm = create_img(lbl_small)
+    small_im = Resize_Image(original_image,width,width)
+     
     img = matplotlib.image.imread(original_image)
     seg_img = create_img(segment_image)
     fig = plt.figure()
-    a=fig.add_subplot(1,2,1)
+    a=fig.add_subplot(1,4,1)
+    a.set_title('original image')
     plt.imshow(img)
-    a=fig.add_subplot(1,2,2)
+    
+    a=fig.add_subplot(1,4,2)
+    a.set_title('resized image')
+    plt.imshow(small_im)
+
+    a=fig.add_subplot(1,4,3)
+    a.set_title('resized true label')
+    plt.imshow(lbl_sm)
+
+    
+    a=fig.add_subplot(1,4,4)
+    a.set_title('predicted label')
     plt.imshow(seg_img)
+
+    
+#     plt.title('original image','resized image','resized true label','predicted label')
     plt.show()
 #            fig.savefig(file[:-4]+".pdf")
 
@@ -44,6 +63,8 @@ def Plot_Segmented(segment_image,original_image):
 # Create image using pixel labels
 # =====================================
 color_dic = { 0:[[160,160,160],'gray'],1:[[153,153,0],'dark green'],2:[[102,0,204],'purple'],3:[[0,153,76],'green'],4:[[0,51,102],'blue'],5:[[102,0,0],'dark red'],6:[[153,76,0],'brown'],7:[[255,153,51],'orange']}
+
+numStates = 8
 
 def create_img(Z1):
 
@@ -61,11 +82,14 @@ def create_img(Z1):
 # =====================================
 def Load_Resize_Image(image,height,width):
     imgt = Image.open(image)
-    small_img = imgt.resize((width,height))
+    small_img = imgt.resize((width,height),resample = PIL.Image.NEAREST)
     small_pix =  small_img.load()
     return small_pix
 
-
+def Resize_Image(image,height,width):
+    imgt = Image.open(image)
+    small_img = imgt.resize((width,height),resample = PIL.Image.NEAREST)
+    return small_img
 # =====================================
 # Load and Resize Label
 # =====================================
@@ -85,9 +109,18 @@ def Load_Resize_Label(label,height,width):
     
     
     img_lbl = Image.fromarray(lbl.astype(np.uint8))
+
+#     [w,h] = lbl.shape 
+#     for i in range(0,h):
+#         for j in range(0,w):
+#             print lbl[j,i]
+#             print img_lbl.getpixel((i,j))
     
     
-    small_l = img_lbl.resize((width,height))
+    
+    
+    
+    small_l = img_lbl.resize((width,height),resample = PIL.Image.NEAREST )
     
     aa = np.array(list(small_l.getdata()))
     lbl_small = np.reshape(aa,(height,width))
@@ -250,6 +283,7 @@ def Create_MarkovNet(height,width,w_unary,w_pair,pixels):
     for i in range(0,height):
         for j in range(0,width):
             mn.setUnaryFactor(k,np.dot(w_unary,pixels[j,i]))
+
             k += 1
 
 #    print ('setUnaryFactor done------')
