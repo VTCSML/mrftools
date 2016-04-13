@@ -87,7 +87,6 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 bp = self.beliefPropagators[i]
                 model = self.models[i]
                 self.H_q += self.getBetheEntropy(bp,model)
-                print self.H_q
             elif mode == 'p':
                 bp = self.beliefPropagators_p[i]
                 model = self.models_p[i]
@@ -110,6 +109,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         
         self.H_q = self.H_q / len(self.labels)
         self.H_p = self.H_p / len(self.labels)
+        
         
         return marginalSum / len(self.labels)
 
@@ -178,19 +178,30 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
 
 
 
+    def subgrad_obj(self,weights):
+        self.E_step(weights)
+        return self.Objective(weights)
+    
+    def subgrad_grad(self,weights):
+        self.E_step(weights)
+        return self.Gradient(weights)
+    
+    def pairdDual_Learning(self,weights):
+        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac = self.subgrad_grad)
+        return res.x
+        
 
     def E_step(self,weights):
-        print 'E_step................'
+#         print 'E_step................'
         fullWeightVector = self.createFullWeightVector(weights)
         self.setWeights(fullWeightVector,'q')
         self.tau_q = self.getFeatureExpectations('q')
-#         print self.tau_q
     
     
     def M_step(self,weights):
-        print 'M_step...............'
-#         objective = self.Objective(weights)
-#         gradient = self.Gradient(weights)
+#         print 'M_step.................'
+        objective = self.Objective(weights)
+        gradient = self.Gradient(weights)
 #        check_grad(self.Objective, self.Gradient, weights)
         res = minimize(self.Objective, weights, method='L-BFGS-B', jac = self.Gradient)
         return res.x
