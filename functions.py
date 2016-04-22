@@ -32,7 +32,7 @@ import time
 def Plot_Segmented(segment_image,original_image,height,width):
     lbl_small = Load_Resize_Label(original_image[:-4]+"_label.txt",height,width)
     lbl_sm = create_img(lbl_small)
-    small_im = Resize_Image(original_image,width,width)
+    small_im = Load_Resize_Image(original_image,width,width)
      
     img = matplotlib.image.imread(original_image)
     seg_img = create_img(segment_image)
@@ -64,7 +64,6 @@ def Plot_Segmented(segment_image,original_image,height,width):
 # =====================================
 color_dic = { 0:[[160,160,160],'gray'],1:[[153,153,0],'dark green'],2:[[102,0,204],'purple'],3:[[0,153,76],'green'],4:[[0,51,102],'blue'],5:[[102,0,0],'dark red'],6:[[153,76,0],'brown'],7:[[255,153,51],'orange']}
 
-numStates = 8
 
 def create_img(Z1):
 
@@ -83,13 +82,10 @@ def create_img(Z1):
 def Load_Resize_Image(image,height,width):
     imgt = Image.open(image)
     small_img = imgt.resize((width,height),resample = PIL.Image.NEAREST)
-    small_pix =  small_img.load()
-    return small_pix
-
-def Resize_Image(image,height,width):
-    imgt = Image.open(image)
-    small_img = imgt.resize((width,height),resample = PIL.Image.NEAREST)
     return small_img
+#     small_pix =  small_img.load()
+#     return small_pix
+
 # =====================================
 # Load and Resize Label
 # =====================================
@@ -133,15 +129,15 @@ def Load_Resize_Label(label,height,width):
 # =====================================
 # Create Log linear model
 # =====================================
-def Create_LogLinearModel(height,width,d):
+def Create_LogLinearModel(height,width,d,numStates):
     num_pixels = height * width
     model = LogLinearModel()
 
     num_edge = 0
 
     for i in range(1,num_pixels+1):
-        model.declareVariable(i, 8)
-        model.setUnaryWeights(i,np.random.randn(8, d))
+        model.declareVariable(i, numStates)
+        model.setUnaryWeights(i,np.random.randn(numStates, d))
         model.setUnaryFeatures(i, np.random.randn(d))
 
 
@@ -168,99 +164,99 @@ def Create_LogLinearModel(height,width,d):
 
     all_edges = set()
 
-    model.setEdgeFactor((1,2),np.eye(8))
+    model.setEdgeFactor((1,2),np.eye(numStates))
     all_edges.add((1,2))
-    model.setEdgeFactor((1,1+width),np.eye(8))
+    model.setEdgeFactor((1,1+width),np.eye(numStates))
     all_edges.add((1,1+width))
 
 
-    model.setEdgeFactor((width,width-1),np.eye(8))
+    model.setEdgeFactor((width,width-1),np.eye(numStates))
     all_edges.add((width,width-1))
-    model.setEdgeFactor((width,width+width),np.eye(8))
+    model.setEdgeFactor((width,width+width),np.eye(numStates))
     all_edges.add((width,width+width))
 
 
-    model.setEdgeFactor((left_ind,left_ind +1),np.eye(8))
+    model.setEdgeFactor((left_ind,left_ind +1),np.eye(numStates))
     all_edges.add((left_ind,left_ind +1))
-    model.setEdgeFactor((left_ind,left_ind - width),np.eye(8))
+    model.setEdgeFactor((left_ind,left_ind - width),np.eye(numStates))
     all_edges.add((left_ind,left_ind - width))
 
 
-    model.setEdgeFactor((num_pixels,num_pixels - 1),np.eye(8))
+    model.setEdgeFactor((num_pixels,num_pixels - 1),np.eye(numStates))
     all_edges.add((num_pixels,num_pixels - 1))
-    model.setEdgeFactor((num_pixels,num_pixels - width),np.eye(8))
+    model.setEdgeFactor((num_pixels,num_pixels - width),np.eye(numStates))
     all_edges.add((num_pixels,num_pixels - width))
 
 
     for i in (left_pixels):
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges :
-            model.setEdgeFactor((i,i+1),np.eye(8))
+            model.setEdgeFactor((i,i+1),np.eye(numStates))
             all_edges.add((i,i+1))
         
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.setEdgeFactor((i,i-width),np.eye(8))
+            model.setEdgeFactor((i,i-width),np.eye(numStates))
             all_edges.add((i,i-width))
         
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.setEdgeFactor((i,i+width),np.eye(8))
+            model.setEdgeFactor((i,i+width),np.eye(numStates))
             all_edges.add((i,i+width))
 
 
     for i in (right_pixels):
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.setEdgeFactor((i,i-1),np.eye(8))
+            model.setEdgeFactor((i,i-1),np.eye(numStates))
             all_edges.add((i,i-1))
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.setEdgeFactor((i,i-width),np.eye(8))
+            model.setEdgeFactor((i,i-width),np.eye(numStates))
             all_edges.add((i,i-width))
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.setEdgeFactor((i,i+width),np.eye(8))
+            model.setEdgeFactor((i,i+width),np.eye(numStates))
             all_edges.add((i,i+width))
 
 
     for i in  up_pixels:
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            model.setEdgeFactor((i,i+1),np.eye(8))
+            model.setEdgeFactor((i,i+1),np.eye(numStates))
             all_edges.add((i,i+1))
         
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.setEdgeFactor((i,i-1),np.eye(8))
+            model.setEdgeFactor((i,i-1),np.eye(numStates))
             all_edges.add((i,i-1))
         
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.setEdgeFactor((i,i+width),np.eye(8))
+            model.setEdgeFactor((i,i+width),np.eye(numStates))
             all_edges.add((i,i+width))
 
 
 
     for i in  down_pixels:
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            model.setEdgeFactor((i,i+1),np.eye(8))
+            model.setEdgeFactor((i,i+1),np.eye(numStates))
             all_edges.add((i,i+1))
         
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.setEdgeFactor((i,i-1),np.eye(8))
+            model.setEdgeFactor((i,i-1),np.eye(numStates))
             all_edges.add((i,i-1))
         
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.setEdgeFactor((i,i-width),np.eye(8))
+            model.setEdgeFactor((i,i-width),np.eye(numStates))
             all_edges.add((i,i-width))
 
 
     for i in (usual_pixels):
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            model.setEdgeFactor((i,i+1),np.eye(8))
+            model.setEdgeFactor((i,i+1),np.eye(numStates))
             all_edges.add((i,i+1))
         
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.setEdgeFactor((i,i-1),np.eye(8))
+            model.setEdgeFactor((i,i-1),np.eye(numStates))
             all_edges.add((i,i-1))
         
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.setEdgeFactor((i,i-width),np.eye(8))
+            model.setEdgeFactor((i,i-width),np.eye(numStates))
             all_edges.add((i,i-width))
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.setEdgeFactor((i,i+width),np.eye(8))
+            model.setEdgeFactor((i,i+width),np.eye(numStates))
             all_edges.add((i,i+width))
 
 
