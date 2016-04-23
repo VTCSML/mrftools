@@ -1,7 +1,7 @@
 """Class to convert from log linear model to MRF"""
 
 from MarkovNet import MarkovNet
-import numpy as np
+import autograd.numpy as np
 
 
 class LogLinearModel(MarkovNet):
@@ -18,7 +18,7 @@ class LogLinearModel(MarkovNet):
         """Set the log-linear weights for the unary features of var.
         :type weights: np.ndarray
         """
-        assert isinstance(weights, np.ndarray)
+        # assert isinstance(weights, np.ndarray)
         assert np.shape(weights)[0] == self.numStates[var]
         self.unaryFeatureWeights[var] = weights
 
@@ -35,7 +35,7 @@ class LogLinearModel(MarkovNet):
 
     def setAllUnaryFactors(self):
         for var in self.variables:
-            self.setUnaryFactor(var, self.unaryFeatureWeights[var].dot(self.unaryFeatures[var]))
+            self.setUnaryFactor(var, np.dot(self.unaryFeatureWeights[var], self.unaryFeatures[var]))
 
 
 def main():

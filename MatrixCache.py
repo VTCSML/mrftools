@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 import hashlib
 
 class MatrixCache(object):
@@ -13,7 +13,7 @@ class MatrixCache(object):
         :type matrix: ndarray
         """
         # key = HashableMatrix(matrix)
-        key = tuple([x for x in matrix.flat]) + matrix.shape
+        key = tuple([x for x in matrix.flatten()]) + matrix.shape
         if key in self.matrices:
             # get the cached version identical to the input matrix
             return self.matrices[key]

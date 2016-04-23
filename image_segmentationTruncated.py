@@ -28,6 +28,7 @@ import PIL
 from PIL import Image
 import time
 from functionsHorse import *
+from autograd.util import quick_grad_check
 
 
 
@@ -96,12 +97,12 @@ def main():
         print("Objective: %f" % (learner.objective(weights)))
 
     # Check the gradients numerically, just to be safe
-    #quick_grad_check(training_loss, weights)
+    quick_grad_check(learner.objective, weights)
 
 
     print ("Optimization:")
-    res = minimize(training_loss_and_grad, weights, method='CG', jac = True, callback = callback)
-    print ()
+    res = minimize(training_loss_and_grad, weights, method='L-BFGS-b', jac = True, callback = callback)
+    print res
 
     f = open('weights.txt','w')
     for item in res.x:

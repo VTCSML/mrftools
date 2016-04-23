@@ -1,5 +1,5 @@
 """Markov network class for storing potential functions and structure."""
-import numpy as np
+import autograd.numpy as np
 
 class MarkovNet(object):
     """Object containing the definition of a pairwise Markov net."""

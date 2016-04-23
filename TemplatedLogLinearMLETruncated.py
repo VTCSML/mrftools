@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 from LogLinearMLETruncated import LogLinearMLE
 
 class TemplatedLogLinearMLE(LogLinearMLE):
@@ -31,7 +31,6 @@ class TemplatedLogLinearMLE(LogLinearMLE):
     def objective(self, weightVector):
         
         fullWeightVector = self.createFullWeightVector(weightVector)
-        
         return super(TemplatedLogLinearMLE, self).objective(fullWeightVector)
     
     def gradient(self, weightVector):

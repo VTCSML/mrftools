@@ -129,7 +129,7 @@ class LogLinearMLE(object):
                     table = np.outer(np.exp(bp.varBeliefs[var]), model.unaryFeatures[var])
 
                 # flatten table and append
-                marginals.extend(table.reshape((-1, 1)).tolist())
+                marginals.extend(list(table.reshape((-1, 1))))
             marginalSum += np.array(marginals)
 
         return marginalSum / len(self.labels)
@@ -142,10 +142,9 @@ class LogLinearMLE(object):
         objective = 0.0
         # add regularization penalties
         #objective += self.l1Regularization * np.sum(np.abs(weightVector))
-        objective += 0.5 * self.l2Regularization * weightVector.dot(weightVector)
+        objective += 0.5 * self.l2Regularization * np.dot(weightVector, weightVector)
         # add likelihood penalty
-        #objective -= np.dot(weightVector,(self.featureSum / len(self.labels)))
-        objective -= weightVector.dot((self.featureSum / len(self.labels)))
+        objective -= np.dot(weightVector, (self.featureSum / len(self.labels)))
 
         for bp in self.beliefPropagators:
             objective += bp.computeEnergyFunctional() / len(self.labels)

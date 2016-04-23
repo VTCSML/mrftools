@@ -80,7 +80,7 @@ class BeliefPropagator(object):
         # partial log-sum-exp operation
         matrix = self.mn.getPotential((neighbor, var)) + adjustedMessageProduct
         # the dot product with ones is slightly faster than calling sum
-        message = np.log(np.exp(matrix - matrix.max()).dot(np.ones(matrix.shape[1])))
+        message = np.log(np.dot(np.exp(matrix - matrix.max()), np.ones(matrix.shape[1])))
 
         # pseudo-normalize message
         message = message - np.max(message)
@@ -154,7 +154,7 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            energy += self.mn.unaryPotentials[var].dot(np.exp(self.varBeliefs[var]))
+            energy += np.dot(self.mn.unaryPotentials[var], np.exp(self.varBeliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
                     energy += np.sum(self.mn.getPotential((var, neighbor)) * np.exp(self.pairBeliefs[(var, neighbor)]))
