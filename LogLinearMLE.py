@@ -1,5 +1,5 @@
 from LogLinearModel import LogLinearModel
-import numpy as np
+import autograd.numpy as np
 import copy
 from scipy.optimize import minimize, check_grad
 from BeliefPropagator import BeliefPropagator
@@ -137,11 +137,11 @@ class LogLinearMLE(object):
         objective = 0.0
 
         # add regularization penalties
-        objective += self.l1Regularization * np.sum(np.abs(weightVector))
-        objective += 0.5 * self.l2Regularization * weightVector.dot(weightVector)
+        # objective += self.l1Regularization * np.sum(np.abs(weightVector))
+        objective += 0.5 * self.l2Regularization * np.dot(weightVector, weightVector)
 
         # add likelihood penalty
-        objective -= weightVector.dot(self.featureSum / len(self.labels))
+        objective -= np.dot(weightVector, self.featureSum / len(self.labels))
 
         for bp in self.beliefPropagators:
             objective += bp.computeEnergyFunctional() / len(self.labels)

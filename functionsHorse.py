@@ -16,9 +16,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 #import MarkovNet
 from MarkovNet import MarkovNet
-from BeliefPropagatorTruncated import BeliefPropagator
 from LogLinearModel import LogLinearModel
-from LogLinearMLETruncated import LogLinearMLE
 from scipy.optimize import minimize, check_grad
 from TemplatedLogLinearMLETruncated import TemplatedLogLinearMLE
 import PIL
@@ -81,7 +79,7 @@ def Accuracy(segment_image,original_image,height,width):
 # =====================================
 # Create image using pixel labels
 # =====================================
-color_dic = { 0:[[0],'black'],1:[[1],'white']}
+color_dic = { 0:[[0],'black'], 1:[[1],'white'], 2:[[.2], 'gray 2'], 3:[[.3], 'gray 3'], 4:[[.4], 'gray 4'], 5:[[.5], 'gray 5'], 6:[[.6], 'gray 6'], 7:[[.7], 'gray 7']}
 
 
 

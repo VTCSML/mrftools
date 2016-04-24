@@ -19,16 +19,15 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 #import MarkovNet
 from MarkovNet import MarkovNet
-from BeliefPropagatorTruncated import BeliefPropagator
 from LogLinearModel import LogLinearModel
-from LogLinearMLETruncated import LogLinearMLE
 from scipy.optimize import minimize, check_grad
-from TemplatedLogLinearMLETruncated import TemplatedLogLinearMLE
+from TemplatedLogLinearMLETruncated import TemplatedLogLinearMLETruncated
 import PIL
 from PIL import Image
 import time
 from functionsHorse import *
 from autograd.util import quick_grad_check
+from BeliefPropagator import BeliefPropagator
 
 
 
@@ -43,9 +42,9 @@ def main():
     width = 10
     num_pixels = height * width
     d = 3
-    num_states = 2
+    num_states = 8
     model = Create_LogLinearModel(height,width,d, num_states)
-    learner = TemplatedLogLinearMLE(model)
+    learner = TemplatedLogLinearMLETruncated(model, 3)
 
     # =====================================
     # Load images and resize them
@@ -53,7 +52,7 @@ def main():
 
     train_path = "./train/"
     for file in os.listdir(train_path):
-        if file.endswith(".png"):
+        if file.endswith(".jpg") or file.endswith(".png"):
             
             small_pix = Load_Resize_Image(train_path+file,height,width).load()
             lbl_small = Load_Resize_Label(train_path+file[:-4]+"_label.txt",height,width)
@@ -89,19 +88,28 @@ def main():
     print ("Objective:")
     print (objective)
 
-    #
     # print "Gradient check:"
     # print check_grad(learner.objective, learner.gradient, weights)
 
-    def callback(weights):
+    def printObj(weights):
         print("Objective: %f" % (learner.objective(weights)))
+
+    def printObjAndGradCheck(weights):
+        print("Objective: %f" % (learner.objective(weights)))
+        quick_grad_check(learner.objective, weights)
 
     # Check the gradients numerically, just to be safe
     quick_grad_check(learner.objective, weights)
 
 
     print ("Optimization:")
-    res = minimize(training_loss_and_grad, weights, method='L-BFGS-b', jac = True, callback = callback)
+    # res = minimize(training_loss_and_grad, weights, method='L-BFGS-b', jac = True, printObj = printObj)
+    # res = minimize(learner.objective, weights, method='L-BFGS-b', jac = gradient, printObj = printObj)
+    res = minimize(learner.objective, weights, method='L-BFGS-b', jac = learner.gradient, callback = printObj, options = {'maxiter': 10})
+
+    weights = res.x
+    quick_grad_check(learner.objective, weights)
+    res = minimize(training_loss_and_grad, weights, method='L-BFGS-b', jac = True, callback = printObjAndGradCheck)
     print res
 
     f = open('weights.txt','w')
@@ -122,13 +130,13 @@ def main():
 
     test_path = "./test/"
     for file in os.listdir(test_path):
-        if file.endswith('.png'):
+        if file.endswith(".jpg") or file.endswith(".png"):
 
             pixels = Load_Resize_Image(test_path+file,height,width).load()
             mn = Create_MarkovNet(height,width,w_unary,w_pair,pixels)
 
             bp = BeliefPropagator(mn)
-            bp.runTruncatedInference(display = 'iter')
+            bp.runInference(display = 'iter', maxIter = 3)
             bp.computePairwiseBeliefs()
 
             print ('done inference---------------------')
@@ -147,7 +155,7 @@ def main():
             print(acc)
             
             # Plot segmented image
-            Plot_Segmented(Z1,test_path+file,height,width)
+            # Plot_Segmented(Z1,test_path+file,height,width)
 
 
 

@@ -1,5 +1,5 @@
 """BeliefPropagator class."""
-import numpy as np
+import autograd.numpy as np
 from MarkovNet import MarkovNet
 from blaze import nan
 from numba.targets.builtins import NAN
@@ -79,7 +79,7 @@ class BeliefPropagator(object):
         # partial log-sum-exp operation
         matrix = self.mn.getPotential((neighbor, var)) + adjustedMessageProduct
         # the dot product with ones is slightly faster than calling sum
-        message = np.log(np.exp(matrix - matrix.max()).dot(np.ones(matrix.shape[1])))
+        message = np.log(np.dot(np.exp(matrix - matrix.max()), np.ones(matrix.shape[1])))
 
         # pseudo-normalize message
         message = message - np.max(message)
@@ -152,7 +152,7 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            energy += self.mn.unaryPotentials[var].dot(np.exp(self.varBeliefs[var]))
+            energy += np.dot(self.mn.unaryPotentials[var], np.exp(self.varBeliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
                     energy += np.sum(self.mn.getPotential((var, neighbor)) * np.exp(self.pairBeliefs[(var, neighbor)]))
@@ -171,7 +171,7 @@ class BeliefPropagator(object):
             unaryBelief = np.exp(self.varBeliefs[var])
             for neighbor in self.mn.getNeighbors(var):
                 pairBelief = np.sum(np.exp(self.pairBeliefs[(var, neighbor)]), 1)
-                objective += self.messages[(neighbor, var)].dot(unaryBelief - pairBelief)
+                objective += np.dot(self.messages[(neighbor, var)], (unaryBelief - pairBelief))
         return objective
 
 def logsumexp(matrix, dim = None):

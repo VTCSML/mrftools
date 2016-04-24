@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 from LogLinearMLE import LogLinearMLE
 
 class TemplatedLogLinearMLE(LogLinearMLE):
@@ -13,8 +13,8 @@ class TemplatedLogLinearMLE(LogLinearMLE):
         
         assert len(weightVector) == numStates * numStates + numStates * numFeatures
         
-        unaryWeights = weightVector[0:numStates * numFeatures].tolist()
-        pairWeights = weightVector[numStates * numFeatures:].tolist()
+        unaryWeights = list(weightVector[0:numStates * numFeatures])
+        pairWeights = list(weightVector[numStates * numFeatures:])
         
         fullWeightVector = []
         
