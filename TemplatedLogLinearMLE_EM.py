@@ -240,6 +240,9 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
     def calculate_objective(self,weights):
         fullWeightVector = self.createFullWeightVector(weights)
 
+        self.calculate_tau(weights, 'subgradient', 'p')
+        self.calculate_tau(weights, 'subgradient', 'q')
+
         term_p = fullWeightVector.dot(self.tau_p) + self.H_p
         term_q = -(fullWeightVector.dot(self.tau_q) + self.H_q)
         self.term_q_p = term_q+term_p
