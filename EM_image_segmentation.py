@@ -104,7 +104,7 @@ def train_EM(learner,weights):
     t = learner.time_record[0]
     for i in range(l):
         time_list.append(time_record[i] - t)
-        obj_list.append(learner.calculate_objective(learner.weight_record[i,:]))
+        obj_list.append(learner.subgrad_obj(learner.weight_record[i,:], 'subgradient'))
   
           
     f = open('EM_time.txt','w')
@@ -154,7 +154,7 @@ def train_subgrad(learner,weights):
     t = learner.time_record[0]
     for i in range(l):
         time_list.append(time_record[i] - t)
-        obj_list.append(learner.calculate_objective(learner.weight_record[i,:]))
+        obj_list.append(learner.subgrad_obj(learner.weight_record[i,:], 'subgradient'))
    
    
     f = open('subgrad_time.txt','w')
@@ -200,7 +200,7 @@ def train_pairedDual(learner,weights):
     t = learner.time_record[0]
     for i in range(l):
         time_list.append(time_record[i] - t)
-        obj_list.append(learner.calculate_objective(learner.weight_record[i,:]))
+        obj_list.append(learner.subgrad_obj(learner.weight_record[i,:], 'subgradient'))
    
    
     f = open('paired_time.txt','w')
@@ -389,15 +389,15 @@ def main():
     np.savetxt("EM_final_weights.csv", newWeight, delimiter=",")
 
 # #########################sub gradient
-#     newWeight = train_subgrad(learner,weights)
-#     np.savetxt("subgrad_final_weights.csv", newWeight, delimiter=",")
+    newWeight = train_subgrad(learner,weights)
+    np.savetxt("subgrad_final_weights.csv", newWeight, delimiter=",")
 
 # #########################paired Dual
-#     newWeight = train_pairedDual(learner,weights)
-#     np.savetxt("pairedDual_final_weights.csv", newWeight, delimiter=",")
-
+    newWeight = train_pairedDual(learner,weights)
+    np.savetxt("pairedDual_final_weights.csv", newWeight, delimiter=",")
+#
 # #########################plot objective
-#     plot_objectives()
+    plot_objectives()
 
 # #########################plot training and testing accuracy
 #     test_path = "./test/"

@@ -85,8 +85,10 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             :rtype: numpy.ndarray
             """
         marginalSum = 0
-        self.H_q = 0
-        self.H_p = 0
+        if mode == 'q':
+            self.H_q = 0
+        elif mode == 'p':
+            self.H_p = 0
         for i in range(len(self.labels)):
             if mode == 'q':
                 bp = self.beliefPropagators[i]
@@ -111,9 +113,11 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 # flatten table and append
                 marginals.extend(table.reshape((-1, 1)).tolist())
             marginalSum += np.array(marginals)
-        
-        self.H_q = self.H_q / len(self.labels)
-        self.H_p = self.H_p / len(self.labels)
+
+        if mode =='q':
+            self.H_q = self.H_q / len(self.labels)
+        elif mode == 'p':
+            self.H_p = self.H_p / len(self.labels)
         
         
         return marginalSum / len(self.labels)
@@ -149,7 +153,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                             #                    model.setUnaryWeights(var, factorWeights)
                             fac = factorWeights.dot(model.unaryFeatures[var])
                             model.setUnaryFactor(var,fac)
-                        elif -float('Inf') in model.unaryPotentials[var]:
+                        else:
                             factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
                             #                    model.setUnaryWeights(var, factorWeights)
                             fac = factorWeights.dot(model.unaryFeatures[var])
@@ -215,7 +219,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             self.weight_record = np.vstack((self.weight_record,a))
             self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
-    def calculate_tau(self,weights,method,mode):
+    def calculate_tau(self, weights, method, mode):
         fullWeightVector = self.createFullWeightVector(weights)
         self.setWeights(fullWeightVector,mode)
         tau = self.getFeatureExpectations(mode,method)
@@ -240,9 +244,6 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
     def calculate_objective(self,weights):
         fullWeightVector = self.createFullWeightVector(weights)
 
-        self.calculate_tau(weights, 'subgradient', 'p')
-        self.calculate_tau(weights, 'subgradient', 'q')
-
         term_p = fullWeightVector.dot(self.tau_p) + self.H_p
         term_q = -(fullWeightVector.dot(self.tau_q) + self.H_q)
         self.term_q_p = term_q+term_p
@@ -252,7 +253,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         objec += self.l1Regularization * np.sum(np.abs(fullWeightVector))
         objec += 0.5 * self.l2Regularization * fullWeightVector.dot(fullWeightVector)
         objec += self.term_q_p
-        
+
         return objec
         
     def Gradient(self,weights,method):
