@@ -366,8 +366,8 @@ def main():
     # Create Model
     # =====================================
 
-    height = 2
-    width = 2
+    height = 3
+    width = 3
     d = 3
     num_states = 8
 # # #     # add node weights
@@ -388,11 +388,14 @@ def main():
     newWeight = train_EM(learner,weights)
     np.savetxt("EM_final_weights.csv", newWeight, delimiter=",")
 
+    learner.clearRecord()
 # #########################sub gradient
     newWeight = train_subgrad(learner,weights)
     np.savetxt("subgrad_final_weights.csv", newWeight, delimiter=",")
 
-# #########################paired Dual
+
+    learner.clearRecord()
+ # #########################paired Dual
     newWeight = train_pairedDual(learner,weights)
     np.savetxt("pairedDual_final_weights.csv", newWeight, delimiter=",")
 #
@@ -406,16 +409,16 @@ def main():
 #             plot_accuracy(height,width,d,num_states,test_path+file)
             
 
-# #########################plot image segmentation
-#     newWeight = genfromtxt('EM_final_weights.csv', delimiter=',')
-#     test_path = "./test/"
-#     for file in os.listdir(test_path):
-#         if file.endswith('.jpg'):
-#             Z = test_data(newWeight,height,width,d,num_states,test_path+file)
-#             true_label =  Load_Resize_Label(test_path+file[:-4]+"_label.txt", height, width)
-#             Z1 = np.reshape(Z,(height,width))
-#             Plot_Segmented(Z1,test_path+file,height,width)
-#             print sum(true_label == Z1)
+#########################plot image segmentation
+    newWeight = genfromtxt('EM_final_weights.csv', delimiter=',')
+    test_path = "./train/"
+    for file in os.listdir(test_path):
+        if file.endswith('.jpg'):
+            Z = test_data(newWeight,height,width,d,num_states,test_path+file)
+            true_label =  Load_Resize_Label(test_path+file[:-4]+"_label.txt", height, width)
+            Z1 = np.reshape(Z,(height,width))
+            Plot_Segmented(Z1,test_path+file,height,width)
+            print sum(true_label == Z1)
 
             
 
