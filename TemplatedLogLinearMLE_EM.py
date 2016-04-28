@@ -160,8 +160,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                             ind = np.where(model.unaryPotentials[var] != -float('Inf'))
                             a = np.zeros(model.numStates[var]) -float('Inf')
                             a[ind] = fac[ind]
-                            model.setUnaryFactor(var,fac)
-                            
+                            model.setUnaryFactor(var, a)
                         j += np.prod(size)
             
             assert j == len(weightVector)
