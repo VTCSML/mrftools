@@ -24,6 +24,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         self.bpIter = 1
         self.weight_record =  np.array([])
         self.time_record = np.array([])
+        self.needInference = True
 
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
@@ -38,10 +39,9 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 var = self.potentials[i]
 
                 model_p.setUnaryFeatures(var, features[var])
+                model.setUnaryFeatures(var, features[var])
                 # set model features
-                if states[var] ==  -100:
-                    model.setUnaryFeatures(var, features[var])
-                else:
+                if states[var] !=  -100:
                     factor = np.zeros(model.numStates[var]) -float('Inf')
                     indx = states[var]
                     factor[indx] = 0
@@ -58,14 +58,13 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
 
     def getBetheEntropy(self,bp,method):
         betheEntropy = 0
-        if self.needInference:
-            if method == 'paired':
-                bp.runInference(display = 'off', maxIter = self.bpIter)
-            elif method == 'EM' or method == 'subgradient':
-                bp.runInference(display = 'off')
-            bp.computeBeliefs()
-            bp.computePairwiseBeliefs()
-            betheEntropy = bp.computeBetheEntropy()
+        if method == 'paired':
+            bp.runInference(display = 'off', maxIter = self.bpIter)
+        elif method == 'EM' or method == 'subgradient':
+            bp.runInference(display = 'off')
+        bp.computeBeliefs()
+        bp.computePairwiseBeliefs()
+        betheEntropy = bp.computeBetheEntropy()
         
         return betheEntropy
 
