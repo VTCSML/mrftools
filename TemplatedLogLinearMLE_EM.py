@@ -25,6 +25,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         self.weight_record =  np.array([])
         self.time_record = np.array([])
         self.needInference = True
+        self.varBelief_p = {}
 
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
@@ -73,6 +74,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             :rtype: numpy.ndarray
             """
         marginalSum = 0
+        self.varBelief_p = {}
         if mode == 'q':
             self.H_q = 0
         elif mode == 'p':
@@ -97,6 +99,8 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                     # get unary belief and multiply by features
                     var = self.potentials[j]
                     table = np.outer(np.exp(bp.varBeliefs[var]), model.unaryFeatures[var])
+                    if mode == 'p':
+                        self.varBelief_p[var] = bp.varBeliefs[var]
                 
                 # flatten table and append
                 marginals.extend(table.reshape((-1, 1)).tolist())
@@ -171,6 +175,13 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         self.time_record = np.array([])
 
 
+#     def get_node_belief(self,var):
+#         for i in (self.potentials):
+#             if 
+#                 if var in self.baseModel.variables:
+#                     var = self.potentials[i]
+        
+
     def callbackF(self,w):
 #         self.addWeights(w)
 #         print w[0]
@@ -217,6 +228,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         objec += 0.5 * self.l2Regularization * fullWeightVector.dot(fullWeightVector)
         objec += self.term_q_p
 
+#         print objec
         return objec
         
     def Gradient(self,weights,method):
