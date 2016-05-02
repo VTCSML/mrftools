@@ -38,7 +38,6 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             if self.potentials[i] in self.baseModel.variables:
                 # set unary data
                 var = self.potentials[i]
-
                 model_p.setUnaryFeatures(var, features[var])
                 model.setUnaryFeatures(var, features[var])
                 # set model features
@@ -95,15 +94,17 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 if self.potentials[j] not in self.baseModel.variables:
                     # get pairwise belief
                     table = np.exp(bp.pairBeliefs[self.potentials[j]])
+                    kd = table.reshape((-1, 1)).tolist()
                 else:
                     # get unary belief and multiply by features
                     var = self.potentials[j]
                     table = np.outer(np.exp(bp.varBeliefs[var]), model.unaryFeatures[var])
+                    kd = table.reshape((-1, 1)).tolist()
                     if mode == 'p':
-                        self.varBelief_p[var] = bp.varBeliefs[var]
+                        self.varBelief_p[(i,var)] = bp.varBeliefs[var]
                 
                 # flatten table and append
-                marginals.extend(table.reshape((-1, 1)).tolist())
+                marginals.extend(kd)
             marginalSum += np.array(marginals)
 
         if mode =='q':
@@ -136,7 +137,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 if self.potentials[i] not in self.baseModel.variables:
                     # set pairwise potential
                     pair = self.potentials[i]
-                    size = (model.numStates[pair[0]], model.numStates[pair[1]])
+                    size = (model.numStates[pair[0]], model.numStates[pair[1]]) 
                     factorWeights = weightCache.getCached(weightVector[j:j + np.prod(size)].reshape(size))
                     model.setEdgeFactor(pair, factorWeights)
                     j += np.prod(size)
@@ -150,8 +151,9 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                         fac = factorWeights.dot(model.unaryFeatures[var])
                         model.setUnaryFactor(var,fac)
 
-                    j += np.prod(size)
+                    j += np.prod(size) 
 
+        
             assert j == len(weightVector)
 
     def subgrad_obj(self,weights,method):
@@ -175,11 +177,6 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         self.time_record = np.array([])
 
 
-#     def get_node_belief(self,var):
-#         for i in (self.potentials):
-#             if 
-#                 if var in self.baseModel.variables:
-#                     var = self.potentials[i]
         
 
     def callbackF(self,w):
@@ -236,6 +233,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
         fullWeightVector = self.createFullWeightVector(weights)
         self.setWeights(fullWeightVector,'p')
         
+        
         grad = np.zeros(len(fullWeightVector))
       
       # add regularization penalties
@@ -272,6 +270,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
                 j += np.prod(size)
               
         grad = np.append(unaryGradient, pairwiseGradient)
+#         grad = unaryGradient
         return grad
     
     
