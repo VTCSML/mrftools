@@ -15,7 +15,7 @@ class LogLinearMLE(object):
         self.models = []
         self.beliefPropagators = []
         self.labels = []
-        self.l1Regularization = 1
+        self.l1Regularization = 0.01
         self.l2Regularization = 1
         self.featureSum = 0
         self.prevWeights = 0
