@@ -1,9 +1,6 @@
 """BeliefPropagator class."""
 import numpy as np
 from MarkovNet import MarkovNet
-from blaze import nan
-from numba.targets.builtins import NAN
-from scipy import NaN
 
 class BeliefPropagator(object):
     """Object that can run belief propagation on a MarkovNet."""
@@ -82,7 +79,7 @@ class BeliefPropagator(object):
         message = np.log(np.exp(matrix - matrix.max()).dot(np.ones(matrix.shape[1])))
 
         # pseudo-normalize message
-        message = message - np.max(message)
+        message -= np.max(message)
 
         return message
 
@@ -126,7 +123,7 @@ class BeliefPropagator(object):
                 print("Iteration %d, change in messages %f." % (iteration, change))
             iteration += 1
         if display == 'final' or display == 'full' or display == 'iter':
-            print("Belief propagation finished in %d iterations." % (iteration))
+            print("Belief propagation finished in %d iterations." % iteration)
 
     def computeBetheEntropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
@@ -134,16 +131,10 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            if np.nan_to_num(np.sum(np.exp(self.varBeliefs[var]) * self.varBeliefs[var])) == 0:
-                entropy += -(1 - len(neighbors)) * 0
-            else:
-                entropy += -(1 - len(neighbors)) * np.sum(np.exp(self.varBeliefs[var]) * self.varBeliefs[var])
+            entropy -= (1 - len(neighbors)) * np.sum(np.nan_to_num(np.exp(self.varBeliefs[var]) * self.varBeliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
-                    if np.nan_to_num(np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)])) == 0:
-                        entropy += 0
-                    else:
-                        entropy += -np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)])
+                    entropy -= np.sum(np.nan_to_num(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)]))
         return entropy
 
     def computeEnergy(self):
@@ -152,10 +143,10 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            energy += self.mn.unaryPotentials[var].dot(np.exp(self.varBeliefs[var]))
+            energy += np.nan_to_num(self.mn.unaryPotentials[var]).dot(np.exp(self.varBeliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
-                    energy += np.sum(self.mn.getPotential((var, neighbor)) * np.exp(self.pairBeliefs[(var, neighbor)]))
+                    energy += np.sum(np.nan_to_num(self.mn.getPotential((var, neighbor)) * np.exp(self.pairBeliefs[(var, neighbor)])))
         return energy
 
     def computeEnergyFunctional(self):
@@ -185,17 +176,22 @@ def main():
 
     np.random.seed(1)
 
-    k = [4, 3, 6, 2]
-    # k = [4, 4, 4, 4]
+    k = [4, 3, 6, 2, 5]
 
     mn.setUnaryFactor(0, np.random.randn(k[0]))
     mn.setUnaryFactor(1, np.random.randn(k[1]))
     mn.setUnaryFactor(2, np.random.randn(k[2]))
     mn.setUnaryFactor(3, np.random.randn(k[3]))
 
+    factor4 = np.random.randn(k[4])
+    factor4[2] = -float('inf')
+
+    mn.setUnaryFactor(4, factor4)
+
     mn.setEdgeFactor((0,1), np.random.randn(k[0], k[1]))
     mn.setEdgeFactor((1,2), np.random.randn(k[1], k[2]))
     mn.setEdgeFactor((3,2), np.random.randn(k[3], k[2]))
+    mn.setEdgeFactor((1,4), np.random.randn(k[1], k[4]))
     # mn.setEdgeFactor((3,0), np.random.randn(k[3], k[0])) # uncomment this to make loopy
 
     print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
@@ -217,14 +213,16 @@ def main():
 
     bf = BruteForce(mn)
 
-    for i in range(2):
+    for i in mn.variables:
         print ("Brute force unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i))))
-        print ("Belief prop unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i))))
+        print ("Belief prop unary marginal of %d: %s" % (i, repr(np.exp(bp.varBeliefs[i]))))
 
     print ("Brute force pairwise marginal: " + repr(bf.pairwiseMarginal(0,1)))
     print ("Belief prop pairwise marginal: " + repr(np.exp(bp.pairBeliefs[(0,1)])))
 
     print ("Bethe energy functional: %f" % bp.computeEnergyFunctional())
+
+    print ("Brute force log partition function: %f" % np.log(bf.computeZ()))
 
 
 if  __name__ =='__main__':
