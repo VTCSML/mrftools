@@ -1,7 +1,7 @@
 from LogLinearModel import LogLinearModel
 import numpy as np
 import copy
-from scipy.optimize import minimize, check_grad
+from scipy.optimize import minimize, check_grad, approx_fprime
 from BeliefPropagator import BeliefPropagator
 from MatrixCache import MatrixCache
 
@@ -15,7 +15,7 @@ class LogLinearMLE(object):
         self.models = []
         self.beliefPropagators = []
         self.labels = []
-        self.l1Regularization = 0.01
+        self.l1Regularization = 0.00
         self.l2Regularization = 1
         self.featureSum = 0
         self.prevWeights = 0
@@ -114,13 +114,13 @@ class LogLinearMLE(object):
 
             # make vector form of marginals
             marginals = []
-            for i in range(len(self.potentials)):
-                if isinstance(self.potentials[i], tuple):
+            for j in range(len(self.potentials)):
+                if isinstance(self.potentials[j], tuple):
                     # get pairwise belief
-                    table = np.exp(bp.pairBeliefs[self.potentials[i]])
+                    table = np.exp(bp.pairBeliefs[self.potentials[j]])
                 else:
                     # get unary belief and multiply by features
-                    var = self.potentials[i]
+                    var = self.potentials[j]
                     table = np.outer(np.exp(bp.varBeliefs[var]), model.unaryFeatures[var])
 
                 # flatten table and append
@@ -215,12 +215,22 @@ def main():
     print check_grad(learner.objective, learner.gradient, weights)
 
     print "\n\nOptimization:"
-    res = minimize(learner.objective, weights, method='L-BFGS-B', jac = learner.gradient)
+    res = minimize(learner.objective, weights, method='L-BFGS-b', jac = learner.gradient)
 
     print res
 
     print "\n\nGradient check at optimized solution:"
     print check_grad(learner.objective, learner.gradient, res.x)
+
+    grad = learner.gradient(res.x)
+
+    approx = approx_fprime(res.x, learner.objective, np.sqrt(np.finfo(float).eps))
+
+    print grad
+    print approx
+
+
+    print grad - approx
 
 
 if  __name__ =='__main__':
