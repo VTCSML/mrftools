@@ -155,7 +155,6 @@ def main():
     print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
     print("Neighbors of 1: " + repr(mn.getNeighbors(1)))
 
-    temperature = 1
 
     edgeProbabilities = dict()
 
@@ -192,12 +191,78 @@ def main():
     print ("Bethe energy functional:            %f" % bp.computeEnergyFunctional())
     print ("Brute force log partition function: %f" % np.log(bf.computeZ()))
 
+    # Start testing upper bound property
 
-    print("Setting new tree probabilities using sampling method")
-    trbp.sample_tree_probabilities(1)
-    trbp.runInference(display = 'None')
-    print ("Tree Bethe energy functional:       %f" % trbp.computeEnergyFunctional())
-    print trbp.tree_probabilities
+    trials = 200
+
+    tr_diff = np.zeros(trials)
+    bp_diff = np.zeros(trials)
+
+    for trial in range(trials):
+
+        mn = MarkovNet()
+
+        width = 3
+        height = 4
+
+        k = 3
+
+        for x in range(width):
+            for y in range(height):
+                mn.setUnaryFactor((x, y), np.random.random(k))
+
+        for x in range(width - 1):
+            for y in range(height - 1):
+                mn.setEdgeFactor(((x, y), (x + 1, y)), np.random.random((k, k)))
+                mn.setEdgeFactor(((y, x), (y, x + 1)), np.random.random((k, k)))
+
+        bf = BruteForce(mn)
+        bp = BeliefPropagator(mn)
+
+        edgeProbabilities = dict()
+
+        for edge in mn.edgePotentials:
+            edgeProbabilities[edge] = 0.5
+
+        interior_prob = 0.5
+        border_prob = 0.75
+
+        # formula for square grids
+        # interior_prob = (pow(width, height - 1) + pow(height, width)) / (2 * pow(width, height))
+        # border_prob = interior_prob
+
+        for x in range(width):
+            edgeProbabilities[(x, 0)] = interior_prob
+            edgeProbabilities[(x, height-1)] = interior_prob
+
+        for y in range(height):
+            edgeProbabilities[(0, y)] = border_prob
+            edgeProbabilities[(width-1, y)] = border_prob
+
+        trbp = TreeReweightedBeliefPropagator(mn, edgeProbabilities)
+
+        bp.runInference(display = 'off')
+        trbp.runInference(display = 'off')
+
+        trbp_Z = trbp.computeEnergyFunctional()
+        true_Z = np.log(bf.computeZ())
+        bethe_Z = bp.computeEnergyFunctional()
+
+        print ("Tree Bethe energy functional:       %f" % trbp_Z)
+        print ("Bethe energy functional:            %f" % bethe_Z)
+        print ("Brute force log partition function: %f" % true_Z)
+
+        print ("Is TRBP energy functional an upper bound? %s" %
+               trbp_Z >= true_Z)
+
+        bp_diff[trial] = bethe_Z - true_Z
+        tr_diff[trial] = trbp_Z - true_Z
+
+        print("\nDifference range between variational Z and truth:")
+        print("TRBP:  %f to %f" % (min(tr_diff[:trial+1]), max(tr_diff[:trial+1])))
+        print("Bethe: %f to %f" % (min(bp_diff[:trial+1]), max(bp_diff[:trial+1])))
+        print("Average error. TRBP: %f, Bethe: %f" %
+              (np.mean(np.abs(tr_diff[:trial+1])), np.mean(np.abs(bp_diff[:trial+1]))))
 
 if  __name__ =='__main__':
     main()
