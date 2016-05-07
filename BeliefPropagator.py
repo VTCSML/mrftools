@@ -131,10 +131,10 @@ class BeliefPropagator(object):
 
         for var in self.mn.variables:
             neighbors = self.mn.getNeighbors(var)
-            entropy -= (1 - len(neighbors)) * np.sum(np.nan_to_num(np.exp(self.varBeliefs[var]) * self.varBeliefs[var]))
+            entropy -= (1 - len(neighbors)) * np.sum(np.exp(self.varBeliefs[var]) * np.nan_to_num(self.varBeliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
-                    entropy -= np.sum(np.nan_to_num(np.exp(self.pairBeliefs[(var, neighbor)]) * self.pairBeliefs[(var, neighbor)]))
+                    entropy -= np.sum(np.exp(self.pairBeliefs[(var, neighbor)]) * np.nan_to_num(self.pairBeliefs[(var, neighbor)]))
         return entropy
 
     def computeEnergy(self):
