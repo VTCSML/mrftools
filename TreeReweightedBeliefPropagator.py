@@ -252,13 +252,13 @@ def main():
         print ("Bethe energy functional:            %f" % bethe_Z)
         print ("Brute force log partition function: %f" % true_Z)
 
-        print ("Is TRBP energy functional an upper bound? %s" %
+        print ("Is the TRBP energy functional an upper bound? %s" %
                trbp_Z >= true_Z)
 
         bp_diff[trial] = bethe_Z - true_Z
         tr_diff[trial] = trbp_Z - true_Z
 
-        print("\nDifference range between variational Z and truth:")
+        print("Difference range between variational Z and truth:")
         print("TRBP:  %f to %f" % (min(tr_diff[:trial+1]), max(tr_diff[:trial+1])))
         print("Bethe: %f to %f" % (min(bp_diff[:trial+1]), max(bp_diff[:trial+1])))
         print("Average error. TRBP: %f, Bethe: %f" %
