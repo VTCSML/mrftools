@@ -54,7 +54,7 @@ class MatrixLogLinearMLE(object):
         self.labels.append(example)
         self.featureSum += example
 
-    def setWeights(self, weight_vector):
+    def setWeights(self, weight_vector, models):
         """Set weights of Markov net from vector using the order in self.potentials."""
         if np.array_equal(weight_vector, self.prevWeights):
             # if using the same weight vector as previously, there is no need to rerun inference
@@ -76,20 +76,20 @@ class MatrixLogLinearMLE(object):
 
         pairwise_weights = weight_vector[feature_size:].reshape((max_states, max_states, 1)) * np.ones((1, 1, num_edges))
 
-        for model in self.models:
+        for model in models:
             model.set_weight_matrix(feature_weights)
             model.set_edge_tensor(pairwise_weights)
 
             model.set_unary_matrix()
 
 
-    def getFeatureExpectations(self):
+    def getFeatureExpectations(self, beliefPropagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
         """
         marginalSum = 0
         for i in range(len(self.labels)):
-            bp = self.beliefPropagators[i]
-            model = self.models[i]
+            bp = beliefPropagators[i]
+            model = bp.mn
             if self.needInference:
                 bp.runInference(display = 'off')
                 bp.computeBeliefs()
@@ -107,8 +107,8 @@ class MatrixLogLinearMLE(object):
 
     def objective(self, weightVector):
         """Compute the learning objective with the provided weight vector."""
-        self.setWeights(weightVector)
-        featureExpectations = self.getFeatureExpectations()
+        self.setWeights(weightVector, self.models)
+        featureExpectations = self.getFeatureExpectations(self.beliefPropagators)
 
         objective = 0.0
 
@@ -127,8 +127,8 @@ class MatrixLogLinearMLE(object):
 
     def gradient(self, weightVector):
         """Compute the gradient for the provided weight vector."""
-        self.setWeights(weightVector)
-        inferredExpectations = self.getFeatureExpectations()
+        self.setWeights(weightVector, self.models)
+        inferredExpectations = self.getFeatureExpectations(self.beliefPropagators)
 
         gradient = np.zeros(len(weightVector))
 

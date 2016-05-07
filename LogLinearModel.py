@@ -11,7 +11,7 @@ class LogLinearModel(MarkovNet):
         """Initialize a LogLinearModel. Create a Markov net."""
         super(LogLinearModel, self).__init__()
         self.unaryFeatures = dict()
-        self.unaryFeatureWeights = dict()
+        self.unary_feature_weights = dict()
         self.numFeatures = dict()
 
     def setUnaryWeights(self, var, weights):
@@ -20,7 +20,7 @@ class LogLinearModel(MarkovNet):
         """
         assert isinstance(weights, np.ndarray)
         assert np.shape(weights)[0] == self.numStates[var]
-        self.unaryFeatureWeights[var] = weights
+        self.unary_feature_weights[var] = weights
 
     def setUnaryFeatures(self, var, values):
         """
@@ -35,7 +35,29 @@ class LogLinearModel(MarkovNet):
 
     def setAllUnaryFactors(self):
         for var in self.variables:
-            self.setUnaryFactor(var, self.unaryFeatureWeights[var].dot(self.unaryFeatures[var]))
+            self.setUnaryFactor(var, self.unary_feature_weights[var].dot(self.unaryFeatures[var]))
+
+    def set_feature_matrix(self, feature_mat):
+        assert (np.array_equal(self.feature_mat.shape, feature_mat.shape))
+
+        self.feature_mat[:, :] = feature_mat
+
+    def set_weight_matrix(self, weight_mat):
+        assert (np.array_equal(self.weight_mat.shape, weight_mat.shape))
+
+        self.weight_mat[:, :] = weight_mat
+
+    def set_unary_matrix(self):
+        self.set_unary_mat(self.weight_mat.T.dot(self.feature_mat))
+
+    def create_matrices(self):
+        super(LogLinearModel, self).create_matrices()
+
+        self.max_features = max([x for x in self.numFeatures.values()])
+
+        self.weight_mat = np.zeros((self.max_features, self.max_states))
+
+        self.feature_mat = np.zeros((self.max_features, len(self.variables)))
 
 
 def main():

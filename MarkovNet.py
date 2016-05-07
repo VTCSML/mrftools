@@ -1,5 +1,6 @@
 """Markov network class for storing potential functions and structure."""
 import numpy as np
+from scipy.sparse import csc_matrix, dok_matrix
 
 class MarkovNet(object):
     """Object containing the definition of a pairwise Markov net."""
@@ -11,6 +12,7 @@ class MarkovNet(object):
         self.neighbors = dict()
         self.variables = set()
         self.numStates = dict()
+        self.matrix_mode = False
 
     def setUnaryFactor(self, variable, potential):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
@@ -60,6 +62,80 @@ class MarkovNet(object):
                     energy += self.getPotential((var, neighbor))[states[var], states[neighbor]]
 
         return energy
+
+
+    def set_unary_mat(self, unary_mat):
+        assert np.array_equal(self.unary_mat.shape, unary_mat.shape)
+        self.unary_mat[:, :] = unary_mat
+
+
+    def set_edge_tensor(self, edge_tensor):
+        if np.array_equal(self.edge_pot_tensor.shape, edge_tensor.shape):
+            self.edge_pot_tensor[:,:,:] = edge_tensor
+        else:
+            mirrored_edge_tensor = np.concatenate((edge_tensor, edge_tensor.transpose((1, 0, 2))), 2)
+            assert np.array_equal(self.edge_pot_tensor.shape, mirrored_edge_tensor.shape)
+
+            self.edge_pot_tensor[:, :, :] = mirrored_edge_tensor
+
+
+    def create_matrices(self):
+        self.matrix_mode = True
+
+        self.max_states = max([len(x) for x in self.unaryPotentials.values()])
+        self.unary_mat = -np.inf * np.ones((self.max_states, len(self.variables)))
+        self.var_index = dict()
+        self.var_list = []
+        self.degrees = np.zeros(len(self.variables))
+
+        i = 0
+        for var in self.variables:
+            potential = self.unaryPotentials[var]
+            self.unary_mat[0:len(potential), i] = potential
+            self.var_index[var] = i
+            self.var_list.append(var)
+            self.degrees[i] = len(self.neighbors[var])
+            i += 1
+
+        # set up pairwise tensor
+
+        self.num_edges = 0
+        for var in self.variables:
+            for neighbor in self.neighbors[var]:
+                if var < neighbor:
+                    self.num_edges += 1
+
+        self.edge_pot_tensor = -np.inf * np.ones((self.max_states, self.max_states, 2 * self.num_edges))
+        self.message_to_index = dok_matrix((2 * self.num_edges, len(self.variables)))
+        self.message_from_index = dok_matrix((2 * self.num_edges, len(self.variables)))
+        self.edges = []
+
+        i = 0
+        for var in self.variables:
+            for neighbor in self.neighbors[var]:
+                if var < neighbor:
+                    potential = self.getPotential((var, neighbor))
+                    dims = potential.shape
+
+                    self.edge_pot_tensor[0:dims[1], 0:dims[0], i] = potential.T
+                    self.edge_pot_tensor[0:dims[0], 0:dims[1], i + self.num_edges] = potential
+
+                    var_i = self.var_index[var]
+                    neighbor_i = self.var_index[neighbor]
+
+                    self.message_from_index[i, var_i] = 1
+                    self.message_from_index[i + self.num_edges, neighbor_i] = 1
+
+                    self.message_to_index[i, neighbor_i] = 1
+                    self.message_to_index[i + self.num_edges, var_i] = 1
+
+                    self.edges.append((var, neighbor))
+
+                    i += 1
+
+        self.message_to_index = csc_matrix(self.message_to_index)
+        self.message_from_index = csc_matrix(self.message_from_index)
+
 
 def main():
     """Test function for MarkovNet."""
