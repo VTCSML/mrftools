@@ -15,6 +15,12 @@ class MatrixBeliefPropagator(object):
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
 
+        self.initialize_messages()
+
+        self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
+        self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
+
+    def initialize_messages(self):
         self.message_mat = -np.inf * np.ones((self.mn.max_states, 2 * self.mn.num_edges))
 
         i = 0
@@ -27,9 +33,6 @@ class MatrixBeliefPropagator(object):
                     self.message_mat[:dims[0], i + self.mn.num_edges] = 0
 
                     i += 1
-
-        self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
-        self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
 
     def computeBeliefs(self):
         """Compute unary beliefs based on current messages."""
