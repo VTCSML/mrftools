@@ -15,24 +15,33 @@ class MatrixBeliefPropagator(object):
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
 
+        self.previously_initialized = False
         self.initialize_messages()
 
         self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
 
     def initialize_messages(self):
-        self.message_mat = -np.inf * np.ones((self.mn.max_states, 2 * self.mn.num_edges))
 
-        i = 0
-        for var in self.mn.variables:
-            for neighbor in self.mn.neighbors[var]:
-                if var < neighbor:
-                    dims = self.mn.getPotential((var, neighbor)).shape
+        if self.previously_initialized:
+            self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
+            self.message_mat[self.message_mask.nonzero()] = -np.inf
+        else:
+            self.message_mat = -np.inf * np.ones((self.mn.max_states, 2 * self.mn.num_edges))
 
-                    self.message_mat[:dims[1], i] = 0
-                    self.message_mat[:dims[0], i + self.mn.num_edges] = 0
+            i = 0
+            for var in self.mn.variables:
+                for neighbor in self.mn.neighbors[var]:
+                    if var < neighbor:
+                        dims = self.mn.getPotential((var, neighbor)).shape
 
-                    i += 1
+                        self.message_mat[:dims[1], i] = 0
+                        self.message_mat[:dims[0], i + self.mn.num_edges] = 0
+
+                        i += 1
+
+            self.message_mask = csc_matrix(np.isinf(self.message_mat))
+            self.previously_initialized = True
 
     def computeBeliefs(self):
         """Compute unary beliefs based on current messages."""
@@ -206,6 +215,8 @@ def main():
     bp.computePairwiseBeliefs()
 
     bp.load_beliefs()
+
+    bp.initialize_messages()
 
     from BruteForce import BruteForce
 
