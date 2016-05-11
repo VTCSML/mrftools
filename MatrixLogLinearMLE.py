@@ -44,8 +44,8 @@ class MatrixLogLinearMLE(object):
 
         pairwise = np.zeros((model.max_states, model.max_states))
         for k in range(model.num_edges):
-            (i, j) = model.edges[k]
-            pairwise[states[model.var_list[i]], states[model.var_list[j]]] += 1
+            (var, neighbor) = model.edges[k]
+            pairwise[states[var], states[neighbor]] += 1
 
         example = np.append(labeled_feature_mat.flatten(), pairwise.flatten())
 
