@@ -34,99 +34,49 @@ import pickle
 import itertools
 from pandas.compat import lrange
 import colorsys
+from skimage.feature import hog
+from skimage import data, color, exposure
+from PIL import Image
+import matplotlib.pyplot as plt
 
 
 
-def add_train_data(weights,height,width,d,ltnt,num_states,data_type):
+
+
+def add_train_data(weights,height,width,d,ltnt,num_states):
     print '........... adding data..........'
     model = Create_LogLinearModel(height,width,d,num_states)
     learner = TemplatedLogLinearMLE_EM(model)
-    
-    if data_type == 'synthetic':
-        dic1 = {}
-        dic1[1] = 0
-        dic1[2] = 1
-        dic1[3] = 0
-        dic1[4] = -100
-        dic2 = {}
-        dic2[1] = get_augmented_pixels(np.array([255,0,0]),1)
-        dic2[2] = get_augmented_pixels(np.array([0,255,0]),1)
-        dic2[3] = get_augmented_pixels(np.array([255,0,0]),1)
-        dic2[4] = get_augmented_pixels(np.array([0,0,255]),1)
-        learner.addData(dic1,dic2)
-        print ('data is added')
-        dic1 = {}
-        dic1[1] = 0
-        dic1[2] = 0
-        dic1[3] = -100
-        dic1[4] = 2
-        dic2 = {}
-        dic2[1] = get_augmented_pixels(np.array([255,0,0]),1)
-        dic2[2] = get_augmented_pixels(np.array([255,0,0]),1)
-        dic2[3] = get_augmented_pixels(np.array([0,255,0]),1)
-        dic2[4] = get_augmented_pixels(np.array([0,0,255]),1)
-        learner.addData(dic1,dic2)
-        print ('data is added')
-             
-        dic1 = {}
-        dic1[1] = -100
-        dic1[2] = 2
-        dic1[3] = 1
-        dic1[4] = 2
-        dic2 = {}
-        
-            
-        dic2[1] = get_augmented_pixels(np.array([255,0,0]),1)
-        dic2[2] = get_augmented_pixels(np.array([0,0,255]),1)
-        dic2[3] = get_augmented_pixels(np.array([0,255,0]),1)
-        dic2[4] = get_augmented_pixels(np.array([0,0,255]),1)
-        learner.addData(dic1,dic2)
-        print ('data is added')
-             
-        dic1 = {}
-        dic1[1] = 1
-        dic1[2] = -100
-        dic1[3] = 0
-        dic1[4] = 2
-        dic2 = {}
-        dic2[1] = get_augmented_pixels(np.array([0,255,0]),1)
-        dic2[2] = get_augmented_pixels(np.array([0,255,0]),1)
-        dic2[3] = get_augmented_pixels(np.array([255,0,0]),1)
-        dic2[4] = get_augmented_pixels(np.array([0,0,255]),1)
-        learner.addData(dic1,dic2)
-        print ('data is added')
-    elif data_type == 'real':
-        train_path = "./train/"
-        for file in os.listdir(train_path):
-            if file.endswith(".jpg"):
-                small_pix = Load_Resize_Image(train_path+file,height,width).load()
-                lbl_small = Load_Resize_Label(train_path+file[:-4]+"_label.txt",height,width)
-                       
-                for k in range(height):
-                    mmn =  np.random.randint(width ,size = ltnt)
-                    for ss in mmn:
-                        lbl_small[k,np.int(ss)] = -100
-                                       
-                    
-                lbl = []
-                lbl = np.array(lbl)
-                k = 1
-                dic1 = {}
-                dic2 = {}
-                for i in range(0,height):
-                    for j in range(0,width):
-                        dic1[k] = lbl_small[i,j]
-                        dic2[k] = get_augmented_pixels(small_pix[j,i],1)
-                        k += 1
-                learner.addData(dic1,dic2)
-                print ('data is added')
-            
-    
-            
+
+    train_path = "./train/"
+    for file in os.listdir(train_path):
+        if file.endswith(".jpg"):
+            small_pix = Load_Resize_Image(train_path+file,height,width).load()
+#                 print train_path+file
+            lbl_small = Load_Resize_Label(train_path+file[:-4]+"_label.txt",height,width)
+                   
+            for k in range(height):
+                mmn =  np.random.randint(width ,size = ltnt)
+                for ss in mmn:
+                    lbl_small[k,np.int(ss)] = -100
+                                   
+                
+            lbl = []
+            lbl = np.array(lbl)
+            k = 1
+            dic1 = {}
+            dic2 = {}
+            for i in range(0,height):
+                for j in range(0,width):
+                    dic1[k] = lbl_small[i,j]
+                    dic2[k] = get_augmented_pixels(small_pix[j,i],np.true_divide(i,height),np.true_divide(j,width),1)
+                    k += 1
+            learner.addData(dic1,dic2)
+            print ('data is added')
             
     return learner
 
-def train_EM(learner,weights,folder_name,height,width,d,data_type):
+def train_EM(learner,weights,folder_name,height,width,d):
 # # =====================================
 # # E-M
 # # =====================================
@@ -136,12 +86,9 @@ def train_EM(learner,weights,folder_name,height,width,d,data_type):
     maxIter = 10
 
     t1 = time.clock()
-    EM_accuracy_0 = []
-    EM_accuracy_2 = []
-    EM_accuracy_3 = []
-    EM_accuracy_4 = []
 
     for i in range(maxIter):
+        old_weights  = weights
         # =====================================
         # E-step: inference
         # =====================================
@@ -151,80 +98,12 @@ def train_EM(learner,weights,folder_name,height,width,d,data_type):
         # M-step: learning parameters
         # =====================================
         weights = learner.M_step(weights)
-        if data_type == 'synthetic':
-################################
-# begin: training accuracy of synthetic data 
-################################
-            true_label_1 = np.array([0,1,0,2])
-            true_label_2 = np.array( [0,0,1,2])
-            true_label_3 = np.array([0,2,1,2])
-            true_label_4 = np.array([1,1,0,2])
-         
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(0,j)]))
-            EM_accuracy_0.append(sum(true_label_1 == np.array(Z)))
-                 
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(1,j)]))
-            EM_accuracy_2.append(sum(true_label_2 == np.array(Z)))
-         
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(2,j)]))
-                
-            EM_accuracy_3.append(sum(true_label_3 == np.array( Z)))
-                 
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(3,j)]))
-            EM_accuracy_4.append(sum(true_label_4 == np.array( Z))) 
-#         
-            
-        elif data_type == 'real':
-            lbl_small = Load_Resize_Label("./train/0000087_label.txt",height,width)
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(0,j)]))
-            EM_accuracy_0.append(sum(lbl_small.flatten() == np.array(Z)))
-     
-            lbl_small = Load_Resize_Label("./train/0001677_label.txt",height,width)
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(1,j)]))
-            EM_accuracy_2.append(sum(lbl_small.flatten() == np.array(Z)))
-            lbl_small = Load_Resize_Label("./train/0002755_label.txt",height,width)
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(2,j)]))
-            EM_accuracy_3.append(sum(lbl_small.flatten() == np.array(Z)))
-            
-            lbl_small = Load_Resize_Label("./train/0003793_label.txt",height,width)
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(learner.varBelief_p[(3,j)]))
-            EM_accuracy_4.append(sum(lbl_small.flatten() == np.array(Z)))
-            
+        new_weights = weights
 
-
-
-            
-    plt.plot(EM_accuracy_0,label='data 1',marker = '*')
-    plt.plot(EM_accuracy_2,label='data 2',marker = 'o')
-    plt.plot(EM_accuracy_3,label='data 3',marker = '^')
-    plt.plot(EM_accuracy_4,label='data 4',marker = '<')
-# # 
-    plt.xlabel('iteration')
-    plt.ylabel('accuracy')
-    plt.ylim(0, 16)
-    plt.legend(loc='upper right')
-    plt.show()
-
-
-
-
-
+        if np.linalg.norm(np.subtract(old_weights,new_weights)) < 0.1:
+            print 'EM has converged after '+ str(i)+' iterations......'
+            break;
+        
 
     t2 = time.clock()
     weight_record = learner.weight_record
@@ -258,45 +137,6 @@ def train_EM(learner,weights,folder_name,height,width,d,data_type):
     pickle.dump(learner.weight_record, f)
     f.close()
      
-    if data_type == 'synthetic':
-        print 'plot test accuracy of synthetic data........'
-        f1 = open(folder_name+'/EM_step_weights.txt','r')
-        EM_step_weights = pickle.load(f1)
-        EM_step_weights = np.array(EM_step_weights)
-        h = EM_step_weights.shape[0]
-        true_label =  np.array([3,3,1,2])
-        EM_accuracy = []
-        for i in range(h):
-            w = EM_step_weights[i,:]
-            w_unary = np.reshape(w[0:3 * d],(3,d))
-            w_pair = np.reshape(w[3 * d:],(3,3))
-            w_unary = np.array(w_unary,dtype = float)
-            w_pair = np.array(w_pair,dtype = float)
-            num_pixels = height * width
-        
-            pixels = np.array([[[0,0,255],[0,0,255]],[[255,0,0],[0,255,0]]])
-            mn = Create_MarkovNet(height,width,w_unary,w_pair,pixels)
-     
-            bp = BeliefPropagator(mn)
-            bp.runInference(display = "off")
-            bp.computeBeliefs()
-            bp.computePairwiseBeliefs()
-            Z = []
-            for j in range(1,num_pixels+1):
-                Z.append(np.argmax(bp.varBeliefs[j]))
-            
-            EM_accuracy.append(sum(true_label == np.array(Z)+1))
-            
-        plt.plot(EM_accuracy,label='test',marker = '*')
-        plt.xlabel('time')
-        plt.ylabel('accuracy')
-        plt.ylim(0, 5)
-        plt.legend(loc='upper right')
-        plt.show()
-        
-    
-    
-
 #     
     return weights
 
@@ -376,7 +216,7 @@ def train_pairedDual(learner,weights,folder_name):
     t = learner.time_record[0]
     for i in range(l):
         time_list.append(time_record[i] - t)
-        obj_list.append(learner.subgrad_obj(learner.weight_record[i,:], 'paired'))
+        obj_list.append(learner.subgrad_obj(learner.weight_record[i,:], 'subgradient'))
    
    
     f = open(folder_name+'/paired_time.txt','w')
@@ -414,21 +254,21 @@ def plot_objectives(folder_name):
        
     f = open(folder_name+'/EM_time.txt','r')
     EM_time = pickle.load(f)
-    EM_time = np.array(EM_time)/1000
+    EM_time = np.true_divide(np.array(EM_time),1000)
       
     f = open(folder_name+'/subgrad_obj.txt','r')
     sub_obj = pickle.load(f)
         
     f = open(folder_name+'/subgrad_time.txt','r')
     sub_time = pickle.load(f)
-    sub_time = np.array(sub_time)/1000
+    sub_time = np.true_divide(np.array(sub_time),1000)
       
     f = open(folder_name+'/paired_obj.txt','r')
     paired_obj = pickle.load(f)
         
     f = open(folder_name+'/paired_time.txt','r')
     paired_time = pickle.load(f)
-    paired_time = np.array(paired_time)/1000
+    paired_time = np.true_divide(np.array(paired_time),1000)
       
     colors = itertools.cycle(["r", "b", "g"])
       
@@ -443,9 +283,9 @@ def plot_objectives(folder_name):
     plt.savefig(folder_name+'/objective')
 #     plt.show()
 
-    plt.ylim(0, 10)
+    plt.ylim(0, 60)
     plt.savefig(folder_name+'/zoomed_objective')
-    
+    plt.clf()
 #     plt.show()
 
 def test_data(weights,height,width,d,num_states,image):
@@ -472,162 +312,110 @@ def test_data(weights,height,width,d,num_states,image):
         Z.append(np.argmax(bp.varBeliefs[i]))
     return Z    
     
-def plot_accuracy(height,width,d,num_states,image,ltnt,folder_name):
+def EM_plot_accuracy(height,width,d,num_states,image,ltnt,folder_name):
 # EM ######################
-    print 'plot accuracy........'
+#     print 'plot accuracy........'
     f1 = open(folder_name+'/EM_step_weights.txt','r')
     EM_step_weights = pickle.load(f1)
     EM_step_weights = np.array(EM_step_weights)
     h = EM_step_weights.shape[0]
     true_label =  Load_Resize_Label(image[:-4]+"_label.txt", height, width)
     EM_accuracy = []
+    num_pixels = height * width
     for i in range(h):
         w = EM_step_weights[i,:]
         Z = test_data(w,height,width,d,num_states,image)
         Z1 = np.reshape(Z,(height,width))
-        EM_accuracy.append(sum(sum(true_label == Z1)))
+        EM_accuracy.append(np.true_divide(sum(sum(true_label == Z1)),num_pixels))
+    return EM_accuracy
     
-    
-    f1 = open(folder_name+'/EM_accuracy_'+str(height)+'_'+str(width)+'ltnt_'+str(ltnt)+'.txt','w')
-    pickle.dump(EM_accuracy,f1)
-    f1.close()
-    
-    
-    f = open(folder_name+'/EM_time.txt','r')
-    EM_time = pickle.load(f)
-    EM_time = np.array(EM_time)/1000
-#     print '----------------------------'
-#     print EM_time
-#     print EM_accuracy
 
-# # sub gradient ######################
+def Subgrad_plot_accuracy(height,width,d,num_states,image,ltnt,folder_name):
+# # # sub gradient ######################
     f1 = open(folder_name+'/subgrad_step_weights.txt','r')
     subgrad_step_weights = pickle.load(f1)
+    true_label =  Load_Resize_Label(image[:-4]+"_label.txt", height, width)
     subgrad_step_weights = np.array(subgrad_step_weights)
     h = subgrad_step_weights.shape[0]
+    num_pixels = height * width
     subgrad_accuracy = []
     for i in range(h):
         w = subgrad_step_weights[i,:]
         Z = test_data(w,height,width,d,num_states,image)
         Z1 = np.reshape(Z,(height,width))
-        subgrad_accuracy.append(sum(sum(true_label == Z1)))
-         
-    f1 = open(folder_name+'/subgrad_accuracy_'+str(height)+'_'+str(width)+'ltnt_'+str(ltnt)+'.txt','w')
-    pickle.dump(subgrad_accuracy,f1)
-    f1.close()
-    
-    f = open(folder_name+'/subgrad_time.txt','r')
-    subgrad_time = pickle.load(f)
-    subgrad_time = np.array(subgrad_time)/1000
- 
-     
-#     # paired dual ######################
+        subgrad_accuracy.append(np.true_divide(sum(sum(true_label == Z1)),num_pixels))
+
+    return subgrad_accuracy
+
+def Paired_plot_accuracy(height,width,d,num_states,image,ltnt,folder_name):
+    # #     # paired dual ######################
     f1 = open(folder_name+'/paired_step_weights.txt','r')
     paired_step_weights = pickle.load(f1)
     paired_step_weights = np.array(paired_step_weights)
     h = paired_step_weights.shape[0]
     paired_accuracy = []
-    
- 
+    true_label =  Load_Resize_Label(image[:-4]+"_label.txt", height, width)
+    num_pixels = height * width
+
     for i in range(h):
         w = paired_step_weights[i,:]
         Z = test_data(w,height,width,d,num_states,image)
         Z1 = np.reshape(Z,(height,width))
-        paired_accuracy.append(sum(sum(true_label == Z1)))
-         
-    
-    f1 = open(folder_name+'/paired_accuracy_'+str(height)+'_'+str(width)+'ltnt_'+str(ltnt)+'.txt','w')
-    pickle.dump(paired_accuracy,f1)
-    f1.close()
-    
-    f = open(folder_name+'/paired_time.txt','r')
-    paired_time = pickle.load(f)
-    paired_time = np.array(paired_time)/1000
+        paired_accuracy.append(np.true_divide(sum(sum(true_label == Z1)),num_pixels))
+        
+    return paired_accuracy
 
-    plt.clf()
-
-
-    colors = itertools.cycle(["r", "b", "g"])
-      
-    plt.scatter(EM_time,EM_accuracy,label='EM',color=next(colors),marker = '*')
-    plt.scatter(paired_time,paired_accuracy,label='paired-dual',color=next(colors),marker = 'o')
-    plt.scatter(subgrad_time,subgrad_accuracy,label='sub-gradient',color=next(colors),marker = '^')
-     
-
-    plt.xlabel('time')
-    plt.ylabel('accuracy')
-    plt.legend(loc='upper right')
-#     plt.savefig(folder_name+'/objective')
-
-    plt.savefig(folder_name+'/'+str(image[7:-4])+'_accuray')
-#     plt.show()
 
 def main():
-#############
-# begin: synthetic data 
-#############
-#     height = 2
-#     width = 2
-#     num_states = 3
-#     data_type = 'synthetic'
-#############
-# end: synthetic data 
-#############
 
-#############
-# begin: real data 
-#############
     height = 4
     width = 4
     num_states = 8
-    data_type = 'real'
-#############
-# end: real data 
-#############
-
-# number of latent variables
-    num_ltnt =2
-
-#     d = 9
-    d = 10
+    num_latent =2
+    d = 64
 #     d = 3
     folder_name = str(height)+'*'+str(width)
-    
-    
+        
+        
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
-# # # #     # add node weights
-# #     bias = np.random.randn(1)
+# # # # #     # add node weights
     weights = np.random.randn( num_states * d)
 # #     # add edge weights
     weights = np.append(weights, np.random.randn( num_states * num_states))
 #     
-#     np.savetxt("initial_weights.csv", weights, delimiter=",")
+    np.savetxt("initial_weights.csv", weights, delimiter=",")
 # # # #     
-# #     weights = genfromtxt('initial_weights.csv', delimiter=',')
+    weights = genfromtxt('initial_weights.csv', delimiter=',')
 # # #     
-    learner = add_train_data(weights,height,width,d,num_ltnt,num_states,data_type)
-# # #     joblib.dump(learner, 'learner/learner.pkl')
-# #     
-# #     learner = joblib.load('learner/learner.pkl')
-# # 
-#        
+    learner = add_train_data(weights,height,width,d,num_latent,num_states)
+# # # #     joblib.dump(learner, 'learner/learner.pkl')
+# # #     
+# # #     learner = joblib.load('learner/learner.pkl')
+# # # 
+# #      
+    learner.setRegularization(0, 0.1)
     f = open(folder_name+'/reports_'+folder_name+'.txt','a')
     f.write('\n')
     f.write('********************************************')
     f.write('\n')
-    f.write('number of hidden variables: '+ str(num_ltnt)+'*'+str(height))
+    f.write('number of hidden variables: '+ str(num_latent)+'*'+str(height))
     f.write('\n')
     f.write('number of training data: '+ str(len(learner.labels)))
     f.write('\n')
+    f.write('l1 regularizer: '+ str(learner.l1Regularization))
+    f.write('\n')
+    f.write('l2 regularizer: '+ str(learner.l2Regularization))
+    f.write('\n')
     f.close()
-        
+            
     num_pixels = height*width
-# 
-# # # #########################EM
-    newWeight = train_EM(learner,weights,folder_name,height,width,d,data_type)
+#    
+# # 
+# # # # #########################EM
+    newWeight = train_EM(learner,weights,folder_name,height,width,d)
     np.savetxt(folder_name+"/EM_final_weights.csv", newWeight, delimiter=",")
-#      
+# #      
     learner.clearRecord()
 # # # #########################sub gradient
     newWeight = train_subgrad(learner,weights,folder_name)
@@ -641,24 +429,107 @@ def main():
 # # #  
 # #########################plot objective
     plot_objectives(folder_name)
+    
+# #########################plot training testing accuracy
+ 
+    f = open(folder_name+'/EM_time.txt','r')
+    EM_time = pickle.load(f)
+    EM_time = np.true_divide(np.array(EM_time),1000)
+  
+    f = open(folder_name+'/subgrad_time.txt','r')
+    subgrad_time = pickle.load(f)
+    subgrad_time = np.true_divide(np.array(subgrad_time),1000)
+      
+    f = open(folder_name+'/paired_time.txt','r')
+    paired_time = pickle.load(f)
+    paired_time = np.true_divide(np.array(paired_time),1000)
+      
+    EM_accuracy_ave_train = np.zeros(len(EM_time))
+    Subgrad_accuracy_ave_train = np.zeros(len(subgrad_time))
+    Paired_accuracy_ave_train = np.zeros(len(paired_time))
    
-# #########################plot training and testing accuracy
-#     test_path = "./train/"
-#     for file in os.listdir(test_path):
-#         if file.endswith('.jpg'):
-#             plot_accuracy(height,width,d,num_states,test_path+file,num_ltnt,folder_name)
-             
+    test_path = "./train/"
+    counter = 0
+    for file in os.listdir(test_path):
+        if file.endswith('.jpg'):
+            counter+= 1
+            EM_accuracy_ave_train = np.add(EM_accuracy_ave_train,EM_plot_accuracy(height,width,d,num_states,test_path+file,num_latent,folder_name))
+            Subgrad_accuracy_ave_train = np.add(Subgrad_accuracy_ave_train,Subgrad_plot_accuracy(height,width,d,num_states,test_path+file,num_latent,folder_name))
+            Paired_accuracy_ave_train = np.add(Paired_accuracy_ave_train,Paired_plot_accuracy(height,width,d,num_states,test_path+file,num_latent,folder_name))
+   
+                       
+#             print EM_accuracy_ave_train
+    EM_accuracy_ave_train = np.true_divide(EM_accuracy_ave_train,counter)
+    Subgrad_accuracy_ave_train = np.true_divide(Subgrad_accuracy_ave_train,counter)
+    Paired_accuracy_ave_train = np.true_divide(Paired_accuracy_ave_train,counter)
+   
+       
+    plt.clf()
+    colors = itertools.cycle(["r", "b", "g"])
+          
+    plt.plot(EM_time,EM_accuracy_ave_train,label='EM',color=next(colors),marker = '*')
+    plt.plot(paired_time,Paired_accuracy_ave_train,label='paired-dual',color=next(colors),marker = 'o')
+    plt.plot(subgrad_time,Subgrad_accuracy_ave_train,label='sub-gradient',color=next(colors),marker = '^')
+         
+    plt.ylim((0,1))
+    plt.xlabel('time')
+    plt.ylabel('average accuracy of training data')
+    plt.legend(loc='upper right')
+#     plt.savefig(folder_name+'/objective')
+    
+#     plt.savefig(folder_name+'/'+str(image[7:-4])+'_accuray')
+    plt.show()
+    plt.clf()
+      
+      
+#     # #########################plot testing testing accuracy
+    EM_accuracy_ave_test = np.zeros(len(EM_time))
+    Subgrad_accuracy_ave_test = np.zeros(len(subgrad_time))
+    Paired_accuracy_ave_test = np.zeros(len(paired_time))
+   
+    test_path = "./test/"
+    counter = 0
+    for file in os.listdir(test_path):
+        if file.endswith('.jpg'):
+            counter+= 1
+            EM_accuracy_ave_test = np.add(EM_accuracy_ave_test,EM_plot_accuracy(height,width,d,num_states,test_path+file,num_latent,folder_name))
+            Subgrad_accuracy_ave_test = np.add(Subgrad_accuracy_ave_test,Subgrad_plot_accuracy(height,width,d,num_states,test_path+file,num_latent,folder_name))
+            Paired_accuracy_ave_test = np.add(Paired_accuracy_ave_test,Paired_plot_accuracy(height,width,d,num_states,test_path+file,num_latent,folder_name))
+   
+                       
+#             print EM_accuracy_ave_train
+    EM_accuracy_ave_test = np.true_divide(EM_accuracy_ave_test,counter)
+    Subgrad_accuracy_ave_test = np.true_divide(Subgrad_accuracy_ave_test,counter)
+    Paired_accuracy_ave_test = np.true_divide(Paired_accuracy_ave_test,counter)
+   
+       
+    plt.clf()
+    colors = itertools.cycle(["r", "b", "g"])
+          
+    plt.plot(EM_time,EM_accuracy_ave_test,label='EM',color=next(colors),marker = '*')
+    plt.plot(paired_time,Paired_accuracy_ave_test,label='paired-dual',color=next(colors),marker = 'o')
+    plt.plot(subgrad_time,Subgrad_accuracy_ave_test,label='sub-gradient',color=next(colors),marker = '^')
+         
+    plt.ylim((0,1))
+    plt.xlabel('time')
+    plt.ylabel('average accuracy of test data')
+    plt.legend(loc='upper right')
+#     plt.savefig(folder_name+'/objective')
+    
+#     plt.savefig(folder_name+'/'+str(image[7:-4])+'_accuray')
+    plt.show()
+    plt.clf()
 
 # 
 # #########################plot image segmentation
-#     newWeight = genfromtxt(folder_name+'/EM_final_weights.csv', delimiter=',')
-#     test_path = "./test/"
-#     for file in os.listdir(test_path):
-#         if file.endswith('.jpg'):
-#             Z = test_data(newWeight,height,width,d,num_states,test_path+file)
-#             true_label =  Load_Resize_Label(test_path+file[:-4]+"_label.txt", height, width)
-#             Z1 = np.reshape(Z,(height,width))
-#             Plot_Segmented(Z1,test_path+file,height,width)
+    newWeight = genfromtxt(folder_name+'/EM_final_weights.csv', delimiter=',')
+    test_path = "./train/"
+    for file in os.listdir(test_path):
+        if file.endswith('.jpg'):
+            Z = test_data(newWeight,height,width,d,num_states,test_path+file)
+            true_label =  Load_Resize_Label(test_path+file[:-4]+"_label.txt", height, width)
+            Z1 = np.reshape(Z,(height,width))
+            Plot_Segmented(Z1,test_path+file,height,width)
 
 
             
