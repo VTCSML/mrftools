@@ -24,6 +24,7 @@ import PIL
 from PIL import Image
 import time
 import colorsys
+import itertools
 
 
 
@@ -81,6 +82,11 @@ def create_img(Z1):
 # =====================================
 # Load and Resize image
 # =====================================
+
+def rgb2gray(pixel):
+    return 0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2]
+#     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+
 def Load_Resize_Image(image,height,width):
     imgt = Image.open(image)
     small_img = imgt.resize((width,height),resample = PIL.Image.NEAREST)
@@ -92,20 +98,31 @@ def Load_Resize_Image(image,height,width):
 # Load and Resize Label
 # =====================================
 
-def get_augmented_pixels(pixel,augmented):
+def get_augmented_pixels(pixel,vertical_pos,horizontal_pos,augmented):
     if augmented == 1:
+        features = []
         px = np.true_divide(np.array(pixel),255)
-        px = np.concatenate((px,[1]))
-        iu1 = np.triu_indices(4)
-        p1 = np.outer(px,px)
-        pxl = p1[iu1]
-
-#         pxl = p1[iu1][:-1]
+        vec = np.concatenate((px,[vertical_pos,horizontal_pos]))
+        lst = list(itertools.product([0, 1], repeat=5))
+        for i in range(len(lst)):
+            features.append(np.sin(np.dot(np.array(lst[i]),vec)))
+            features.append(np.cos(np.dot(np.array(lst[i]),vec)))
+        features = np.array(features)
+        
+#         px = np.true_divide(np.array(pixel),255)
+#         px = np.concatenate((px,[1]))
+#         iu1 = np.triu_indices(4)
+#         p1 = np.outer(px,px)
+#         features = p1[iu1]
+# #         pxl = p1[iu1][:-1]
         
     else:
-        pxl = np.true_divide(np.array(pixel),255)
-#         pxl = np.array(pixel)
-    return pxl
+        features = np.true_divide(np.array(pixel),255)
+#         features = np.concatenate((features,[1]))
+#         features = np.array(pixel)
+
+
+    return features
 
 def Load_Resize_Label(label,height,width):
 
@@ -293,7 +310,7 @@ def Create_MarkovNet(height,width,w_unary,w_pair,pixels):
     k = 1
     for i in range(0,height):
         for j in range(0,width):
-            pxl = get_augmented_pixels(pixels[j,i],1)
+            pxl = get_augmented_pixels(pixels[j,i],np.true_divide(i,height),np.true_divide(j,width),1)
 
 #             pxl = np.array(pixels[j,i])
             mn.setUnaryFactor(k,np.dot(w_unary,pxl))
