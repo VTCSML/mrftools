@@ -1,7 +1,8 @@
 """BeliefPropagator class."""
 import numpy as np
+
 from MarkovNet import MarkovNet
-from scipy.sparse import dok_matrix, csc_matrix
+
 
 class MatrixBeliefPropagator(object):
     """Object that can run belief propagation on a MarkovNet."""
@@ -22,26 +23,7 @@ class MatrixBeliefPropagator(object):
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
 
     def initialize_messages(self):
-
-        if self.previously_initialized:
-            self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
-            self.message_mat[self.message_mask.nonzero()] = -np.inf
-        else:
-            self.message_mat = -np.inf * np.ones((self.mn.max_states, 2 * self.mn.num_edges))
-
-            i = 0
-            for var in self.mn.variables:
-                for neighbor in self.mn.neighbors[var]:
-                    if var < neighbor:
-                        dims = self.mn.getPotential((var, neighbor)).shape
-
-                        self.message_mat[:dims[1], i] = 0
-                        self.message_mat[:dims[0], i + self.mn.num_edges] = 0
-
-                        i += 1
-
-            self.message_mask = csc_matrix(np.isinf(self.message_mat))
-            self.previously_initialized = True
+        self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
 
     def computeBeliefs(self):
         """Compute unary beliefs based on current messages."""
@@ -63,9 +45,9 @@ class MatrixBeliefPropagator(object):
 
         beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
 
-        max_val = beliefs.max(axis = (0, 1), keepdims = True)
+        max_val = beliefs.max(axis = (0, 1), keepdims=True)
 
-        log_partitions = np.log(np.sum(np.exp(beliefs - max_val), axis = (0, 1), keepdims = True)) + max_val
+        log_partitions = np.log(np.sum(np.exp(beliefs - max_val), axis = (0, 1), keepdims=True)) + max_val
 
         beliefs -= log_partitions
 
@@ -76,14 +58,14 @@ class MatrixBeliefPropagator(object):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
         self.computeBeliefs()
 
-        adjusted_message_prod = np.nan_to_num(self.mn.message_from_index.dot(self.belief_mat.T).T) \
-                                - np.nan_to_num(np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                           self.message_mat[:, :self.mn.num_edges])))
+        adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+                                - np.hstack((self.message_mat[:, self.mn.num_edges:],
+                                                           self.message_mat[:, :self.mn.num_edges]))
 
-        messages = logsumexp(self.mn.edge_pot_tensor + adjusted_message_prod, 1)
-        messages -= messages.max(0, keepdims = True)
+        messages = np.squeeze(logsumexp(np.nan_to_num(self.mn.edge_pot_tensor + adjusted_message_prod), 1))
+        messages -= messages.max(0)
 
-        change = np.sum(np.abs(np.nan_to_num(messages) - np.nan_to_num(self.message_mat)))
+        change = np.sum(np.abs(messages - self.message_mat))
 
         self.message_mat = np.nan_to_num(messages)
 
@@ -167,17 +149,21 @@ class MatrixBeliefPropagator(object):
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
 
-    maxVal = matrix.max()
-    with np.errstate(divide = 'ignore'):
-        return np.log(np.sum(np.exp(matrix - maxVal), dim)) + maxVal
+    if matrix.size <= 1:
+        return matrix
+
+    maxVal = matrix.max(dim, keepdims=True)
+    return np.log(np.sum(np.exp(matrix - maxVal), dim, keepdims=True)) + maxVal
 
 def main():
     """Test basic functionality of BeliefPropagator."""
+    from BeliefPropagator import BeliefPropagator
+
     mn = MarkovNet()
 
     np.random.seed(1)
 
-    np.set_printoptions(precision=3)
+    np.set_printoptions(precision=5)
     # np.seterr(all='raise')
 
     k = [2, 2, 3, 3, 3]
@@ -216,32 +202,52 @@ def main():
 
     bp.load_beliefs()
 
-    bp.initialize_messages()
-
     from BruteForce import BruteForce
 
     bf = BruteForce(mn)
 
-    for i in mn.variables:
-        print ("Brute force unary marginal of %d: %s" % (i, repr(bf.unaryMarginal(i))))
-        print ("Belief prop unary marginal of %d: %s" % (i, repr(np.exp(bp.varBeliefs[i]))))
+    unary_error = 0
 
-    print ("Brute force pairwise marginal: " + repr(bf.pairwiseMarginal(0,1)))
-    print ("Belief prop pairwise marginal: " + repr(np.exp(bp.pairBeliefs[(0,1)])))
+    for i in mn.variables:
+        bf_marg = bf.unaryMarginal(i)
+        bp_marg = np.exp(bp.varBeliefs[i])
+
+        unary_error += np.sum(np.abs(bf_marg - bp_marg))
+
+        print ("Brute force unary marginal of %d: %s" % (i, repr(bf_marg)))
+        print ("Belief prop unary marginal of %d: %s" % (i, repr(bp_marg)))
+
+    pairwise_error = 0.0
+
+    for var in mn.variables:
+        for neighbor in mn.getNeighbors(var):
+            edge = (var, neighbor)
+            bf_marg = bf.pairwiseMarginal(var, neighbor)
+            bp_marg = np.exp(bp.pairBeliefs[edge])
+
+            pairwise_error += np.sum(np.abs(bf_marg - bp_marg))
+
+            print ("Brute force pairwise marginal of %s: %s" % (repr(edge), repr(bf_marg)))
+            print ("Belief prop pairwise marginal of %s: %s" % (repr(edge), repr(bp_marg)))
+
+    print ("Unary error %s, pairwise error %s" % (unary_error, pairwise_error))
 
     print ("Bethe energy functional: %f" % bp.computeEnergyFunctional())
 
     print ("Brute force log partition function: %f" % np.log(bf.computeZ()))
 
 
-    from BeliefPropagator import BeliefPropagator
+    print ("Brute force entropy: %f" % np.log(bf.entropy()))
+    print ("Bethe entropy: %f" % bp.computeBetheEntropy())
+    print ("Belief prop energy: %f" % bp.computeEnergy())
 
     bp_old = BeliefPropagator(mn)
 
     bp_old.runInference(display='full')
 
-    print ("Bethe energy functional: %f" % bp_old.computeEnergyFunctional())
-
+    print ("Old Bethe energy functional: %f" % bp_old.computeEnergyFunctional())
+    print ("Old Bethe entropy: %f" % bp_old.computeBetheEntropy())
+    print ("Old belief prop energy: %f" % bp_old.computeEnergy())
 
     print("Running grid timing comparison to loop BP")
 

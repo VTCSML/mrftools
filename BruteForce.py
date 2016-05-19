@@ -31,6 +31,30 @@ class BruteForce(object):
 
         return Z
 
+    def entropy(self):
+        Z = self.computeZ()
+
+        log_Z = np.log(Z)
+
+        H = 0.0
+
+        variables = list(self.mn.variables)
+
+        numStates = [self.mn.numStates[var] for var in variables]
+
+        argList = [range(s) for s in numStates]
+
+        for stateList in itertools.product(*argList):
+            states = dict()
+            for i in range(len(variables)):
+                states[variables[i]] = stateList[i]
+
+            log_p = self.mn.evaluateState(states)
+
+            H -= (log_p - log_Z) * np.exp(log_p - log_Z)
+
+        return H
+
     def unaryMarginal(self, var):
         """Compute the P(var) vector."""
         variables = list(self.mn.variables)

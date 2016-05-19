@@ -198,7 +198,7 @@ def train_pairedDual(learner,weights,folder_name):
     print '........... training by paired dual..........'
 
     t1 = time.clock()
-    weights = learner.pairdDual_Learning(weights)
+    weights = learner.paired_dual_learning(weights)
     t2 = time.clock()
     
     print 'Done in ' + str(t2 - t1)+ 'seconds-----------------'

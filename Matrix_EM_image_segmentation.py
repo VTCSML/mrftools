@@ -199,10 +199,10 @@ def train_pairedDual(learner,weights,folder_name):
     print '........... training by paired dual..........'
 
     t1 = time.clock()
-    weights = learner.pairdDual_Learning(weights)
+    weights = learner.paired_dual_learning(weights)
     t2 = time.clock()
     
-    print 'Done in ' + str(t2 - t1)+ 'seconds-----------------'
+    print 'Done in ' + str(t2 - t1)+ ' seconds-----------------'
     f = open(folder_name+'/reports_'+folder_name+'.txt','a')
     f.write('train_pairedDual: Done in ' + str(t2-t1)+' seconds-----------------')
     f.write("\n")
@@ -218,6 +218,7 @@ def train_pairedDual(learner,weights,folder_name):
     for i in range(l):
         time_list.append(time_record[i] - t)
         obj_list.append(learner.subgrad_obj(learner.weight_record[i,:], 'subgradient'))
+    print learner.subgrad_obj(learner.weight_record[-1,:], 'subgradient')
    
    
     f = open(folder_name+'/paired_time.txt','w')
@@ -248,7 +249,7 @@ def plot_objectives(folder_name):
 # # =====================================
 # # plot
 # # =====================================
-    print 'plotting objecitve..........'
+    print 'plotting objective..........'
 
     f = open(folder_name+'/EM_obj.txt','r')
     EM_obj = pickle.load(f)
@@ -372,9 +373,9 @@ def main():
     height = 10
     width = 12
     num_states = 8
-    num_latent =3
+    num_latent = 20
     d = 64
-#     d = 3
+    # d = 3
 
     folder_name = str(height)+'*'+str(width)
         
@@ -384,7 +385,7 @@ def main():
 # # # # #     # add node weights
     weights = np.random.randn( num_states * d)
 # #     # add edge weights
-    weights = np.append(weights, np.random.randn( num_states * num_states))
+    weights = 0 * np.append(weights, np.random.randn( num_states * num_states))
 #     
     np.savetxt("initial_weights.csv", weights, delimiter=",")
 # # # #     
@@ -396,7 +397,7 @@ def main():
 # # #     learner = joblib.load('learner/learner.pkl')
 # # # 
 # #      
-    learner.setRegularization(0, 0.1)
+    learner.setRegularization(0, 0.25)
     f = open(folder_name+'/reports_'+folder_name+'.txt','a')
     f.write('\n')
     f.write('********************************************')
@@ -417,12 +418,12 @@ def main():
 # # # # #########################EM
     newWeight = train_EM(learner,weights,folder_name,height,width,d)
     np.savetxt(folder_name+"/EM_final_weights.csv", newWeight, delimiter=",")
-# #      
+# #
     learner.clearRecord()
 # # # #########################sub gradient
     newWeight = train_subgrad(learner,weights,folder_name)
     np.savetxt(folder_name+"/subgrad_final_weights.csv", newWeight, delimiter=",")
-#  
+
 #  
     learner.clearRecord()
 #  # #########################paired Dual

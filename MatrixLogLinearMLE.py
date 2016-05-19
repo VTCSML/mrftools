@@ -19,7 +19,6 @@ class MatrixLogLinearMLE(object):
         self.l2Regularization = 1
         self.featureSum = 0
         self.prevWeights = 0
-        self.needInference = True
         self.baseModel.create_matrices()
 
     def setRegularization(self, l1, l2):
@@ -56,14 +55,6 @@ class MatrixLogLinearMLE(object):
 
     def setWeights(self, weight_vector, models):
         """Set weights of Markov net from vector using the order in self.potentials."""
-        if np.array_equal(weight_vector, self.prevWeights):
-            # if using the same weight vector as previously, there is no need to rerun inference
-            # this often happens when computing the objective and the gradient with the same weights
-            self.needInference = False
-            return
-
-        self.prevWeights = weight_vector
-        self.needInference = True
 
         max_features = self.baseModel.max_features
         num_vars = len(self.baseModel.variables)
@@ -90,10 +81,9 @@ class MatrixLogLinearMLE(object):
         for i in range(len(self.labels)):
             bp = beliefPropagators[i]
             model = bp.mn
-            if self.needInference:
-                bp.runInference(display = 'off')
-                bp.computeBeliefs()
-                bp.computePairwiseBeliefs()
+            bp.runInference(display = 'off')
+            bp.computeBeliefs()
+            bp.computePairwiseBeliefs()
 
             summed_features = np.inner(np.exp(bp.belief_mat), model.feature_mat).T
 

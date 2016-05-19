@@ -1,17 +1,12 @@
-import numpy as np
-from LogLinearMLE import LogLinearMLE
-from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 import copy
-from scipy.optimize import minimize, check_grad
-from BeliefPropagator import BeliefPropagator
-from MatrixCache import MatrixCache
-import math
 import time
-from matplotlib.font_manager import weight_as_number
-from MatrixLogLinearMLE import MatrixLogLinearMLE
+
+import numpy as np
+from scipy.optimize import minimize, check_grad
+
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
-
+from MatrixLogLinearMLE import MatrixLogLinearMLE
 
 
 class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
@@ -22,83 +17,53 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         self.tau_p = []
         self.H_p = 0
         self.H_q = 0
-        self.beliefPropagators_p = []
-        self.models_p = []
+        self.beliefPropagators_q = []
+        self.models_q = []
         self.term_q_p = 0
         self.bpIter = 1
-        self.weight_record =  np.array([])
+        self.weight_record = np.array([])
         self.time_record = np.array([])
-        self.needInference = True
-        self.varBelief_p = {}
-        self.unary_mult_mat = np.array([])
-        self.unary_mult_dic = {}
 
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
 
-        example = []
-
         model = copy.deepcopy(self.baseModel)
-        model_p = copy.deepcopy(self.baseModel)
+        model_q = copy.deepcopy(self.baseModel)
 
-
-        labeled_feature_mat = np.zeros((model.max_states, model.max_features))
         feature_mat = np.zeros((model.max_features, len(model.variables)))
 
-        self.unary_mult_mat = np.ones((model.max_states,len(model.variables)))
+        label_mask = -float('inf') * np.ones((model.max_states, len(model.variables)))
         for (var, i) in model.var_index.items():
             feature_mat[:, i] = features[var]
             if states[var] != -100:
-                factor = np.zeros(model.max_states) -float('Inf')
-                indx = states[var]
-                factor[indx] = 0
-                self.unary_mult_mat[:,i] = factor
-                self.unary_mult_dic[model] = self.unary_mult_mat
-        
+                label_mask[states[var], i] = 0
+            else:
+                label_mask[:, i] = 0
 
         model.feature_mat = feature_mat
-        model_p.feature_mat = feature_mat
+        model_q.feature_mat = feature_mat
 
         self.models.append(model)
         self.beliefPropagators.append(MatrixBeliefPropagator(model))
-        self.labels.append(0)
-        
-        self.models_p.append(model_p)
-        self.beliefPropagators_p.append(MatrixBeliefPropagator(model_p))
 
-    def calculate_bethe_entropy(self,bp,method):
-        betheEntropy = 0
-        if method == 'paired':
-            bp.runInference(display = 'off', maxIter = self.bpIter)
-        elif method == 'EM' or method == 'subgradient':
-            bp.runInference(display = 'off')
-        bp.computeBeliefs()
-        bp.computePairwiseBeliefs()
-        betheEntropy = bp.computeBetheEntropy()
-        
-        return betheEntropy
-    
-    def getBetheEntropy(self,belief_propagator,method):
-        bethe = 0
-        for i in range(len(self.labels)):
-            bp = belief_propagator[i]
-            bethe += self.calculate_bethe_entropy(bp,method)
-            
-        bethe = bethe / len(self.labels)
-        return bethe
-        
-    def getFeatureExpectations(self, beliefPropagators):
+        self.models_q.append(model_q)
+        self.beliefPropagators_q.append(MatrixBeliefPropagator(model_q))
+        self.labels.append(label_mask)
+
+    def getFeatureExpectations(self, beliefPropagators, method):
         """Run inference and return the marginal in vector form using the order of self.potentials.
         """
         marginalSum = 0
         for i in range(len(self.labels)):
             bp = beliefPropagators[i]
             model = bp.mn
-            if self.needInference:
+            if method == 'subgradient' or method == 'EM':
                 bp.runInference(display = 'off')
-                bp.computeBeliefs()
-                bp.computePairwiseBeliefs()
-                
+            elif method == 'paired':
+                bp.runInference(display = 'off', maxIter = self.bpIter)
+            bp.computeBeliefs()
+            bp.computePairwiseBeliefs()
+
             summed_features = np.inner(np.exp(bp.belief_mat), model.feature_mat).T
 
             summed_pair_features = np.sum(np.exp(bp.pair_belief_tensor), 2).T
@@ -109,35 +74,16 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
 
         return marginalSum / len(self.labels)
 
-    def setWeights(self, weight_vector, models):
-        """Set weights of Markov net from vector using the order in self.potentials."""
-        if np.array_equal(weight_vector, self.prevWeights):
-            # if using the same weight vector as previously, there is no need to rerun inference
-            # this often happens when computing the objective and the gradient with the same weights
-            self.needInference = False
-            return
-
-        self.prevWeights = weight_vector
-        self.needInference = True
-
-        max_features = self.baseModel.max_features
-        num_vars = len(self.baseModel.variables)
-        max_states = self.baseModel.max_states
-        num_edges = self.baseModel.num_edges
-
-        feature_size = max_features * max_states
-
-        feature_weights = weight_vector[:feature_size].reshape((max_features, max_states))
-
-        pairwise_weights = weight_vector[feature_size:].reshape((max_states, max_states, 1)) * np.ones((1, 1, num_edges))
-
-        for model in models:
-            model.set_weight_matrix(feature_weights)
-            model.set_edge_tensor(pairwise_weights)
-            model.set_unary_matrix()
-            if model in self.unary_mult_dic.keys():
-                model.unary_mat = np.multiply(model.unary_mat,self.unary_mult_dic[model])
-                model.unary_mat[model.unary_mat == float('Inf')] = -float('Inf')
+    def getBetheEntropy(self,belief_propagator):
+        bethe = 0
+        for i in range(len(self.labels)):
+            bp = belief_propagator[i]
+            bp.computeBeliefs()
+            bp.computePairwiseBeliefs()
+            bethe += bp.computeBetheEntropy()
+            
+        bethe = bethe / len(self.labels)
+        return bethe
 
     def subgrad_obj(self,weights,method):
         self.E_step(weights,method)
@@ -147,114 +93,94 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         self.E_step(weights,method)
         return self.Gradient(weights,method)
     
-    def pairdDual_Learning(self,weights):
-        res = minimize(self.subgrad_obj, weights ,args = 'paired', method='L-BFGS-B', jac = self.subgrad_grad,callback=self.callbackF)
-        return res.x
+    def paired_dual_learning(self, weights):
+        old_weights = np.inf
+        new_weights = weights
+
+        while not np.allclose(old_weights, new_weights):
+            old_weights = new_weights
+            res = minimize(self.subgrad_obj, new_weights ,args = 'paired', method='L-BFGS-B', jac = self.subgrad_grad,callback=self.callbackF)
+            new_weights = res.x
+
+        return new_weights
         
     def subGradient(self,weights):
-        res = minimize(self.subgrad_obj, weights ,args = 'subgradient', method='L-BFGS-B', jac = self.subgrad_grad,callback=self.callbackF)
-        return res.x
+        old_weights = np.inf
+        new_weights = weights
+
+        while not np.allclose(old_weights, new_weights):
+            old_weights = new_weights
+            res = minimize(self.subgrad_obj, new_weights ,args = 'subgradient', method='L-BFGS-B', jac = self.subgrad_grad,callback=self.callbackF)
+            new_weights = res.x
+
+        return new_weights
 
     def clearRecord(self):
         self.weight_record =  np.array([])
         self.time_record = np.array([]) 
 
     def callbackF(self,w):
-#         self.addWeights(w)
-#         print w[0]
         a = np.copy(w)
         if (self.weight_record.size) == 0:
-            self.weight_record = a
-            self.time_record = int(round(time.time() * 1000))
+            self.weight_record = a.reshape((1, a.size))
+            self.time_record = np.array([int(round(time.time() * 1000))])
         else:
             self.weight_record = np.vstack((self.weight_record,a))
             self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
     def calculate_tau(self, weights, method, mode):
-#         fullWeightVector = self.createFullWeightVector(weights)
-#         self.setWeights(fullWeightVector,mode)
         if mode == 'q':
-            self.setWeights(weights,self.models)
-            self.tau_q = self.getFeatureExpectations(self.beliefPropagators)
-            self.H_q = self.getBetheEntropy(self.beliefPropagators,method)
+            self.setWeights(weights,self.models_q)
+
+            for i in range(len(self.labels)):
+                self.models_q[i].unary_mat += self.labels[i]
+
+            self.tau_q = self.getFeatureExpectations(self.beliefPropagators_q, method)
+            self.H_q = self.getBetheEntropy(self.beliefPropagators_q)
         elif mode == 'p':
-            self.setWeights(weights,self.models_p)
-            self.tau_p = self.getFeatureExpectations(self.beliefPropagators_p)
-            self.H_p = self.getBetheEntropy(self.beliefPropagators_p,method)
+            self.setWeights(weights, self.models)
+
+            self.tau_p = self.getFeatureExpectations(self.beliefPropagators, method)
+            self.H_p = self.getBetheEntropy(self.beliefPropagators)
 
     def E_step(self,weights,method):
 #         print 'E_step................'
-        
         self.calculate_tau(weights,method,'q')
 
     def M_step(self,weights):
+        # print check_grad(self.Objective, self.Gradient, weights, 'EM')
         res = minimize(self.Objective, weights ,args = 'EM', method='L-BFGS-B', jac = self.Gradient,callback=self.callbackF)
         return res.x
     
-    def Objective(self,weights,p_method):
-        self.calculate_tau(weights,p_method,'p')
-        return self.calculate_objective(weights)
+    def Objective(self, weights, method):
+        self.calculate_tau(weights, method, 'p')
 
-    def calculate_objective(self,weights):
-#         fullWeightVector = self.createFullWeightVector(weights)
-        fullWeightVector = weights
-        term_p = fullWeightVector.dot(self.tau_p) + self.H_p
-        term_q = -(fullWeightVector.dot(self.tau_q) + self.H_q)
-        self.term_q_p = term_q+term_p
-        
+        term_p = weights.dot(self.tau_p) + self.H_p
+        term_q = weights.dot(self.tau_q) + self.H_q
+        self.term_q_p = term_p - term_q
+
         objec = 0.0
         # add regularization penalties
-        objec += self.l1Regularization * np.sum(np.abs(fullWeightVector))
-        objec += 0.5 * self.l2Regularization * fullWeightVector.dot(fullWeightVector)
+        objec += self.l1Regularization * np.sum(np.abs(weights))
+        objec += 0.5 * self.l2Regularization * weights.dot(weights)
         objec += self.term_q_p
 
 #         print objec
         return objec
         
     def Gradient(self,weights,method):
-        #   Gradient
-#         fullWeightVector = self.createFullWeightVector(weights)
-        fullWeightVector = weights
-        self.setWeights(weights,self.models_p)        
-        
-        grad = np.zeros(len(fullWeightVector))
+        # self.calculate_tau(weights, method, 'p')
+
+        grad = np.zeros(len(weights))
       
-      # add regularization penalties
-        grad += self.l1Regularization * np.sign(fullWeightVector)
-        grad += self.l2Regularization * fullWeightVector
+        # add regularization penalties
+        grad += self.l1Regularization * np.sign(weights)
+        grad += self.l2Regularization * weights
       
-        grad -=  np.squeeze(self.tau_q)
-        grad +=  np.squeeze(self.tau_p)
+        grad -= np.squeeze(self.tau_q)
+        grad += np.squeeze(self.tau_p)
       
-        return grad  
-                  
-#         fullGradient =  grad
-#         var = next(iter(self.baseModel.variables))
-#         numStates = self.baseModel.numStates[var]
-#         numFeatures = self.baseModel.numFeatures[var]
-#       
-#         unaryGradient = np.zeros(numStates * numFeatures)
-#         pairwiseGradient = np.zeros(numStates * numStates)
-#       
-#       # aggregate gradient to templated dimensions
-#         j = 0
-#         for i in range(len(self.potentials)):
-#             if self.potentials[i] in self.baseModel.variables:
-#             # set unary potential
-#                 var = self.potentials[i]
-#                 size = (numStates, numFeatures)
-#                 unaryGradient += fullGradient[j:j + np.prod(size)]
-#                 j += np.prod(size)
-#             else:
-#                 # set pairwise potential
-#                 pair = self.potentials[i]
-#                 size = (numStates, numStates)
-#                 pairwiseGradient += fullGradient[j:j + np.prod(size)]
-#                 j += np.prod(size)
-#               
-#         grad = np.append(unaryGradient, pairwiseGradient)
-# #         grad = unaryGradient
-#         return grad
+        return grad
     
     
 def main():
@@ -300,8 +226,6 @@ def main():
     weights = np.ones(4 * d)
     # add edge weights
     weights = np.append(weights, np.ones(4 * 4))
-
-    import time
 
     print(learner)
 
