@@ -59,7 +59,7 @@ def Plot_Segmented(segment_image,original_image,height,width):
 
     
 #     plt.title('original image','resized image','resized true label','predicted label')
-    plt.show()
+#     plt.show()
 #            fig.savefig(file[:-4]+".pdf")
 
 # =====================================
@@ -101,21 +101,22 @@ def Load_Resize_Image(image,height,width):
 def get_augmented_pixels(pixel,vertical_pos,horizontal_pos,augmented):
     if augmented == 1:
         features = []
+
         px = np.true_divide(np.array(pixel),255)
         vec = np.concatenate((px,[vertical_pos,horizontal_pos]))
-        lst = list(itertools.product([0, 1], repeat=5))
+        lst = list(itertools.product([0, 1], repeat=len(vec)))
         for i in range(len(lst)):
             features.append(np.sin(np.dot(np.array(lst[i]),vec)))
             features.append(np.cos(np.dot(np.array(lst[i]),vec)))
         features = np.array(features)
-        
-#         px = np.true_divide(np.array(pixel),255)
-#         px = np.concatenate((px,[1]))
-#         iu1 = np.triu_indices(4)
-#         p1 = np.outer(px,px)
-#         features = p1[iu1]
-# #         pxl = p1[iu1][:-1]
-        
+
+        #
+        # px = np.true_divide(np.array(pixel),255)
+        # vec = np.concatenate((px,[vertical_pos,horizontal_pos, 1.0]))
+        # indices = np.triu_indices(len(vec))
+        # prod = np.outer(vec, vec)
+        # features = np.append(features, prod[indices])
+
     else:
         features = np.true_divide(np.array(pixel),255)
 #         features = np.concatenate((features,[1]))

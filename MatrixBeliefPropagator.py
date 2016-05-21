@@ -62,12 +62,12 @@ class MatrixBeliefPropagator(object):
                                 - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                            self.message_mat[:, :self.mn.num_edges]))
 
-        messages = np.squeeze(logsumexp(np.nan_to_num(self.mn.edge_pot_tensor + adjusted_message_prod), 1))
-        messages -= messages.max(0)
+        messages = np.squeeze(logsumexp(self.mn.edge_pot_tensor + adjusted_message_prod, 1))
+        messages = np.nan_to_num(messages - messages.max(0))
 
         change = np.sum(np.abs(messages - self.message_mat))
 
-        self.message_mat = np.nan_to_num(messages)
+        self.message_mat = messages
 
         return change
 
@@ -105,7 +105,6 @@ class MatrixBeliefPropagator(object):
             print("Belief propagation finished in %d iterations." % iteration)
 
     def load_beliefs(self):
-
         for (var, i) in self.mn.var_index.items():
             self.varBeliefs[var] = self.belief_mat[:len(self.mn.unaryPotentials[var]), i]
 
@@ -146,14 +145,19 @@ class MatrixBeliefPropagator(object):
 
         return objective
 
+    def set_messages(self, messages):
+        assert(np.all(self.message_mat.shape == messages.shape))
+        self.message_mat = messages
+
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
 
     if matrix.size <= 1:
         return matrix
 
-    maxVal = matrix.max(dim, keepdims=True)
-    return np.log(np.sum(np.exp(matrix - maxVal), dim, keepdims=True)) + maxVal
+    maxVal = np.nan_to_num(matrix.max())
+    with np.errstate(divide='ignore'):
+        return np.log(np.sum(np.exp(matrix - maxVal), dim, keepdims=True)) + maxVal
 
 def main():
     """Test basic functionality of BeliefPropagator."""

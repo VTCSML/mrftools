@@ -1,5 +1,6 @@
 import copy
 import time
+from _hashlib import new
 
 import numpy as np
 from scipy.optimize import minimize, check_grad
@@ -110,14 +111,18 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
 
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
-            res = minimize(self.subgrad_obj, new_weights ,args = 'subgradient', method='L-BFGS-B', jac = self.subgrad_grad,callback=self.callbackF)
+            res = minimize(self.subgrad_obj, new_weights, args='subgradient', method='L-BFGS-B', jac=self.subgrad_grad,
+                           callback=self.callbackF)
             new_weights = res.x
+            # print check_grad(self.subgrad_obj, self.subgrad_grad, new_weights, 'subgradient')
 
         return new_weights
 
-    def clearRecord(self):
+    def reset(self):
         self.weight_record =  np.array([])
-        self.time_record = np.array([]) 
+        self.time_record = np.array([])
+        for bp in self.beliefPropagators + self.beliefPropagators_q:
+            bp.initialize_messages()
 
     def callbackF(self,w):
         a = np.copy(w)
@@ -169,7 +174,7 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         return objec
         
     def Gradient(self,weights,method):
-        # self.calculate_tau(weights, method, 'p')
+        self.calculate_tau(weights, method, 'p')
 
         grad = np.zeros(len(weights))
       
