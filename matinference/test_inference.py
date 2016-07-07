@@ -1,8 +1,8 @@
 import unittest
 
 import numpy as np
-from MatrixInference import MatrixInference
-from Model import Model
+from matinference import MatrixInference
+from matinference import Model
 
 
 class InferenceTest(unittest.TestCase):

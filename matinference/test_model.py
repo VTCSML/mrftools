@@ -1,7 +1,7 @@
 import unittest
 
 
-from Model import Model
+from matinference import Model
 import numpy as np
 
 
