@@ -8,7 +8,7 @@ from MatrixCache import MatrixCache
 class MatrixLogLinearMLE(object):
     """Object that runs approximate maximum likelihood parameter training."""
 
-    def __init__(self, baseModel):
+    def __init__(self, baseModel, inference_type):
         """Initialize learner. Pass in Markov net."""
         assert isinstance(baseModel, LogLinearModel)
         self.baseModel = baseModel
@@ -20,6 +20,7 @@ class MatrixLogLinearMLE(object):
         self.featureSum = 0
         self.prevWeights = 0
         self.baseModel.create_matrices()
+        self.inference_type = inference_type
 
     def setRegularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -49,7 +50,7 @@ class MatrixLogLinearMLE(object):
         example = np.append(labeled_feature_mat.flatten(), pairwise.flatten())
 
         self.models.append(model)
-        self.beliefPropagators.append(MatrixBeliefPropagator(model))
+        self.beliefPropagators.append(self.inference_type(model))
         self.labels.append(example)
         self.featureSum += example
 
@@ -74,30 +75,25 @@ class MatrixLogLinearMLE(object):
             model.set_unary_matrix()
 
 
+    def do_inference(self, belief_propagators):
+        for i in range(len(self.labels)):
+            bp = self.beliefPropagators[i]
+            bp.infer(display='off')
+
     def getFeatureExpectations(self, beliefPropagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
         """
         marginalSum = 0
         for i in range(len(self.labels)):
             bp = beliefPropagators[i]
-            model = bp.mn
-            bp.runInference(display = 'off')
-            bp.computeBeliefs()
-            bp.computePairwiseBeliefs()
-
-            summed_features = np.inner(np.exp(bp.belief_mat), model.feature_mat).T
-
-            summed_pair_features = np.sum(np.exp(bp.pair_belief_tensor), 2).T
-
-            marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
-
-            marginalSum += marginals
+            marginalSum += bp.get_feature_expectations()
 
         return marginalSum / len(self.labels)
 
     def objective(self, weightVector):
         """Compute the learning objective with the provided weight vector."""
         self.setWeights(weightVector, self.models)
+        self.do_inference(self.beliefPropagators)
         featureExpectations = self.getFeatureExpectations(self.beliefPropagators)
 
         objective = 0.0
@@ -110,7 +106,7 @@ class MatrixLogLinearMLE(object):
         objective -= weightVector.dot(self.featureSum / len(self.labels))
 
         for bp in self.beliefPropagators:
-            objective += bp.computeEnergyFunctional() / len(self.labels)
+            objective += bp.compute_energy_functional() / len(self.labels)
             # print "Finished one inference"
 
         return objective
@@ -161,7 +157,7 @@ def main():
 
     from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 
-    learner = MatrixLogLinearMLE(model)
+    learner = MatrixLogLinearMLE(model, MatrixBeliefPropagator)
 
     data = [({0: 0, 1: 0, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
             ({0: 1, 1: 1, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),

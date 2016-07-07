@@ -144,7 +144,7 @@ class LogLinearMLE(object):
         objective -= weightVector.dot(self.featureSum / len(self.labels))
 
         for bp in self.beliefPropagators:
-            objective += bp.computeEnergyFunctional() / len(self.labels)
+            objective += bp.compute_energy_functional() / len(self.labels)
             # print "Finished one inference"
 
         return objective

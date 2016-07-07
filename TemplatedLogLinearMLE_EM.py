@@ -64,7 +64,7 @@ class TemplatedLogLinearMLE_EM(TemplatedLogLinearMLE):
             bp.runInference(display = 'off')
         bp.computeBeliefs()
         bp.computePairwiseBeliefs()
-        betheEntropy = bp.computeBetheEntropy()
+        betheEntropy = bp.compute_bethe_entropy()
         
         return betheEntropy
 

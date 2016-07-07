@@ -1,8 +1,9 @@
 """BeliefPropagator class."""
 import numpy as np
 from MarkovNet import MarkovNet
+from Inference import Inference
 
-class BeliefPropagator(object):
+class BeliefPropagator(Inference):
     """Object that can run belief propagation on a MarkovNet."""
 
     def __init__(self, markovNet):
@@ -108,7 +109,7 @@ class BeliefPropagator(object):
                 disagreement += np.sum(np.abs(unaryBelief - pairBelief))
         return disagreement
 
-    def runInference(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
+    def infer(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
@@ -149,7 +150,7 @@ class BeliefPropagator(object):
                     energy += np.sum(np.nan_to_num(self.mn.getPotential((var, neighbor)) * np.exp(self.pairBeliefs[(var, neighbor)])))
         return energy
 
-    def computeEnergyFunctional(self):
+    def compute_energy_functional(self):
         """Compute the energy functional."""
         self.computeBeliefs()
         self.computePairwiseBeliefs()
@@ -157,13 +158,33 @@ class BeliefPropagator(object):
 
     def computeDualObjective(self):
         """Compute the value of the BP Lagrangian."""
-        objective = self.computeEnergyFunctional()
+        objective = self.compute_energy_functional()
         for var in self.mn.variables:
             unaryBelief = np.exp(self.varBeliefs[var])
             for neighbor in self.mn.getNeighbors(var):
                 pairBelief = np.sum(np.exp(self.pairBeliefs[(var, neighbor)]), 1)
                 objective += self.messages[(neighbor, var)].dot(unaryBelief - pairBelief)
         return objective
+
+    def get_feature_expectations(self):
+        self.infer(display='off')
+        self.computeBeliefs()
+        self.computePairwiseBeliefs()
+
+        # make vector form of marginals
+        marginals = []
+        for j in range(len(self.potentials)):
+            if isinstance(self.potentials[j], tuple):
+                # get pairwise belief
+                table = np.exp(self.pairBeliefs[self.potentials[j]])
+            else:
+                # get unary belief and multiply by features
+                var = self.potentials[j]
+                table = np.outer(np.exp(self.varBeliefs[var]), self.mn.unaryFeatures[var])
+
+            # flatten table and append
+            marginals.extend(table.reshape((-1, 1)).tolist())
+        return np.array(marginals)
 
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""

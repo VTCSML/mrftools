@@ -81,7 +81,7 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
             bp = belief_propagator[i]
             bp.computeBeliefs()
             bp.computePairwiseBeliefs()
-            bethe += bp.computeBetheEntropy()
+            bethe += bp.compute_bethe_entropy()
             
         bethe = bethe / len(self.labels)
         return bethe

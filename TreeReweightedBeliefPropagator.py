@@ -4,8 +4,9 @@ from MarkovNet import MarkovNet
 from BeliefPropagator import BeliefPropagator
 from BeliefPropagator import logsumexp
 from random import shuffle
+from Inference import Inference
 
-class TreeReweightedBeliefPropagator(BeliefPropagator):
+class TreeReweightedBeliefPropagator(Inference):
 
     def __init__(self, markovNet, tree_probabilities = None):
 

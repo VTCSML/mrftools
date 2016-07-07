@@ -2,9 +2,10 @@
 import numpy as np
 
 from MarkovNet import MarkovNet
+from Inference import Inference
 
 
-class MatrixBeliefPropagator(object):
+class MatrixBeliefPropagator(Inference):
     """Object that can run belief propagation on a MarkovNet."""
 
     def __init__(self, markovNet):
@@ -87,7 +88,7 @@ class MatrixBeliefPropagator(object):
 
         return disagreement
 
-    def runInference(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
+    def infer(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
@@ -95,8 +96,8 @@ class MatrixBeliefPropagator(object):
             change = self.updateMessages()
             if display == "full":
                 disagreement = self.computeInconsistency()
-                energyFunc = self.computeEnergyFunctional()
-                dualObj = self.computeDualObjective()
+                energyFunc = self.compute_energy_functional()
+                dualObj = self.compute_dual_objective()
                 print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energyFunc, dualObj))
             elif display == "iter":
                 print("Iteration %d, change in messages %f." % (iteration, change))
@@ -118,29 +119,42 @@ class MatrixBeliefPropagator(object):
 
             self.pairBeliefs[(neighbor, var)] = belief.T
 
-    def computeBetheEntropy(self):
+    def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
         entropy = - np.sum(np.nan_to_num(self.pair_belief_tensor) * np.exp(self.pair_belief_tensor)) \
                   - np.sum((1 - self.mn.degrees) * (np.nan_to_num(self.belief_mat) * np.exp(self.belief_mat)))
 
         return entropy
 
-    def computeEnergy(self):
+    def compute_energy(self):
         """Compute the log-linear energy. Assume that the beliefs have been computed and are fresh."""
         energy = np.sum(np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]) * np.exp(self.pair_belief_tensor)) + \
                  np.sum(np.nan_to_num(self.mn.unary_mat) * np.exp(self.belief_mat))
 
         return energy
 
-    def computeEnergyFunctional(self):
+    def get_feature_expectations(self):
+        self.infer(display='off')
+        self.computeBeliefs()
+        self.computePairwiseBeliefs()
+
+        summed_features = np.inner(np.exp(self.belief_mat), self.mn.feature_mat).T
+
+        summed_pair_features = np.sum(np.exp(self.pair_belief_tensor), 2).T
+
+        marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
+
+        return marginals
+
+    def compute_energy_functional(self):
         """Compute the energy functional."""
         self.computeBeliefs()
         self.computePairwiseBeliefs()
-        return self.computeEnergy() + self.computeBetheEntropy()
+        return self.compute_energy() + self.compute_bethe_entropy()
 
-    def computeDualObjective(self):
+    def compute_dual_objective(self):
         """Compute the value of the BP Lagrangian."""
-        objective = self.computeEnergyFunctional() + \
+        objective = self.compute_energy_functional() + \
                     np.sum(self.message_mat * self._compute_inconsistency_vector())
 
         return objective
@@ -200,7 +214,7 @@ def main():
     #     disagreement = bp.computeInconsistency()
     #     print("Iteration %d, change in messages %f. Calibration disagreement: %f" % (t, change, disagreement))
 
-    bp.runInference(display='full')
+    bp.infer(display='full')
 
     bp.computePairwiseBeliefs()
 
@@ -236,14 +250,14 @@ def main():
 
     print ("Unary error %s, pairwise error %s" % (unary_error, pairwise_error))
 
-    print ("Bethe energy functional: %f" % bp.computeEnergyFunctional())
+    print ("Bethe energy functional: %f" % bp.compute_energy_functional())
 
     print ("Brute force log partition function: %f" % np.log(bf.computeZ()))
 
 
     print ("Brute force entropy: %f" % np.log(bf.entropy()))
-    print ("Bethe entropy: %f" % bp.computeBetheEntropy())
-    print ("Belief prop energy: %f" % bp.computeEnergy())
+    print ("Bethe entropy: %f" % bp.compute_bethe_entropy())
+    print ("Belief prop energy: %f" % bp.compute_energy())
 
     bp_old = BeliefPropagator(mn)
 
@@ -277,7 +291,7 @@ def main():
     import time
 
     t0 = time.time()
-    bp.runInference(display='final', maxIter=30000)
+    bp.infer(display='final', maxIter=30000)
     t1 = time.time()
 
     bp_time = t1 - t0
