@@ -34,6 +34,27 @@ class InferenceTest(unittest.TestCase):
 
         return model
 
+    def create_loop_model(self):
+        # create a simple model
+
+        model = Model(4, 3, 2)
+
+        model.add_var("A", np.random.randn(3))
+        model.add_var("B", np.random.randn(3))
+        model.add_var("C", np.random.randn(3))
+        model.add_var("D", np.random.randn(3))
+
+        model.add_edge(("A", "B"), np.random.randn(2))
+        model.add_edge(("C", "B"), np.random.randn(2))
+        model.add_edge(("C", "D"), np.random.randn(2))
+        model.add_edge(("A", "D"), np.random.randn(2))
+
+        model.create_matrices()
+
+        model.set_weights(np.random.randn(3 * 4 + 2 * 16))
+
+        return model
+
     def infer_chain(self):
         model = self.create_chain_model()
         inference = MatrixInference(model)
@@ -128,6 +149,26 @@ class InferenceTest(unittest.TestCase):
 
         assert belief_a == belief_b, "Belief of identitical variables were not the same"
         assert np.allclose(belief_a, 0.5), "Belief of variable was not 0.5. Instead it was %f" % belief_a
+
+    def test_loop_consistency(self):
+        model = self.create_loop_model()
+        inference = MatrixInference(model)
+        inference.set_counting_nums()
+        inference.infer()
+
+        belief_ab01 = inference.get_beliefs(("A", "B"), (0, 1))
+        belief_ab = inference.get_beliefs(("A", "B"))[0, 1]
+
+        belief_ba10 = inference.get_beliefs(("B", "A"), (1, 0))
+
+        pair_index = inference.model.edge_index[("A", "B")]
+
+        belief_tensor = inference.get_pair_tensor()[0, 1, pair_index]
+
+        assert belief_ab01 == belief_ab, "Belief retrieved by pair indexing isn't equal to by pair table"
+        assert belief_ab == belief_ba10, "Belief retrieved by pair table isn't equal to reversed indexing"
+        assert belief_ab == belief_tensor, "Belief retrieved by pair table isn't equal to tensor lookup"
+
 
 if __name__ == '__main__':
     unittest.main()

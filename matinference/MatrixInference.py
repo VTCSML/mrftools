@@ -33,20 +33,27 @@ class MatrixInference(object):
         :return: None
         """
         num_tables = len(self.model.vars) + len(self.model.edges)
-        self.norm_mat = dok_matrix((num_tables, self.model.num_marginals))
+        norm_rows = []
+        norm_cols = []
+        norm_vals = []
+
         row = 0
         for factor in self.model.vars + self.model.edges:
-            self.norm_mat[row, self.model.belief_indices[factor]] = 1
+            belief_indices = self.model.belief_indices[factor]
+            norm_rows.extend([row] * len(belief_indices))
+            norm_cols.extend(belief_indices)
+            norm_vals.extend([1] * len(belief_indices))
+
             row += 1
+
+        self.norm_mat = csc_matrix((norm_vals, (norm_rows, norm_cols)), (num_tables, self.model.num_marginals))
 
         num_cons = len(self.model.edges) * self.model.num_states * 2
 
-        if num_cons > 0:
-            self.cons_left = dok_matrix((num_cons, self.model.num_marginals))
-            self.cons_right = dok_matrix((num_cons, self.model.num_marginals))
-        else:
-            self.cons_left = np.zeros((0, self.model.num_marginals))
-            self.cons_right = np.zeros((0, self.model.num_marginals))
+        left_rows = []
+        left_cols = []
+        right_rows = []
+        right_cols = []
 
         row = 0
         for edge in self.model.edges:
@@ -56,19 +63,26 @@ class MatrixInference(object):
             u_indices = self.model.belief_indices[u]
             v_indices = self.model.belief_indices[v]
             for i in range(self.model.num_states):
-                self.cons_right[row, u_indices[i]] = 1
-                self.cons_left[row, pair_index_mat[i, :]] = 1
+                right_rows.append(row)
+                right_cols.append(u_indices[i])
+                left_rows.extend([row] * self.model.num_states)
+                left_cols.extend(pair_index_mat[i, :].ravel().tolist())
                 row += 1
 
             for i in range(self.model.num_states):
-                self.cons_right[row, v_indices[i]] = 1
-                self.cons_left[row, pair_index_mat[:, i]] = 1
+                right_rows.append(row)
+                right_cols.append(v_indices[i])
+                left_rows.extend([row] * self.model.num_states)
+                left_cols.extend(pair_index_mat[:, i].ravel().tolist())
                 row += 1
 
         if num_cons > 0:
-            self.cons_left = csc_matrix(self.cons_left)
-            self.cons_right = csc_matrix(self.cons_right)
-        self.norm_mat = csc_matrix(self.norm_mat)
+            self.cons_left = csc_matrix((np.ones(len(left_rows)), (left_rows, left_cols)), (num_cons, self.model.num_marginals))
+            self.cons_right = csc_matrix((np.ones(len(right_rows)), (right_rows, right_cols)), (num_cons, self.model.num_marginals))
+        else:
+            self.cons_left = np.zeros((0, self.model.num_marginals))
+            self.cons_right = np.zeros((0, self.model.num_marginals))
+
 
     def init_variables(self):
         self.norm_dual_vars = np.zeros((self.norm_mat.shape[0], 1))
@@ -112,7 +126,7 @@ class MatrixInference(object):
         """
         Updates beliefs to closed form solution given current constraint dual variables. Also updates normalization
         dual variables so beliefs are normalized
-        :return: None
+        :return: Noner
         """
         self.log_beliefs = (self.model.template_mat.T.dot(self.model.weights) +
                             self.norm_mat.T.dot(self.norm_dual_vars) +
@@ -180,7 +194,7 @@ class MatrixInference(object):
 
             change = np.sum(np.abs(old_dual_vars - self.cons_dual_vars))
 
-            logger.debug("Inference iteration %d. Dual objective %f (energy %f, entropy %f)" % \
+            print("Inference iteration %d. Dual objective %f (energy %f, entropy %f)" % \
                          (iter, self.dual_objective(), self.energy(), self.entropy()))
             iter += 1
 

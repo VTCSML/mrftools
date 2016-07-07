@@ -81,8 +81,12 @@ class Model(object):
         Creates templating matrix such that self.weights.T.dot(self.template_mat) is the log potential vector
         :return: None
         """
-        self.template_mat = dok_matrix((self.weight_dim, self.num_marginals))
-        self.factor_mat = dok_matrix((self.num_marginals, len(self.vars) + len(self.edges)))
+        factor_rows = []
+        factor_cols = []
+        factor_vals = []
+        template_rows = []
+        template_cols = []
+        template_vals = []
 
         column = 0
         factor_index = 0
@@ -90,11 +94,15 @@ class Model(object):
             indices = []
             for i in range(self.num_states):
                 index_start = i * self.unary_dim
-                self.template_mat[index_start:index_start + self.unary_dim, column] = self.features[var]
+                template_rows.extend(range(index_start, index_start + self.unary_dim))
+                template_cols.extend([column] * self.unary_dim)
+                template_vals.extend(self.features[var].ravel().tolist())
                 indices.append(column)
                 column += 1
             self.belief_indices[var] = indices
-            self.factor_mat[indices, factor_index] = 1
+            factor_rows.extend(indices)
+            factor_cols.extend([factor_index] * self.num_states)
+            factor_vals.extend([1] * self.num_states)
             factor_index += 1
 
         for edge in self.edges:
@@ -102,12 +110,18 @@ class Model(object):
             for i in range(self.num_states):
                 for j in range(self.num_states):
                     index_start = (i * self.num_states + j) * self.pair_dim
-                    self.template_mat[index_start:index_start + self.pair_dim, column] = self.features[edge]
+                    template_rows.extend(range(index_start, index_start + self.pair_dim))
+                    template_cols.extend([column] * self.pair_dim)
+                    template_vals.extend(self.features[edge].ravel().tolist())
                     indices.append(column)
                     column += 1
             self.belief_indices[edge] = indices
-            self.factor_mat[indices, factor_index] = 1
+            factor_rows.extend(indices)
+            factor_cols.extend([factor_index] * self.num_states**2)
+            factor_vals.extend([1] * self.num_states**2)
             factor_index += 1
 
-        self.template_mat = csc_matrix(self.template_mat)
-        self.factor_mat = csc_matrix(self.factor_mat)
+        self.template_mat = csc_matrix((template_vals, (template_rows, template_cols)),
+                                       (self.weight_dim, self.num_marginals))
+        self.factor_mat = csc_matrix((factor_vals, (factor_rows, factor_cols)),
+                                 (self.num_marginals, len(self.vars) + len(self.edges)))
