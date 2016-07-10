@@ -22,12 +22,29 @@ class MatrixBeliefPropagator(Inference):
 
         self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
+        self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
 
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
 
+    def condition(self,states):
+        """computer condition_mat for mode q"""
+        label_mask = -float('inf') * np.ones((self.mn.max_states, len(self.mn.variables)))
+        for (var, i) in self.mn.var_index.items():
+            if states[var] != -100:
+                label_mask[states[var], i] = 0
+            else:
+                label_mask[:, i] = 0
+        
+        self.conditioning_mat = label_mask
+
+    def condition_state(self):
+        print self.conditioning_mat
+        self.mn.unary_mat += self.conditioning_mat
+
     def computeBeliefs(self):
         """Compute unary beliefs based on current messages."""
+        self.condition_state()
         self.belief_mat = self.mn.unary_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
         logZ = logsumexp(self.belief_mat, 0)
 
@@ -118,6 +135,7 @@ class MatrixBeliefPropagator(Inference):
             self.pairBeliefs[(var, neighbor)] = belief
 
             self.pairBeliefs[(neighbor, var)] = belief.T
+
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""

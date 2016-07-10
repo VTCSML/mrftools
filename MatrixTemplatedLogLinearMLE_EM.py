@@ -26,7 +26,6 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         self.time_record = np.array([])
         self.inference_type = inference_type
 
-
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
 
@@ -35,23 +34,20 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
 
         feature_mat = np.zeros((model.max_features, len(model.variables)))
 
-        label_mask = -float('inf') * np.ones((model.max_states, len(model.variables)))
         for (var, i) in model.var_index.items():
             feature_mat[:, i] = features[var]
-            if states[var] != -100:
-                label_mask[states[var], i] = 0
-            else:
-                label_mask[:, i] = 0
 
         model.feature_mat = feature_mat
         model_q.feature_mat = feature_mat
 
         self.models.append(model)
         self.beliefPropagators.append(self.inference_type(model))
-
+        
         self.models_q.append(model_q)
         self.beliefPropagators_q.append(self.inference_type(model_q))
-        self.labels.append(label_mask)
+        self.inference_type(model_q).condition(states)
+        
+        self.labels.append(1)
         
     def do_inference(self, belief_propagators, method):
         for i in range(len(self.labels)):
@@ -83,11 +79,11 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         return bethe
 
     def subgrad_obj(self,weights,method):
-        self.E_step(weights,method,True)
+        self.calculate_tau(weights,method,'q',True)
         return self.Objective(weights,method)
     
     def subgrad_grad(self,weights,method):
-        self.E_step(weights,method,False)
+        self.calculate_tau(weights,method,'q',False)
         return self.Gradient(weights,method)
     
     def paired_dual_learning(self, weights):
@@ -135,9 +131,6 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
             if should_infere == True:
                 self.do_inference(self.beliefPropagators_q,method)
 
-            for i in range(len(self.labels)):
-                self.models_q[i].unary_mat += self.labels[i]
-
             self.tau_q = self.getFeatureExpectations(self.beliefPropagators_q)
             self.H_q = self.getBetheEntropy(self.beliefPropagators_q)
         elif mode == 'p':
@@ -147,9 +140,9 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
             self.tau_p = self.getFeatureExpectations(self.beliefPropagators)
             self.H_p = self.getBetheEntropy(self.beliefPropagators)
 
-    def E_step(self,weights,method,should_infere):
+    def E_step(self,weights):
 #         print 'E_step................'
-        self.calculate_tau(weights,method,'q',should_infere)
+        self.calculate_tau(weights,'EM','q',True)
 
     def M_step(self,weights):
         # print check_grad(self.Objective, self.Gradient, weights, 'EM')
@@ -219,12 +212,12 @@ def main():
 
     learner = MatrixTemplatedLogLinearMLE_EM(model,MatrixBeliefPropagator)
     
-#     data = [({0: 2, 1: -100, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
+    data = [({0: 2, 1: -100, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
 
-    data = [({0: 0, 1: 0, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
-             ({0: 1, 1: 1, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
-             ({0: 2, 1: 0, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
-             ({0: 3, 1: 2, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
+#    data = [({0: 0, 1: 0, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
+#             ({0: 1, 1: 1, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
+#             ({0: 2, 1: 0, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
+#             ({0: 3, 1: 2, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
 
     # add unary weights
     weights = np.ones(4 * d)
@@ -234,6 +227,7 @@ def main():
 #     print(learner)
 
     for (states, features) in data:
+#         print 'dataaaaaaaa'
         learner.addData(states, features)
 
     learner.setRegularization(.2, 1)
@@ -243,7 +237,7 @@ def main():
         # =====================================
         # E-step: inference
         # =====================================
-        learner.E_step(weights,'EM',True)
+        learner.E_step(weights)
               
                     # =====================================
                     # M-step: learning parameters

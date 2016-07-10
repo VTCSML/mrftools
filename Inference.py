@@ -8,3 +8,9 @@ class Inference(object):
 
     def compute_energy_functional(self):
         return
+    
+    def condition_state(self):
+        return
+    
+    def condition(self,states):
+        return
