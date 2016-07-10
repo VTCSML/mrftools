@@ -12,8 +12,8 @@ from MatrixLogLinearMLE import MatrixLogLinearMLE
 
 class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         
-    def __init__(self,baseModel):
-        super(MatrixTemplatedLogLinearMLE_EM, self).__init__(baseModel)
+    def __init__(self,baseModel,inference_type):
+        super(MatrixTemplatedLogLinearMLE_EM, self).__init__(baseModel,inference_type)
         self.tau_q = []
         self.tau_p = []
         self.H_p = 0
@@ -24,6 +24,8 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         self.bpIter = 1
         self.weight_record = np.array([])
         self.time_record = np.array([])
+        self.inference_type = inference_type
+        self.num_examples = 0
 
     def addData(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
@@ -33,65 +35,59 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
 
         feature_mat = np.zeros((model.max_features, len(model.variables)))
 
-        label_mask = -float('inf') * np.ones((model.max_states, len(model.variables)))
         for (var, i) in model.var_index.items():
             feature_mat[:, i] = features[var]
-            if states[var] != -100:
-                label_mask[states[var], i] = 0
-            else:
-                label_mask[:, i] = 0
 
         model.feature_mat = feature_mat
         model_q.feature_mat = feature_mat
 
         self.models.append(model)
-        self.beliefPropagators.append(MatrixBeliefPropagator(model))
-
+        self.beliefPropagators.append(self.inference_type(model))
+        
         self.models_q.append(model_q)
-        self.beliefPropagators_q.append(MatrixBeliefPropagator(model_q))
-        self.labels.append(label_mask)
+        bp_q = self.inference_type(model_q)
+        for (var, state) in states.items():
+            bp_q.condition(var, state)
+        
+        self.beliefPropagators_q.append(bp_q)
+        
+        self.num_examples += 1
+        
+    def do_inference(self, belief_propagators, method):
+        for i in range(self.num_examples):
+            bp = self.beliefPropagators[i]
+            if method == 'subgradient' or method == 'EM':
+                bp.infer(display = 'off')
+            elif method == 'paired':
+                bp.infer(display = 'off', maxIter = self.bpIter)
 
-    def getFeatureExpectations(self, beliefPropagators, method):
+    def getFeatureExpectations(self, beliefPropagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
         """
         marginalSum = 0
-        for i in range(len(self.labels)):
+        for i in range(self.num_examples):
             bp = beliefPropagators[i]
-            model = bp.mn
-            if method == 'subgradient' or method == 'EM':
-                bp.runInference(display = 'off')
-            elif method == 'paired':
-                bp.runInference(display = 'off', maxIter = self.bpIter)
-            bp.computeBeliefs()
-            bp.computePairwiseBeliefs()
-
-            summed_features = np.inner(np.exp(bp.belief_mat), model.feature_mat).T
-
-            summed_pair_features = np.sum(np.exp(bp.pair_belief_tensor), 2).T
-
-            marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
-
-            marginalSum += marginals
-
-        return marginalSum / len(self.labels)
+            marginalSum += bp.get_feature_expectations()
+            
+        return marginalSum / self.num_examples
 
     def getBetheEntropy(self,belief_propagator):
         bethe = 0
-        for i in range(len(self.labels)):
+        for i in range(self.num_examples):
             bp = belief_propagator[i]
             bp.computeBeliefs()
             bp.computePairwiseBeliefs()
-            bethe += bp.computeBetheEntropy()
+            bethe += bp.compute_bethe_entropy()
             
-        bethe = bethe / len(self.labels)
+        bethe = bethe / self.num_examples
         return bethe
 
     def subgrad_obj(self,weights,method):
-        self.E_step(weights,method)
+        self.calculate_tau(weights,method,'q',True)
         return self.Objective(weights,method)
     
     def subgrad_grad(self,weights,method):
-        self.E_step(weights,method)
+        self.calculate_tau(weights,method,'q',False)
         return self.Gradient(weights,method)
     
     def paired_dual_learning(self, weights):
@@ -133,24 +129,24 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
             self.weight_record = np.vstack((self.weight_record,a))
             self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
-    def calculate_tau(self, weights, method, mode):
+    def calculate_tau(self, weights, method, mode,should_infere):
         if mode == 'q':
             self.setWeights(weights,self.models_q)
+            if should_infere == True:
+                self.do_inference(self.beliefPropagators_q,method)
 
-            for i in range(len(self.labels)):
-                self.models_q[i].unary_mat += self.labels[i]
-
-            self.tau_q = self.getFeatureExpectations(self.beliefPropagators_q, method)
+            self.tau_q = self.getFeatureExpectations(self.beliefPropagators_q)
             self.H_q = self.getBetheEntropy(self.beliefPropagators_q)
         elif mode == 'p':
             self.setWeights(weights, self.models)
-
-            self.tau_p = self.getFeatureExpectations(self.beliefPropagators, method)
+            if should_infere == True:
+                self.do_inference(self.beliefPropagators,method)
+            self.tau_p = self.getFeatureExpectations(self.beliefPropagators)
             self.H_p = self.getBetheEntropy(self.beliefPropagators)
 
-    def E_step(self,weights,method):
+    def E_step(self,weights):
 #         print 'E_step................'
-        self.calculate_tau(weights,method,'q')
+        self.calculate_tau(weights,'EM','q',True)
 
     def M_step(self,weights):
         # print check_grad(self.Objective, self.Gradient, weights, 'EM')
@@ -158,7 +154,7 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         return res.x
     
     def Objective(self, weights, method):
-        self.calculate_tau(weights, method, 'p')
+        self.calculate_tau(weights, method, 'p',True)
 
         term_p = weights.dot(self.tau_p) + self.H_p
         term_q = weights.dot(self.tau_q) + self.H_q
@@ -174,7 +170,7 @@ class MatrixTemplatedLogLinearMLE_EM(MatrixLogLinearMLE):
         return objec
         
     def Gradient(self,weights,method):
-        self.calculate_tau(weights, method, 'p')
+        self.calculate_tau(weights, method, 'p',False)
 
         grad = np.zeros(len(weights))
       
@@ -218,11 +214,11 @@ def main():
 
 #     from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 
-    learner = MatrixTemplatedLogLinearMLE_EM(model)
+    learner = MatrixTemplatedLogLinearMLE_EM(model,MatrixBeliefPropagator)
     
     data = [({0: 2, 1: -100, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
 
-#     data = [({0: 0, 1: 0, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
+#    data = [({0: 0, 1: 0, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
 #             ({0: 1, 1: 1, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
 #             ({0: 2, 1: 0, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
 #             ({0: 3, 1: 2, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
@@ -232,9 +228,10 @@ def main():
     # add edge weights
     weights = np.append(weights, np.ones(4 * 4))
 
-    print(learner)
+#     print(learner)
 
     for (states, features) in data:
+#         print 'dataaaaaaaa'
         learner.addData(states, features)
 
     learner.setRegularization(.2, 1)
@@ -244,37 +241,30 @@ def main():
         # =====================================
         # E-step: inference
         # =====================================
-        learner.E_step(weights,'EM')
+        learner.E_step(weights)
               
                     # =====================================
                     # M-step: learning parameters
                     # =====================================
         weights = learner.M_step(weights)
-
-#     print "\n\nObjective:"
-#     print learner.objective(weights)
-#     print "\n\nGradient:"
-#     print learner.gradient(weights)
-# 
-# 
-#     print "\n\nGradient check:"
-#     print check_grad(learner.objective, learner.gradient, weights)
-# 
-#     t0 = time.time()
-# 
-#     print "\n\nOptimization:"
-# 
-# 
-#     res = minimize(learner.objective, weights, method='L-BFGS-b', jac = learner.gradient)
-# 
-#     t1 = time.time()
-# 
-#     print("Optimization took %f seconds" % (t1 - t0))
-# 
-#     print res
-# 
-#     print "\n\nGradient check at optimized solution:"
-#     print check_grad(learner.objective, learner.gradient, res.x * (1 + 1e-9))
+        
+    print weights
+    
+    weights = np.ones(4 * d)
+    # add edge weights
+    weights = np.append(weights, np.ones(4 * 4))
+    
+    weights = learner.subGradient(weights)
+    
+    print weights
+    
+    weights = np.ones(4 * d)
+    # add edge weights
+    weights = np.append(weights, np.ones(4 * 4))
+    
+    weights = learner.paired_dual_learning(weights)
+    
+    print  weights
 
 
 if  __name__ =='__main__':
