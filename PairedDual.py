@@ -1,36 +1,40 @@
 import copy
 import time
 from _hashlib import new
+
 import numpy as np
 from scipy.optimize import minimize, check_grad
+
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixLogLinearMLE import MatrixLogLinearMLE
 from Learner import Learner
-# from PIL.ImageGrab import grab
 
-class EM(Learner):
-    
+
+class PairedDual(Learner):
     def __init__(self,baseModel,inference_type):
-        super(EM, self).__init__(baseModel,inference_type)
+        super(PairedDual, self).__init__(baseModel,inference_type)
         
-    def learn(self,weights):
-        old_weights = np.inf
-        new_weights = weights
-        while not np.allclose(old_weights, new_weights):
-            old_weights = new_weights
-            self.E_step(new_weights)
-            new_weights = self.M_step(new_weights)
-            
-        return new_weights
-
-    def E_step(self,weights):
-        self.calculate_tau(weights,'EM','q',True)
-
-    def M_step(self,weights):
-        res = minimize(self.objective, weights ,args = 'EM', method='L-BFGS-B', jac = self.gradient,callback=self.callbackF)
-        return res.x
+    def ada_grad(self, x, args):
+        t = 1
+        tolerance = 1e-8
+        max_iter = 500
+        change = np.inf
     
+        grad_sum = 0
+        while change > tolerance and t < max_iter:
+            self.subgrad_obj(x, 'paired')
+            old_x = x
+            g = self.subgrad_grad(x, args)
+            grad_sum += g * g
+            x = x - 1.0 * g / (np.sqrt(grad_sum) + 0.001)
+            change = np.sum(np.abs(x - old_x))
+            t += 1
+            self.callbackF(x)
+        return x
+
+    def Learn(self, weights):
+        return self.adagrad(weights, 'paired')
     
     
 def main():
@@ -63,7 +67,7 @@ def main():
 
 #     from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 
-    learner = EM(model,MatrixBeliefPropagator)
+    learner = PairedDual(model,MatrixBeliefPropagator)
     
     data = [({0: 2, 1: -100, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
 
@@ -96,5 +100,3 @@ def main():
 
 if  __name__ =='__main__':
     main()
-    
-    

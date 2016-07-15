@@ -7,9 +7,10 @@ import unittest
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from Learner import Learner
 from EM import EM
-from paired_dual import paired_dual
+from PairedDual import PairedDual
 import numpy as np
 from test_functions import *
+import matplotlib.pyplot as plt
 
 
 class TestImageSegmentation(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestImageSegmentation(unittest.TestCase):
 
         initial_weights = np.random.randn( num_states * d)
         initial_weights = np.append(initial_weights, np.random.randn( num_states * num_states))
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
 
         weight_record = learner.weight_record
         time_record = learner.time_record
@@ -48,7 +49,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner = EM(model,MatrixBeliefPropagator)
         add_synthetic_data(learner)
 
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
         weight_record = learner.weight_record
         time_record = learner.time_record
         l = weight_record.shape[0]
@@ -64,9 +65,9 @@ class TestImageSegmentation(unittest.TestCase):
 # paired_dual
 # =====================================
 #         learner.reset()
-        learner = paired_dual(model,MatrixBeliefPropagator)
+        learner = PairedDual(model,MatrixBeliefPropagator)
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
         weight_record = learner.weight_record
         time_record = learner.time_record
         l = weight_record.shape[0]
@@ -102,7 +103,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner = Learner(model,MatrixBeliefPropagator)
         learner.reset()
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
         subgrad_weight_record = learner.weight_record
         subgrad_time_record = learner.time_record
         t = learner.time_record[0]
@@ -148,7 +149,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner = EM(model,MatrixBeliefPropagator)
         learner.reset()
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
          
         EM_weight_record = learner.weight_record
         EM_time_record = learner.time_record
@@ -193,10 +194,10 @@ class TestImageSegmentation(unittest.TestCase):
 # =====================================
 # paired dual
 # =====================================
-        learner = paired_dual(model,MatrixBeliefPropagator)
+        learner = PairedDual(model,MatrixBeliefPropagator)
         learner.reset()
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
          
         paired_weight_record = learner.weight_record
         paired_time_record = learner.time_record
@@ -268,7 +269,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner = Learner(model,MatrixBeliefPropagator)
         learner.reset()
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
         subgrad_weight_record = learner.weight_record
         subgrad_time_record = learner.time_record
         t = learner.time_record[0]
@@ -314,7 +315,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner = EM(model,MatrixBeliefPropagator)
         learner.reset()
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
         EM_weight_record = learner.weight_record
         EM_time_record = learner.time_record
         t = learner.time_record[0]
@@ -357,10 +358,10 @@ class TestImageSegmentation(unittest.TestCase):
 # =====================================
 # paired_dual
 # =====================================
-        learner = paired_dual(model,MatrixBeliefPropagator)
+        learner = PairedDual(model,MatrixBeliefPropagator)
         learner.reset()
         add_synthetic_data(learner)
-        weights = learner.Learn(initial_weights)
+        weights = learner.learn(initial_weights)
         paired_weight_record = learner.weight_record
         paired_time_record = learner.time_record
         t = learner.time_record[0]

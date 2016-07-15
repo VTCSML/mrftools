@@ -104,7 +104,7 @@ def add_synthetic_data(learner):
     dic3[2] = int(1)
     dic3[3] = int(0)
     dic3[4] = int(2)
-    learner.addData(dic1,dic2)
+    learner.add_data(dic1,dic2)
     train_data_dic[0] = [dic1,dic2,dic3]
 #     print ('data is added')
     dic1 = {}
@@ -117,7 +117,7 @@ def add_synthetic_data(learner):
     dic2[2] = np.array([1,0,0])
     dic2[3] = np.array([0,1,0])
     dic2[4] = np.array([0,0,1])
-    learner.addData(dic1,dic2)
+    learner.add_data(dic1,dic2)
     dic3 = {}
     dic3[1] = 0
     dic3[2] = 0
@@ -136,7 +136,7 @@ def add_synthetic_data(learner):
     dic2[2] = np.array([0,0,1])
     dic2[3] = np.array([0,1,0])
     dic2[4] = np.array([0,0,1])
-    learner.addData(dic1,dic2)
+    learner.add_data(dic1,dic2)
 #     print ('data is added')
     dic3 = {}
     dic3[1] = 0
@@ -155,7 +155,7 @@ def add_synthetic_data(learner):
     dic2[2] = np.array([0,1,0])
     dic2[3] = np.array([1,0,0])
     dic2[4] = np.array([0,0,1])
-    learner.addData(dic1,dic2)
+    learner.add_data(dic1,dic2)
     dic3 = {}
     dic3[1] = 1
     dic3[2] = 1

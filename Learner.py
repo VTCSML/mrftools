@@ -1,10 +1,8 @@
 import copy
 import time
 from _hashlib import new
-
 import numpy as np
 from scipy.optimize import minimize, check_grad
-
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixLogLinearMLE import MatrixLogLinearMLE
@@ -26,7 +24,7 @@ class Learner(MatrixLogLinearMLE):
         self.inference_type = inference_type
         self.num_examples = 0
         
-    def addData(self, states, features):
+    def add_data(self, states, features):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
 
         model = copy.deepcopy(self.baseModel)
@@ -52,7 +50,6 @@ class Learner(MatrixLogLinearMLE):
         
         self.num_examples += 1
         
-        
     def do_inference(self, belief_propagators, method):
         for i in range(self.num_examples):
             bp = self.beliefPropagators[i]
@@ -60,8 +57,6 @@ class Learner(MatrixLogLinearMLE):
                 bp.infer(display = 'off')
             elif method == 'paired':
                 bp.infer(display = 'off', maxIter = self.bpIter)
-        
-        
         
     def get_feature_expectations(self, beliefPropagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
@@ -72,7 +67,6 @@ class Learner(MatrixLogLinearMLE):
             marginalSum += bp.get_feature_expectations()
             
         return marginalSum / self.num_examples
-    
     
     def get_betheEntropy(self,belief_propagator):
         bethe = 0
@@ -87,14 +81,13 @@ class Learner(MatrixLogLinearMLE):
     
     def subgrad_obj(self,weights,method):
         self.calculate_tau(weights,method,'q',True)
-        return self.Objective(weights,method)
+        return self.objective(weights,method)
     
     def subgrad_grad(self,weights,method):
         self.calculate_tau(weights,method,'q',False)
-        return self.Gradient(weights,method)
+        return self.gradient(weights,method)
     
-        
-    def Learn(self,weights):
+    def learn(self,weights):
         old_weights = np.inf
         new_weights = weights
 
@@ -137,8 +130,7 @@ class Learner(MatrixLogLinearMLE):
             self.tau_p = self.get_feature_expectations(self.beliefPropagators)
             self.H_p = self.get_betheEntropy(self.beliefPropagators)
 
-    
-    def Objective(self, weights, method):
+    def objective(self, weights, method):
         self.calculate_tau(weights, method, 'p',True)
 
         term_p = weights.dot(self.tau_p) + self.H_p
@@ -154,7 +146,7 @@ class Learner(MatrixLogLinearMLE):
 #         print objec
         return objec
         
-    def Gradient(self,weights,method):
+    def gradient(self,weights,method):
         self.calculate_tau(weights, method, 'p',False)
 
         grad = np.zeros(len(weights))
@@ -167,7 +159,6 @@ class Learner(MatrixLogLinearMLE):
         grad += np.squeeze(self.tau_p)
       
         return grad 
-    
     
     
 def main():
@@ -218,7 +209,7 @@ def main():
 
     for (states, features) in data:
 #         print 'dataaaaaaaa'
-        learner.addData(states, features)
+        learner.add_data(states, features)
 
     learner.setRegularization(.2, 1)
     
@@ -227,7 +218,7 @@ def main():
     # add edge weights
     weights = np.append(weights, np.ones(4 * 4))
     
-    weights = learner.Learn(weights)
+    weights = learner.learn(weights)
     
     print weights
     
