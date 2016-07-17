@@ -8,14 +8,12 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixLogLinearMLE import MatrixLogLinearMLE
 
 
-class Learner(MatrixLogLinearMLE):
-    def __init__(self,baseModel,inference_type):
-        super(Learner, self).__init__(baseModel,inference_type)
+class Learner(object):
+    def __init__(self,inference_type):
         self.tau_q = []
         self.tau_p = []
         self.H_p = 0
         self.H_q = 0
-        self.beliefPropagators_q = []
         self.models_q = []
         self.term_q_p = 0
         self.bpIter = 1
@@ -23,27 +21,22 @@ class Learner(MatrixLogLinearMLE):
         self.time_record = np.array([])
         self.inference_type = inference_type
         self.num_examples = 0
+        self.models = []
+        self.models_q = []
+        self.beliefPropagators_q = []
+        self.beliefPropagators = []
         
-    def add_data(self, states, features):
+    def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
-
-        model = copy.deepcopy(self.baseModel)
-        model_q = copy.deepcopy(self.baseModel)
-
-        feature_mat = np.zeros((model.max_features, len(model.variables)))
-
-        for (var, i) in model.var_index.items():
-            feature_mat[:, i] = features[var]
-
-        model.feature_mat = feature_mat
-        model_q.feature_mat = feature_mat
 
         self.models.append(model)
         self.beliefPropagators.append(self.inference_type(model))
-        
+
+        model_q = copy.deepcopy(model)
         self.models_q.append(model_q)
+
         bp_q = self.inference_type(model_q)
-        for (var, state) in states.items():
+        for (var, state) in labels.items():
             bp_q.condition(var, state)
         
         self.beliefPropagators_q.append(bp_q)
@@ -87,7 +80,7 @@ class Learner(MatrixLogLinearMLE):
         self.calculate_tau(weights,method,'q',False)
         return self.gradient(weights,method)
     
-    def learn(self,weights):
+    def learn(self, weights):
         old_weights = np.inf
         new_weights = weights
 
