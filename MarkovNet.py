@@ -106,9 +106,12 @@ class MarkovNet(object):
                     self.num_edges += 1
 
         self.edge_pot_tensor = -np.inf * np.ones((self.max_states, self.max_states, 2 * self.num_edges))
-        self.message_to_index = dok_matrix((2 * self.num_edges, len(self.variables)))
-        self.message_from_index = dok_matrix((2 * self.num_edges, len(self.variables)))
         self.edges = []
+
+        from_rows = []
+        from_cols = []
+        to_rows = []
+        to_cols = []
 
         i = 0
         for var in self.variables:
@@ -123,18 +126,24 @@ class MarkovNet(object):
                     var_i = self.var_index[var]
                     neighbor_i = self.var_index[neighbor]
 
-                    self.message_from_index[i, var_i] = 1
-                    self.message_from_index[i + self.num_edges, neighbor_i] = 1
+                    from_rows.append(i)
+                    from_cols.append(var_i)
+                    from_rows.append(i + self.num_edges)
+                    from_cols.append(neighbor_i)
 
-                    self.message_to_index[i, neighbor_i] = 1
-                    self.message_to_index[i + self.num_edges, var_i] = 1
+                    to_rows.append(i)
+                    to_cols.append(neighbor_i)
+                    to_rows.append(i + self.num_edges)
+                    to_cols.append(var_i)
 
                     self.edges.append((var, neighbor))
 
                     i += 1
 
-        self.message_to_index = csc_matrix(self.message_to_index)
-        self.message_from_index = csc_matrix(self.message_from_index)
+        self.message_to_index = csc_matrix((np.ones(len(to_rows)), (to_rows, to_cols)),
+                                      (2 * self.num_edges, len(self.variables)))
+        self.message_from_index = csc_matrix((np.ones(len(from_rows)), (from_rows, from_cols)),
+                                      (2 * self.num_edges, len(self.variables)))
 
 
 def main():

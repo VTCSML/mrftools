@@ -59,6 +59,10 @@ class LogLinearModel(MarkovNet):
 
         self.feature_mat = np.zeros((self.max_features, len(self.variables)))
 
+        for var in self.variables:
+            index = self.var_index[var]
+            self.feature_mat[:, index] = self.unaryFeatures[var]
+
 
 def main():
     """Test function for MarkovNet."""
