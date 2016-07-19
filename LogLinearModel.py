@@ -10,16 +10,16 @@ class LogLinearModel(MarkovNet):
     def __init__(self):
         """Initialize a LogLinearModel. Create a Markov net."""
         super(LogLinearModel, self).__init__()
-        self.unaryFeatures = dict()
+        self.unary_features = dict()
         self.unary_feature_weights = dict()
-        self.numFeatures = dict()
+        self.num_features = dict()
 
     def set_unary_weights(self, var, weights):
         """Set the log-linear weights for the unary features of var.
         :type weights: np.ndarray
         """
         assert isinstance(weights, np.ndarray)
-        assert np.shape(weights)[0] == self.numStates[var]
+        assert np.shape(weights)[0] == self.num_states[var]
         self.unary_feature_weights[var] = weights
 
     def set_unary_features(self, var, values):
@@ -29,13 +29,13 @@ class LogLinearModel(MarkovNet):
         :type values: np.ndarray
         """
         assert isinstance(values, np.ndarray)
-        self.unaryFeatures[var] = values
+        self.unary_features[var] = values
 
-        self.numFeatures[var] = len(values)
+        self.num_features[var] = len(values)
 
     def set_all_unary_factors(self):
         for var in self.variables:
-            self.set_unary_factor(var, self.unary_feature_weights[var].dot(self.unaryFeatures[var]))
+            self.set_unary_factor(var, self.unary_feature_weights[var].dot(self.unary_features[var]))
 
     def set_feature_matrix(self, feature_mat):
         assert (np.array_equal(self.feature_mat.shape, feature_mat.shape))
@@ -53,7 +53,7 @@ class LogLinearModel(MarkovNet):
     def create_matrices(self):
         super(LogLinearModel, self).create_matrices()
 
-        self.max_features = max([x for x in self.numFeatures.values()])
+        self.max_features = max([x for x in self.num_features.values()])
 
         self.weight_mat = np.zeros((self.max_features, self.max_states))
 
@@ -61,7 +61,7 @@ class LogLinearModel(MarkovNet):
 
         for var in self.variables:
             index = self.var_index[var]
-            self.feature_mat[:, index] = self.unaryFeatures[var]
+            self.feature_mat[:, index] = self.unary_features[var]
 
 
 def main():
