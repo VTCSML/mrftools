@@ -466,13 +466,13 @@ class TestImageSegmentation(unittest.TestCase):
     # Create Log linear model
     # =====================================
     
-    def Create_LogLinearModel(self,height,width,d,numStates):
+    def Create_LogLinearModel(self,height,width,d,num_states):
         num_pixels = height * width
         model = LogLinearModel()
     
         for i in range(1,num_pixels+1):
-            model.declare_variable(i, numStates)
-            model.set_unary_weights(i, np.random.randn(numStates, d))
+            model.declare_variable(i, num_states)
+            model.set_unary_weights(i, np.random.randn(num_states, d))
             model.set_unary_features(i, np.random.randn(d))
     
     
@@ -488,16 +488,16 @@ class TestImageSegmentation(unittest.TestCase):
         
         ##### set south neighbour for left pixels
         for i in (left_pixels):
-            model.set_edge_factor((i, i + width), np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(num_states))
              
     ##### set left neighbour for sought pixels
         for i in (down_pixels):
-            model.set_edge_factor((i - 1, i), np.eye(numStates))
+            model.set_edge_factor((i - 1, i), np.eye(num_states))
     
     ##### set south and left neighbour for all the remaining pixels
         for i in (usual_pixels):
-            model.set_edge_factor((i, i + width), np.eye(numStates))
-            model.set_edge_factor((i - 1, i), np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(num_states))
+            model.set_edge_factor((i - 1, i), np.eye(num_states))
             
         return model
         
