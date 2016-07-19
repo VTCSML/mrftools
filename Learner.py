@@ -5,7 +5,6 @@ import numpy as np
 from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
-from MatrixLogLinearMLE import MatrixLogLinearMLE
 
 
 class Learner(object):

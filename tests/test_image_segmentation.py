@@ -10,7 +10,7 @@ from EM import EM
 from PairedDual import PairedDual
 import numpy as np
 import matplotlib.pyplot as plt
-from MarkovNet   import MarkovNet
+from MarkovNet import MarkovNet
 from LogLinearModel import LogLinearModel
 import itertools
 
