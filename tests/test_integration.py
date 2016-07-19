@@ -17,7 +17,7 @@ class IntegrationTest(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
-        weights = np.zeros(64 * 2)
+        weights = np.zeros(64 * 2 + 4)
 
         learner.learn(weights)
 
