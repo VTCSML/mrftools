@@ -1,9 +1,11 @@
+from __future__ import division
 import numpy as np
-from util import logsumexp
+from scipy.misc import logsumexp
 from MarkovNet import MarkovNet
 import pandas as pd
 import random
 from collections import Counter
+import collections
 
 class Gibbs(object):
     "Object that can run gibbs sampling on a MarkovNet"
@@ -11,90 +13,106 @@ class Gibbs(object):
     def __init__(self, markov_net):
         """Initialize belief propagator for markov_net."""
         self.mn = markov_net
-        self.States = dict()
-        self.Unaryweights = dict()
-        self.Samples = list()
+        self.states = dict()
+        self.unary_weights = dict()
+        self.samples = list()
 
-    def weighted_choice(self, weight):
+    def generate_state(self, weight):
         """Generate state according to the given weight"""
-        rnd = random.random() * sum(weight)
-        for i, w in enumerate(weight):
-            rnd = rnd - w
+        r = random.uniform(0, 1)
+        # Sum = sum(weight.values())
+        Sum = sum(weight)
+        rnd = r * Sum
+        for i in range(len(weight)):
+            rnd = rnd - weight[i]
             if rnd < 0:
                 return i
 
     def init_states(self):
         """Initialize the state of each node."""
         for var in self.mn.variables:
-            weight = self.mn.getUnaryPotential(var)
-            log_z = logsumexp(weight)
-            weight = weight - log_z
-            weight = np.exp(weight)
-            self.Unaryweights[var] = weight;
-            self.States[var] = self.weighted_choice(self.Unaryweights[var])
+            weight = self.mn.unaryPotentials[var]
+            weight = np.exp(weight - logsumexp(weight))
+            self.unary_weights[var] = weight
+            self.states[var] = self.generate_state(self.unary_weights[var])
 
     def update_states(self):
         """Update the state of each node based on neighbor states."""
         for var in self.mn.variables:
-            weight = self.mn.getUnaryPotential(var)
+            weight = self.mn.unaryPotentials[var]
             for neighbor in self.mn.neighbors[var]:
-                weight =  weight + self.mn.get_potential((var, neighbor))[:, self.get_states(neighbor)]
-                log_z = logsumexp(weight)
-                weight = weight - log_z
-                weight = np.exp(weight)
-            self.States[var] = self.weighted_choice(weight)
+                weight = weight + self.mn.get_potential((var, neighbor))[:, self.states[neighbor]]
+            weight = np.exp(weight - logsumexp(weight))
+            self.states[var] = self.generate_state(weight)
 
-    def get_states(self, variable):
-        return self.States[variable]
 
     def mix(self, ite):
         """Run the state Update procedure until mix, ite: number of iterations for mixing"""
         for i in range(0, ite):
                 self.update_states()
 
-    def sampling(self, num, s):
+    def sampling(self, num):
         """Run the sampling: num, number of samples; s, gap between two samples (So when s = 1, means take consecutive samples)"""
         for i in range(0, num):
             self.update_states()
-            self.Samples.append(self.States.copy())
-        for i in range(0, s-1):
-            self.update_states()
+            self.samples.append(self.states.copy())
+        # for i in range(0, s-1):
+        #     self.update_states()
 
-    def counter(self, samples):
-        for var in self.mn.variables:
-            counts = Counter(pd.DataFrame(samples)[var])
-            print(counts)
-
-    def gibbs_sampling(self, itr, num, s):
+    def gibbs_sampling(self, itr, num):
         self.mix(itr)
-        self.sampling(num, s)
-        self.counter(self.Samples)
+        self.sampling(num)
+
+
+    def counter(self, var):
+        counts = Counter(pd.DataFrame(self.samples)[var])
+        count_array = np.asarray(list(counts.values()))
+        return count_array
 
 
 def main():
-    # """Test basic functionality of BeliefPropagator."""
+    # # """Test basic functionality of BeliefPropagator."""
     mn = MarkovNet()
 
     np.random.seed(1)
 
-    mn.set_unary_factor(0, np.random.randn(4))
-    mn.set_unary_factor(1, np.random.randn(3))
-    mn.set_unary_factor(2, np.random.randn(6))
-    mn.set_unary_factor(3, np.random.randn(2))
+    unary_potential = np.random.randn(2)
+    edge_potential = np.random.randn(2, 2)
 
-    mn.set_edge_factor((0, 1), np.random.randn(4, 3))
-    mn.set_edge_factor((1, 2), np.random.randn(3, 6))
-    mn.set_edge_factor((3, 2), np.random.randn(2, 6))
-    mn.set_edge_factor((3, 0), np.random.randn(2, 4)) # uncomment this to make loopy
+    print unary_potential
+    print edge_potential
+
+
+    mn.set_unary_factor(0, unary_potential)
+    mn.set_unary_factor(1, unary_potential)
+    mn.set_unary_factor(2, unary_potential)
+    mn.set_unary_factor(3, unary_potential)
+
+    mn.set_edge_factor((0, 1), edge_potential)
+    mn.set_edge_factor((1, 2), edge_potential)
+    mn.set_edge_factor((2, 3), edge_potential)
+    # mn.set_edge_factor((3, 0), edge_potential) # uncomment this to make loopy
 
     gb = Gibbs(mn)
     gb.init_states()
-    print(gb.States)
+    print "result:"
+    print(gb.states)
 
-    itr = 10000
-    num = 1000
-    s = 1
-    gb.gibbs_sampling(itr, num, s)
+    itr = 1000
+    num = 100000
+    gb.gibbs_sampling(itr, num)
+
+    from BruteForce import BruteForce
+
+    bf = BruteForce(mn)
+    for var in mn.variables:
+        gb_result = gb.counter(var) / num
+        bf_result = bf.unary_marginal(var)
+        print gb_result
+        print bf_result
+        np.testing.assert_allclose(gb_result, bf_result, rtol=2e-2, atol=0)
+
+
 
 
 if  __name__ =='__main__':
