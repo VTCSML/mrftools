@@ -19,12 +19,12 @@ class BeliefPropagator(Inference):
         """Initialize messages to default initialization (set to zeros)."""
         for var in self.mn.variables:
             for neighbor in self.mn.get_neighbors(var):
-                self.messages[(var, neighbor)] = np.zeros(self.mn.numStates[neighbor])
+                self.messages[(var, neighbor)] = np.zeros(self.mn.num_states[neighbor])
 
     def init_beliefs(self):
         """Initialize beliefs."""
         for var in self.mn.variables:
-            belief = self.mn.unaryPotentials[var]
+            belief = self.mn.unary_potentials[var]
             log_z = logsumexp(belief)
             belief = belief - log_z
             self.var_beliefs[var] = belief
@@ -41,7 +41,7 @@ class BeliefPropagator(Inference):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         for var in self.mn.variables:
-            belief = self.mn.unaryPotentials[var]
+            belief = self.mn.unary_potentials[var]
             for neighbor in self.mn.get_neighbors(var):
                 belief = belief + self.messages[(neighbor, var)]
             log_z = logsumexp(belief)
@@ -144,7 +144,7 @@ class BeliefPropagator(Inference):
 
         for var in self.mn.variables:
             neighbors = self.mn.get_neighbors(var)
-            energy += np.nan_to_num(self.mn.unaryPotentials[var]).dot(np.exp(self.var_beliefs[var]))
+            energy += np.nan_to_num(self.mn.unary_potentials[var]).dot(np.exp(self.var_beliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
                     energy += np.sum(np.nan_to_num(self.mn.get_potential((var, neighbor)) * np.exp(self.pair_beliefs[(var, neighbor)])))

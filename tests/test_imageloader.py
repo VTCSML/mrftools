@@ -17,7 +17,7 @@ class TestImageLoader(unittest.TestCase):
         for i, filename in enumerate(files):
             full_name = os.path.join('./train', filename)
             img = Image.open(full_name)
-            features = models[i].unaryFeatures
+            features = models[i].unary_features
             assert np.allclose(len(labels[i]), img.width * img.height), "the size of labels is right"
             assert np.allclose(len(features), img.width * img.height), "the size of features is right"
 

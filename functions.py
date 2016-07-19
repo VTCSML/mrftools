@@ -165,15 +165,15 @@ def Load_Resize_Label(label,height,width):
 # =====================================
 # Create Log linear model
 # =====================================
-def Create_LogLinearModel(height,width,d,numStates):
+def Create_LogLinearModel(height,width,d,num_states):
     num_pixels = height * width
     model = LogLinearModel()
 
     num_edge = 0
 
     for i in range(1,num_pixels+1):
-        model.declare_variable(i, numStates)
-        model.set_unary_weights(i, np.random.randn(numStates, d))
+        model.declare_variable(i, num_states)
+        model.set_unary_weights(i, np.random.randn(num_states, d))
         model.set_unary_features(i, np.random.randn(d))
 
 
@@ -200,99 +200,99 @@ def Create_LogLinearModel(height,width,d,numStates):
      
     all_edges = set()
         
-    model.set_edge_factor((1, 2), np.eye(numStates))
+    model.set_edge_factor((1, 2), np.eye(num_states))
     all_edges.add((1,2))
-    model.set_edge_factor((1, 1 + width), np.eye(numStates))
+    model.set_edge_factor((1, 1 + width), np.eye(num_states))
     all_edges.add((1,1+width))
         
         
-    model.set_edge_factor((width, width - 1), np.eye(numStates))
+    model.set_edge_factor((width, width - 1), np.eye(num_states))
     all_edges.add((width,width-1))
-    model.set_edge_factor((width, width + width), np.eye(numStates))
+    model.set_edge_factor((width, width + width), np.eye(num_states))
     all_edges.add((width,width+width))
         
         
-    model.set_edge_factor((left_ind, left_ind + 1), np.eye(numStates))
+    model.set_edge_factor((left_ind, left_ind + 1), np.eye(num_states))
     all_edges.add((left_ind,left_ind +1))
-    model.set_edge_factor((left_ind, left_ind - width), np.eye(numStates))
+    model.set_edge_factor((left_ind, left_ind - width), np.eye(num_states))
     all_edges.add((left_ind,left_ind - width))
         
         
-    model.set_edge_factor((num_pixels, num_pixels - 1), np.eye(numStates))
+    model.set_edge_factor((num_pixels, num_pixels - 1), np.eye(num_states))
     all_edges.add((num_pixels,num_pixels - 1))
-    model.set_edge_factor((num_pixels, num_pixels - width), np.eye(numStates))
+    model.set_edge_factor((num_pixels, num_pixels - width), np.eye(num_states))
     all_edges.add((num_pixels,num_pixels - width))
         
         
     for i in (left_pixels):
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges :
-            model.set_edge_factor((i, i + 1), np.eye(numStates))
+            model.set_edge_factor((i, i + 1), np.eye(num_states))
             all_edges.add((i,i+1))
                 
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.set_edge_factor((i, i - width), np.eye(numStates))
+            model.set_edge_factor((i, i - width), np.eye(num_states))
             all_edges.add((i,i-width))
                 
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.set_edge_factor((i, i + width), np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(num_states))
             all_edges.add((i,i+width))
         
         
     for i in (right_pixels):
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.set_edge_factor((i, i - 1), np.eye(numStates))
+            model.set_edge_factor((i, i - 1), np.eye(num_states))
             all_edges.add((i,i-1))
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.set_edge_factor((i, i - width), np.eye(numStates))
+            model.set_edge_factor((i, i - width), np.eye(num_states))
             all_edges.add((i,i-width))
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.set_edge_factor((i, i + width), np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(num_states))
             all_edges.add((i,i+width))
         
         
     for i in  up_pixels:
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            model.set_edge_factor((i, i + 1), np.eye(numStates))
+            model.set_edge_factor((i, i + 1), np.eye(num_states))
             all_edges.add((i,i+1))
                 
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.set_edge_factor((i, i - 1), np.eye(numStates))
+            model.set_edge_factor((i, i - 1), np.eye(num_states))
             all_edges.add((i,i-1))
                 
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.set_edge_factor((i, i + width), np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(num_states))
             all_edges.add((i,i+width))
         
         
         
     for i in  down_pixels:
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            model.set_edge_factor((i, i + 1), np.eye(numStates))
+            model.set_edge_factor((i, i + 1), np.eye(num_states))
             all_edges.add((i,i+1))
                 
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.set_edge_factor((i, i - 1), np.eye(numStates))
+            model.set_edge_factor((i, i - 1), np.eye(num_states))
             all_edges.add((i,i-1))
                 
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.set_edge_factor((i, i - width), np.eye(numStates))
+            model.set_edge_factor((i, i - width), np.eye(num_states))
             all_edges.add((i,i-width))
         
         
     for i in (usual_pixels):
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            model.set_edge_factor((i, i + 1), np.eye(numStates))
+            model.set_edge_factor((i, i + 1), np.eye(num_states))
             all_edges.add((i,i+1))
                 
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            model.set_edge_factor((i, i - 1), np.eye(numStates))
+            model.set_edge_factor((i, i - 1), np.eye(num_states))
             all_edges.add((i,i-1))
                 
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            model.set_edge_factor((i, i - width), np.eye(numStates))
+            model.set_edge_factor((i, i - width), np.eye(num_states))
             all_edges.add((i,i-width))
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            model.set_edge_factor((i, i + width), np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(num_states))
             all_edges.add((i,i+width))
 
 

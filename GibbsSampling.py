@@ -31,7 +31,7 @@ class Gibbs(object):
     def init_states(self):
         """Initialize the state of each node."""
         for var in self.mn.variables:
-            weight = self.mn.unaryPotentials[var]
+            weight = self.mn.unary_potentials[var]
             weight = np.exp(weight - logsumexp(weight))
             self.unary_weights[var] = weight
             self.states[var] = self.generate_state(self.unary_weights[var])
@@ -39,7 +39,7 @@ class Gibbs(object):
     def update_states(self):
         """Update the state of each node based on neighbor states."""
         for var in self.mn.variables:
-            weight = self.mn.unaryPotentials[var]
+            weight = self.mn.unary_potentials[var]
             for neighbor in self.mn.neighbors[var]:
                 weight = weight + self.mn.get_potential((var, neighbor))[:, self.states[neighbor]]
             weight = np.exp(weight - logsumexp(weight))
