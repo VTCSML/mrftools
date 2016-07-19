@@ -117,7 +117,7 @@ class BeliefPropagator(Inference):
             change = self.update_messages()
             if display == "full":
                 disagreement = self.compute_inconsistency()
-                energy_func = self.computeEnergyFunctional()
+                energy_func = self.compute_energy_functional()
                 dual_obj = self.compute_dual_objective()
                 print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
             elif display == "iter":
@@ -190,61 +190,3 @@ def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
     max_val = matrix.max()
     return np.log(np.sum(np.exp(matrix - max_val), dim)) + max_val
-
-def main():
-    """Test basic functionality of BeliefPropagator."""
-    mn = MarkovNet()
-
-    np.random.seed(1)
-
-    k = [4, 3, 6, 2, 5]
-
-    mn.set_unary_factor(0, np.random.randn(k[0]))
-    mn.set_unary_factor(1, np.random.randn(k[1]))
-    mn.set_unary_factor(2, np.random.randn(k[2]))
-    mn.set_unary_factor(3, np.random.randn(k[3]))
-
-    factor4 = np.random.randn(k[4])
-    factor4[2] = -float('inf')
-
-    mn.set_unary_factor(4, factor4)
-
-    mn.set_edge_factor((0, 1), np.random.randn(k[0], k[1]))
-    mn.set_edge_factor((1, 2), np.random.randn(k[1], k[2]))
-    mn.set_edge_factor((3, 2), np.random.randn(k[3], k[2]))
-    mn.set_edge_factor((1, 4), np.random.randn(k[1], k[4]))
-    # mn.set_edge_factor((3,0), np.random.randn(k[3], k[0])) # uncomment this to make loopy
-
-    print("Neighbors of 0: " + repr(mn.get_neighbors(0)))
-    print("Neighbors of 1: " + repr(mn.get_neighbors(1)))
-
-    bp = BeliefPropagator(mn)
-
-    # for t in range(15):
-    #     change = bp.update_messages()
-    #     disagreement = bp.compute_inconsistency()
-    #     print("Iteration %d, change in messages %f. Calibration disagreement: %f" % (t, change, disagreement))
-
-    bp.runInference(display='full')
-
-
-    bp.compute_pairwise_beliefs()
-
-    from BruteForce import BruteForce
-
-    bf = BruteForce(mn)
-
-    for i in mn.variables:
-        print ("Brute force unary marginal of %d: %s" % (i, repr(bf.unary_marginal(i))))
-        print ("Belief prop unary marginal of %d: %s" % (i, repr(np.exp(bp.var_beliefs[i]))))
-
-    print ("Brute force pairwise marginal: " + repr(bf.pairwise_marginal(0, 1)))
-    print ("Belief prop pairwise marginal: " + repr(np.exp(bp.pair_beliefs[(0, 1)])))
-
-    print ("Bethe energy functional: %f" % bp.computeEnergyFunctional())
-
-    print ("Brute force log partition function: %f" % np.log(bf.compute_z()))
-
-
-if  __name__ =='__main__':
-    main()

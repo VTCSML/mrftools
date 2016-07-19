@@ -132,7 +132,7 @@ class TestImageSegmentation(unittest.TestCase):
                 bp.load_beliefs()
                 Z = []
                 for ii in range(1,num_pixels+1):
-                    Z.append(np.argmax(bp.varBeliefs[ii]))
+                    Z.append(np.argmax(bp.var_beliefs[ii]))
                 cc = 0
                 for k in range(len(Z)):
                     if data[2].values()[k] == Z[k]:
@@ -185,7 +185,7 @@ class TestImageSegmentation(unittest.TestCase):
                 bp.load_beliefs()
                 Z = []
                 for ii in range(1,num_pixels+1):
-                    Z.append(np.argmax(bp.varBeliefs[ii]))
+                    Z.append(np.argmax(bp.var_beliefs[ii]))
                 cc = 0
                 for k in range(len(Z)):
                     if data[2].values()[k] == Z[k]:
@@ -238,7 +238,7 @@ class TestImageSegmentation(unittest.TestCase):
                 bp.load_beliefs()
                 Z = []
                 for ii in range(1,num_pixels+1):
-                    Z.append(np.argmax(bp.varBeliefs[ii]))
+                    Z.append(np.argmax(bp.var_beliefs[ii]))
                 cc = 0
                 for k in range(len(Z)):
                     if data[2].values()[k] == Z[k]:

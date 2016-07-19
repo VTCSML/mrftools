@@ -320,7 +320,7 @@ def test_data(weights,height,width,d,num_states,image, messages=None):
     bp.load_beliefs()
     Z = []
     for i in range(1,num_pixels+1):
-        Z.append(np.argmax(bp.varBeliefs[i]))
+        Z.append(np.argmax(bp.var_beliefs[i]))
     messages = bp.message_mat
     return Z, messages
     

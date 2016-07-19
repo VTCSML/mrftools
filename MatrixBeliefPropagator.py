@@ -11,8 +11,8 @@ class MatrixBeliefPropagator(Inference):
     def __init__(self, markov_net):
         """Initialize belief propagator for markov_net."""
         self.mn = markov_net
-        self.varBeliefs = dict()
-        self.pairBeliefs = dict()
+        self.var_beliefs = dict()
+        self.pair_beliefs = dict()
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -39,7 +39,6 @@ class MatrixBeliefPropagator(Inference):
         self.conditioning_mat = label_mask
 
     def condition_state(self):
-        print self.conditioning_mat
         self.mn.unary_mat += self.conditioning_mat
 
     def compute_beliefs(self):
@@ -123,8 +122,11 @@ class MatrixBeliefPropagator(Inference):
             print("Belief propagation finished in %d iterations." % iteration)
 
     def load_beliefs(self):
+        self.compute_beliefs()
+        self.compute_pairwise_beliefs()
+
         for (var, i) in self.mn.var_index.items():
-            self.varBeliefs[var] = self.belief_mat[:len(self.mn.unaryPotentials[var]), i]
+            self.var_beliefs[var] = self.belief_mat[:len(self.mn.unaryPotentials[var]), i]
 
         for i in range(self.mn.num_edges):
             (var, neighbor) = self.mn.edges[i]
@@ -132,9 +134,9 @@ class MatrixBeliefPropagator(Inference):
             belief = self.pair_belief_tensor[:len(self.mn.unaryPotentials[var]),
                      :len(self.mn.unaryPotentials[neighbor]), i]
 
-            self.pairBeliefs[(var, neighbor)] = belief
+            self.pair_beliefs[(var, neighbor)] = belief
 
-            self.pairBeliefs[(neighbor, var)] = belief.T
+            self.pair_beliefs[(neighbor, var)] = belief.T
 
 
     def compute_bethe_entropy(self):
@@ -246,7 +248,7 @@ def main():
 
     for i in mn.variables:
         bf_marg = bf.unary_marginal(i)
-        bp_marg = np.exp(bp.varBeliefs[i])
+        bp_marg = np.exp(bp.var_beliefs[i])
 
         unary_error += np.sum(np.abs(bf_marg - bp_marg))
 
@@ -259,7 +261,7 @@ def main():
         for neighbor in mn.get_neighbors(var):
             edge = (var, neighbor)
             bf_marg = bf.pairwise_marginal(var, neighbor)
-            bp_marg = np.exp(bp.pairBeliefs[edge])
+            bp_marg = np.exp(bp.pair_beliefs[edge])
 
             pairwise_error += np.sum(np.abs(bf_marg - bp_marg))
 
