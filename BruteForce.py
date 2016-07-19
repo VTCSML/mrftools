@@ -18,7 +18,7 @@ class BruteForce(object):
 
         variables = list(self.mn.variables)
 
-        num_states = [self.mn.numStates[var] for var in variables]
+        num_states = [self.mn.num_states[var] for var in variables]
 
         arg_list = [range(s) for s in num_states]
 
@@ -40,7 +40,7 @@ class BruteForce(object):
 
         variables = list(self.mn.variables)
 
-        num_states = [self.mn.numStates[var] for var in variables]
+        num_states = [self.mn.num_states[var] for var in variables]
 
         arg_list = [range(s) for s in num_states]
 
@@ -78,9 +78,9 @@ class BruteForce(object):
         """Compute the P(var) vector."""
         variables = list(self.mn.variables)
 
-        num_states = [self.mn.numStates[v] for v in variables]
+        num_states = [self.mn.num_states[v] for v in variables]
 
-        p = np.zeros((self.mn.numStates[var_i], self.mn.numStates[var_j]))
+        p = np.zeros((self.mn.num_states[var_i], self.mn.num_states[var_j]))
 
         arg_list = [range(s) for s in num_states]
 
