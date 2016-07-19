@@ -1,0 +1,52 @@
+from __future__ import division
+from MarkovNet import MarkovNet
+from GibbsSampling import Gibbs
+import numpy as np
+
+import unittest
+
+class TestGibbsSampling(unittest.TestCase):
+
+    def test_gibbs_sampling(self):
+        mn = MarkovNet()
+
+        np.random.seed(1)
+
+        unary_potential = np.random.randn(2)
+        edge_potential = np.random.randn(2, 2)
+
+        print unary_potential
+        print edge_potential
+
+        mn.set_unary_factor(0, unary_potential)
+        mn.set_unary_factor(1, unary_potential)
+        mn.set_unary_factor(2, unary_potential)
+        mn.set_unary_factor(3, unary_potential)
+
+        mn.set_edge_factor((0, 1), edge_potential)
+        mn.set_edge_factor((1, 2), edge_potential)
+        mn.set_edge_factor((2, 3), edge_potential)
+        # mn.set_edge_factor((3, 0), edge_potential) # uncomment this to make loopy
+
+        gb = Gibbs(mn)
+        gb.init_states()
+        print "result:"
+        print(gb.states)
+
+        itr = 1000
+        num = 100000
+        gb.gibbs_sampling(itr, num)
+
+        from BruteForce import BruteForce
+
+        bf = BruteForce(mn)
+        for var in mn.variables:
+            gb_result = gb.counter(var) / num
+            bf_result = bf.unary_marginal(var)
+            print gb_result
+            print bf_result
+            np.testing.assert_allclose(gb_result, bf_result, rtol=2e-2, atol=0)
+
+
+
+
