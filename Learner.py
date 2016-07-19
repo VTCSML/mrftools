@@ -24,6 +24,14 @@ class Learner(object):
         self.models_q = []
         self.beliefPropagators_q = []
         self.beliefPropagators = []
+        self.l1_regularization = 0.00
+        self.l2_regularization = 1
+
+
+    def set_regularization(self, l1, l2):
+        """Set the regularization parameters."""
+        self.l1_regularization = l1
+        self.l2_regularization = l2
         
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
@@ -85,7 +93,7 @@ class Learner(object):
 
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
-            res = minimize(self.subgrad_obj, new_weights, args='subgradient', method='L-BFGS-B', jac=self.subgrad_grad,
+            res = minimize(self.subgrad_obj, new_weights, args=['subgradient'], method='L-BFGS-B', jac=self.subgrad_grad,
                            callback=self.callback_f)
             new_weights = res.x
             # print check_grad(self.subgrad_obj, self.subgrad_grad, new_weights, 'subgradient')
@@ -107,16 +115,38 @@ class Learner(object):
             self.weight_record = np.vstack((self.weight_record,a))
             self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
+    def set_weights(self, weight_vector, models):
+        """Set weights of Markov net from vector using the order in self.potentials."""
+
+
+
+        for model in models:
+            max_features = model.max_features
+            num_vars = len(model.variables)
+            max_states = model.max_states
+            num_edges = model.num_edges
+
+            feature_size = max_features * max_states
+            feature_weights = weight_vector[:feature_size].reshape((max_features, max_states))
+
+            pairwise_weights = weight_vector[feature_size:].reshape((max_states, max_states, 1)) * np.ones(
+                (1, 1, num_edges))
+
+            model.set_weight_matrix(feature_weights)
+            model.set_edge_tensor(pairwise_weights)
+
+            model.set_unary_matrix()
+
     def calculate_tau(self, weights, method, mode,should_infere):
         if mode == 'q':
-            self.setWeights(weights,self.models_q)
+            self.set_weights(weights, self.models_q)
             if should_infere == True:
                 self.do_inference(self.beliefPropagators_q,method)
 
             self.tau_q = self.get_feature_expectations(self.beliefPropagators_q)
             self.H_q = self.get_bethe_entropy(self.beliefPropagators_q)
         elif mode == 'p':
-            self.setWeights(weights, self.models)
+            self.set_weights(weights, self.models)
             if should_infere == True:
                 self.do_inference(self.beliefPropagators,method)
             self.tau_p = self.get_feature_expectations(self.beliefPropagators)
@@ -131,8 +161,8 @@ class Learner(object):
 
         objec = 0.0
         # add regularization penalties
-        objec += self.l1Regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2Regularization * weights.dot(weights)
+        objec += self.l1_regularization * np.sum(np.abs(weights))
+        objec += 0.5 * self.l2_regularization * weights.dot(weights)
         objec += self.term_q_p
 
 #         print objec
@@ -144,8 +174,8 @@ class Learner(object):
         grad = np.zeros(len(weights))
       
         # add regularization penalties
-        grad += self.l1Regularization * np.sign(weights)
-        grad += self.l2Regularization * weights
+        grad += self.l1_regularization * np.sign(weights)
+        grad += self.l2_regularization * weights
       
         grad -= np.squeeze(self.tau_q)
         grad += np.squeeze(self.tau_p)

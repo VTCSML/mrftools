@@ -35,7 +35,7 @@ class MatrixBeliefPropagator(Inference):
         else:
             self.conditioning_mat[:, i] = 0
 
-    def computeBeliefs(self):
+    def compute_beliefs(self):
 #         print self.conditioning_mat
         """Compute unary beliefs based on current messages."""
         self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
