@@ -41,12 +41,12 @@ class ApproxMaxLikelihood(object):
             if isinstance(self.potentials[i], tuple):
                 # set pairwise feature
                 pair = self.potentials[i]
-                table = np.zeros((self.mn.numStates[pair[0]], self.mn.numStates[pair[1]]))
+                table = np.zeros((self.mn.num_states[pair[0]], self.mn.num_states[pair[1]]))
                 table[states[pair[0]], states[pair[1]]] = 1
             else:
                 # set unary feature
                 var = self.potentials[i]
-                table = np.zeros(self.mn.numStates[var])
+                table = np.zeros(self.mn.num_states[var])
                 table[states[var]] = 1
 
             # flatten table and append
@@ -62,13 +62,13 @@ class ApproxMaxLikelihood(object):
             if isinstance(self.potentials[i], tuple):
                 # set pairwise potential
                 pair = self.potentials[i]
-                size = (self.mn.numStates[pair[0]], self.mn.numStates[pair[1]])
+                size = (self.mn.num_states[pair[0]], self.mn.num_states[pair[1]])
                 self.mn.set_edge_factor(pair, weight_vector[j:j + np.prod(size)].reshape(size))
                 j += np.prod(size)
             else:
                 # set unary potential
                 var = self.potentials[i]
-                size = self.mn.numStates[var]
+                size = self.mn.num_states[var]
                 self.mn.set_unary_factor(var, weight_vector[j:j + size])
                 j += size
 
