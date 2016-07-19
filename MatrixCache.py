@@ -8,7 +8,7 @@ class MatrixCache(object):
         self.matrices = dict()
 
 
-    def getCached(self, matrix):
+    def get_cached(self, matrix):
         """Check if we have already seen matrix before. If so, return the original copy of matrix and discard the new one.
         :type matrix: ndarray
         """

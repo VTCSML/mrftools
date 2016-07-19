@@ -5,12 +5,13 @@ from BeliefPropagator import BeliefPropagator
 import numpy as np
 from scipy.optimize import minimize, check_grad
 
+
 class ApproxMaxLikelihood(object):
     """Object that runs approximate maximum likelihood parameter training."""
 
-    def __init__(self, markovNet):
+    def __init__(self, markov_net):
         """Initialize learner. Pass in Markov net."""
-        self.mn = markovNet
+        self.mn = markov_net
         self.data = []
         self.l1Regularization = 1
         self.l2Regularization = 1
@@ -21,17 +22,17 @@ class ApproxMaxLikelihood(object):
         self.potentials = []
         for var in self.mn.variables:
             self.potentials.append(var)
-            for neighbor in self.mn.getNeighbors(var):
+            for neighbor in self.mn.get_neighbors(var):
                 if var < neighbor:
                     self.potentials.append((var, neighbor))
                     assert (var, neighbor) in self.mn.edgePotentials
 
-    def setRegularization(self, l1, l2):
+    def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
         self.l1Regularization = l1
         self.l2Regularization = l2
 
-    def addData(self, states):
+    def add_data(self, states):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables."""
         example = []
 
@@ -54,7 +55,7 @@ class ApproxMaxLikelihood(object):
         self.data.append(np.array(example))
         self.dataSum += np.array(example)
 
-    def setWeights(self, weightVector):
+    def set_weights(self, weight_vector):
         """Set weights of Markov net from vector using the order in self.potentials."""
         j = 0
         for i in range(len(self.potentials)):
@@ -62,33 +63,33 @@ class ApproxMaxLikelihood(object):
                 # set pairwise potential
                 pair = self.potentials[i]
                 size = (self.mn.numStates[pair[0]], self.mn.numStates[pair[1]])
-                self.mn.setEdgeFactor(pair, weightVector[j:j + np.prod(size)].reshape(size))
+                self.mn.set_edge_factor(pair, weight_vector[j:j + np.prod(size)].reshape(size))
                 j += np.prod(size)
             else:
                 # set unary potential
                 var = self.potentials[i]
                 size = self.mn.numStates[var]
-                self.mn.setUnaryFactor(var, weightVector[j:j+size])
+                self.mn.set_unary_factor(var, weight_vector[j:j + size])
                 j += size
 
-        assert j == len(weightVector)
+        assert j == len(weight_vector)
 
 
-    def getMarginalVector(self):
+    def get_marginal_vector(self):
         """Run inference and return the marginal in vector form using the order of self.potentials."""
         self.bp.runInference(display = 'off')
-        self.bp.computeBeliefs()
-        self.bp.computePairwiseBeliefs()
+        self.bp.compute_beliefs()
+        self.bp.compute_pairwise_beliefs()
 
         # make vector form of marginals
         marginals = []
         for i in range(len(self.potentials)):
             if isinstance(self.potentials[i], tuple):
                 # get pairwise belief
-                table = np.exp(self.bp.pairBeliefs[self.potentials[i]])
+                table = np.exp(self.bp.pair_beliefs[self.potentials[i]])
             else:
                 # get unary belief
-                table = np.exp(self.bp.varBeliefs[self.potentials[i]])
+                table = np.exp(self.bp.var_beliefs[self.potentials[i]])
 
             # flatten table and append
             marginals.extend(table.reshape((-1, 1)).tolist())
@@ -97,34 +98,34 @@ class ApproxMaxLikelihood(object):
         return marginals
 
 
-    def objective(self, weightVector):
+    def objective(self, weight_vector):
         """Compute the learning objective with the provided weight vector. Approximate negative log-likelihood."""
-        self.setWeights(weightVector)
-        marginals = self.getMarginalVector()
+        self.set_weights(weight_vector)
+        marginals = self.get_marginal_vector()
 
         objective = 0.0
 
         # add regularization penalties
-        objective += self.l1Regularization * np.sum(np.abs(weightVector))
-        objective += 0.5 * self.l2Regularization * weightVector.dot(weightVector)
+        objective += self.l1Regularization * np.sum(np.abs(weight_vector))
+        objective += 0.5 * self.l2Regularization * weight_vector.dot(weight_vector)
 
         # add likelihood penalty log Z - labelEnergy
         objective += self.bp.computeEnergyFunctional()
-        objective -= weightVector.dot(self.dataSum / len(self.data))
+        objective -= weight_vector.dot(self.dataSum / len(self.data))
 
 
         return objective
 
-    def gradient(self, weightVector):
+    def gradient(self, weight_vector):
         """Compute the gradient for the provided weight vector."""
-        self.setWeights(weightVector)
-        marginals = self.getMarginalVector()
+        self.set_weights(weight_vector)
+        marginals = self.get_marginal_vector()
 
-        gradient = np.zeros(len(weightVector))
+        gradient = np.zeros(len(weight_vector))
 
         # add regularization penalties
-        gradient += self.l1Regularization * np.sign(weightVector)
-        gradient += self.l2Regularization * weightVector
+        gradient += self.l1Regularization * np.sign(weight_vector)
+        gradient += self.l2Regularization * weight_vector
 
         # add likelihood penalty
         gradient += (marginals - self.dataSum / len(self.data)).squeeze()
@@ -140,21 +141,21 @@ def main():
 
     mn = MarkovNet()
 
-    mn.setUnaryFactor(0, np.zeros(4))
-    mn.setUnaryFactor(1, np.zeros(3))
-    mn.setUnaryFactor(2, np.zeros(2))
+    mn.set_unary_factor(0, np.zeros(4))
+    mn.set_unary_factor(1, np.zeros(3))
+    mn.set_unary_factor(2, np.zeros(2))
 
-    mn.setEdgeFactor((0,1), np.zeros((4,3)))
-    mn.setEdgeFactor((1,2), np.zeros((3,2)))
+    mn.set_edge_factor((0, 1), np.zeros((4, 3)))
+    mn.set_edge_factor((1, 2), np.zeros((3, 2)))
 
     aml = ApproxMaxLikelihood(mn)
 
-    aml.setRegularization(0, 1)
+    aml.set_regularization(0, 1)
 
-    aml.addData({0:0, 1:0, 2:0})
-    aml.addData({0:1, 1:1, 2:1})
-    aml.addData({0:2, 1:2, 2:1})
-    aml.addData({0:3, 1:2, 2:1})
+    aml.add_data({0:0, 1:0, 2:0})
+    aml.add_data({0:1, 1:1, 2:1})
+    aml.add_data({0:2, 1:2, 2:1})
+    aml.add_data({0:3, 1:2, 2:1})
     # print aml.data
 
     weights = np.random.randn(4 + 3 + 2 + 4*3 + 3*2)

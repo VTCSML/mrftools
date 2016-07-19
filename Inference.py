@@ -1,6 +1,6 @@
 class Inference(object):
 
-    def infer(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
+    def infer(self, tolerance = 1e-8, display = 'iter', max_iter = 300):
         return
 
     def get_feature_expectations(self):

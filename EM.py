@@ -11,24 +11,24 @@ from Learner import Learner
 
 class EM(Learner):
     
-    def __init__(self,baseModel,inference_type):
-        super(EM, self).__init__(baseModel,inference_type)
+    def __init__(self, base_model, inference_type):
+        super(EM, self).__init__(base_model, inference_type)
         
     def learn(self,weights):
         old_weights = np.inf
         new_weights = weights
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
-            self.E_step(new_weights)
-            new_weights = self.M_step(new_weights)
+            self.e_step(new_weights)
+            new_weights = self.m_step(new_weights)
             
         return new_weights
 
-    def E_step(self,weights):
+    def e_step(self, weights):
         self.calculate_tau(weights,'EM','q',True)
 
-    def M_step(self,weights):
-        res = minimize(self.objective, weights ,args = 'EM', method='L-BFGS-B', jac = self.gradient,callback=self.callbackF)
+    def m_step(self, weights):
+        res = minimize(self.objective, weights, args = 'EM', method='L-BFGS-B', jac = self.gradient, callback=self.callback_f)
         return res.x
     
     
@@ -42,24 +42,24 @@ def main():
 
     np.random.seed(1)
 
-    model.declareVariable(0, 4)
-    model.declareVariable(1, 4)
-    model.declareVariable(2, 4)
+    model.declare_variable(0, 4)
+    model.declare_variable(1, 4)
+    model.declare_variable(2, 4)
 
     d = 2
 
-    model.setUnaryWeights(0, np.random.randn(4, d))
-    model.setUnaryWeights(1, np.random.randn(4, d))
-    model.setUnaryWeights(2, np.random.randn(4, d))
+    model.set_unary_weights(0, np.random.randn(4, d))
+    model.set_unary_weights(1, np.random.randn(4, d))
+    model.set_unary_weights(2, np.random.randn(4, d))
 
-    model.setUnaryFeatures(0, np.random.randn(d))
-    model.setUnaryFeatures(1, np.random.randn(d))
-    model.setUnaryFeatures(2, np.random.randn(d))
+    model.set_unary_features(0, np.random.randn(d))
+    model.set_unary_features(1, np.random.randn(d))
+    model.set_unary_features(2, np.random.randn(d))
 
-    model.setAllUnaryFactors()
+    model.set_all_unary_factors()
 
-    model.setEdgeFactor((0,1), np.zeros((4, 4)))
-    model.setEdgeFactor((1,2), np.zeros((4, 4)))
+    model.set_edge_factor((0, 1), np.zeros((4, 4)))
+    model.set_edge_factor((1, 2), np.zeros((4, 4)))
 
 #     from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 

@@ -127,8 +127,8 @@ class TestImageSegmentation(unittest.TestCase):
                 mn = self.Create_MarkovNet(2, 2, w_unary, w_pair, data[1])
                 bp = MatrixBeliefPropagator(mn)
                 bp.infer(display = "off")
-                bp.computeBeliefs()
-                bp.computePairwiseBeliefs()
+                bp.compute_beliefs()
+                bp.compute_pairwise_beliefs()
                 bp.load_beliefs()
                 Z = []
                 for ii in range(1,num_pixels+1):
@@ -180,8 +180,8 @@ class TestImageSegmentation(unittest.TestCase):
                 mn = self.Create_MarkovNet(2, 2, w_unary, w_pair, data[1])
                 bp = MatrixBeliefPropagator(mn)
                 bp.infer(display = "off")
-                bp.computeBeliefs()
-                bp.computePairwiseBeliefs()
+                bp.compute_beliefs()
+                bp.compute_pairwise_beliefs()
                 bp.load_beliefs()
                 Z = []
                 for ii in range(1,num_pixels+1):
@@ -233,8 +233,8 @@ class TestImageSegmentation(unittest.TestCase):
                 mn = self.Create_MarkovNet(2, 2, w_unary, w_pair, data[1])
                 bp = MatrixBeliefPropagator(mn)
                 bp.infer(display = "off")
-                bp.computeBeliefs()
-                bp.computePairwiseBeliefs()
+                bp.compute_beliefs()
+                bp.compute_pairwise_beliefs()
                 bp.load_beliefs()
                 Z = []
                 for ii in range(1,num_pixels+1):
@@ -458,7 +458,7 @@ class TestImageSegmentation(unittest.TestCase):
         dic3[4] = 2
         self.train_data_dic[3] = [dic1,dic2,dic3]
     #     print ('data is added')
-        learner.setRegularization(0, 0.25)
+        learner.set_regularization(0, 0.25)
     
     
     
@@ -471,12 +471,12 @@ class TestImageSegmentation(unittest.TestCase):
         model = LogLinearModel()
     
         for i in range(1,num_pixels+1):
-            model.declareVariable(i, numStates)
-            model.setUnaryWeights(i,np.random.randn(numStates, d))
-            model.setUnaryFeatures(i, np.random.randn(d))
+            model.declare_variable(i, numStates)
+            model.set_unary_weights(i, np.random.randn(numStates, d))
+            model.set_unary_features(i, np.random.randn(d))
     
     
-        model.setAllUnaryFactors()
+        model.set_all_unary_factors()
     
     #     ########### Set Edge Factor
         south_west_ind = num_pixels - width +1
@@ -488,16 +488,16 @@ class TestImageSegmentation(unittest.TestCase):
         
         ##### set south neighbour for left pixels
         for i in (left_pixels):
-            model.setEdgeFactor((i,i+width),np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(numStates))
              
     ##### set left neighbour for sought pixels
         for i in (down_pixels):
-            model.setEdgeFactor((i-1,i),np.eye(numStates))
+            model.set_edge_factor((i - 1, i), np.eye(numStates))
     
     ##### set south and left neighbour for all the remaining pixels
         for i in (usual_pixels):
-            model.setEdgeFactor((i,i+width),np.eye(numStates))
-            model.setEdgeFactor((i-1,i),np.eye(numStates))
+            model.set_edge_factor((i, i + width), np.eye(numStates))
+            model.set_edge_factor((i - 1, i), np.eye(numStates))
             
         return model
         
@@ -512,7 +512,7 @@ class TestImageSegmentation(unittest.TestCase):
     
         ########Set Unary Factor
         for i in range(1,num_pixels+1):
-            mn.setUnaryFactor(i,np.dot(w_unary,pixels[i]))
+            mn.set_unary_factor(i, np.dot(w_unary, pixels[i]))
         
     #     ##########Set Pairwise
         south_west_ind = num_pixels - width +1
@@ -523,16 +523,16 @@ class TestImageSegmentation(unittest.TestCase):
         
     ##### set south neighbour for left pixels
         for i in (left_pixels):
-            mn.setEdgeFactor((i,i+width),w_pair)
+            mn.set_edge_factor((i, i + width), w_pair)
              
     ##### set left neighbour for sought pixels
         for i in (down_pixels):
-            mn.setEdgeFactor((i-1,i),w_pair)
+            mn.set_edge_factor((i - 1, i), w_pair)
     
     ##### set south and left neighbour for all the remaining pixels
         for i in (usual_pixels):
-            mn.setEdgeFactor((i,i+width),w_pair)
-            mn.setEdgeFactor((i-1,i),w_pair)
+            mn.set_edge_factor((i, i + width), w_pair)
+            mn.set_edge_factor((i - 1, i), w_pair)
             
         return mn
             

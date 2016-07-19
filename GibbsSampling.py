@@ -8,9 +8,9 @@ from collections import Counter
 class Gibbs(object):
     "Object that can run gibbs sampling on a MarkovNet"
 
-    def __init__(self, markovNet):
-        """Initialize belief propagator for markovNet."""
-        self.mn = markovNet
+    def __init__(self, markov_net):
+        """Initialize belief propagator for markov_net."""
+        self.mn = markov_net
         self.States = dict()
         self.Unaryweights = dict()
         self.Samples = list()
@@ -23,51 +23,51 @@ class Gibbs(object):
             if rnd < 0:
                 return i
 
-    def initStates(self):
+    def init_states(self):
         """Initialize the state of each node."""
         for var in self.mn.variables:
             weight = self.mn.getUnaryPotential(var)
-            logZ = logsumexp(weight)
-            weight = weight - logZ
+            log_z = logsumexp(weight)
+            weight = weight - log_z
             weight = np.exp(weight)
             self.Unaryweights[var] = weight;
             self.States[var] = self.weighted_choice(self.Unaryweights[var])
 
-    def updateStates(self):
+    def update_states(self):
         """Update the state of each node based on neighbor states."""
         for var in self.mn.variables:
             weight = self.mn.getUnaryPotential(var)
             for neighbor in self.mn.neighbors[var]:
-                weight =  weight + self.mn.getPotential((var,neighbor))[:, self.getStates(neighbor)]
-                logZ = logsumexp(weight)
-                weight = weight - logZ
+                weight =  weight + self.mn.get_potential((var, neighbor))[:, self.get_states(neighbor)]
+                log_z = logsumexp(weight)
+                weight = weight - log_z
                 weight = np.exp(weight)
             self.States[var] = self.weighted_choice(weight)
 
-    def getStates(self, variable):
+    def get_states(self, variable):
         return self.States[variable]
 
     def mix(self, ite):
         """Run the state Update procedure until mix, ite: number of iterations for mixing"""
         for i in range(0, ite):
-                self.updateStates()
+                self.update_states()
 
-    def Sampling(self, num, s):
+    def sampling(self, num, s):
         """Run the sampling: num, number of samples; s, gap between two samples (So when s = 1, means take consecutive samples)"""
         for i in range(0, num):
-            self.updateStates()
+            self.update_states()
             self.Samples.append(self.States.copy())
         for i in range(0, s-1):
-            self.updateStates()
+            self.update_states()
 
-    def counter(self, Samples):
+    def counter(self, samples):
         for var in self.mn.variables:
-            counts = Counter(pd.DataFrame(Samples)[var])
+            counts = Counter(pd.DataFrame(samples)[var])
             print(counts)
 
-    def GibbsSampling(self, itr, num, s):
+    def gibbs_sampling(self, itr, num, s):
         self.mix(itr)
-        self.Sampling(num, s)
+        self.sampling(num, s)
         self.counter(self.Samples)
 
 
@@ -77,24 +77,24 @@ def main():
 
     np.random.seed(1)
 
-    mn.setUnaryFactor(0, np.random.randn(4))
-    mn.setUnaryFactor(1, np.random.randn(3))
-    mn.setUnaryFactor(2, np.random.randn(6))
-    mn.setUnaryFactor(3, np.random.randn(2))
+    mn.set_unary_factor(0, np.random.randn(4))
+    mn.set_unary_factor(1, np.random.randn(3))
+    mn.set_unary_factor(2, np.random.randn(6))
+    mn.set_unary_factor(3, np.random.randn(2))
 
-    mn.setEdgeFactor((0,1), np.random.randn(4,3))
-    mn.setEdgeFactor((1,2), np.random.randn(3,6))
-    mn.setEdgeFactor((3,2), np.random.randn(2,6))
-    mn.setEdgeFactor((3,0), np.random.randn(2,4)) # uncomment this to make loopy
+    mn.set_edge_factor((0, 1), np.random.randn(4, 3))
+    mn.set_edge_factor((1, 2), np.random.randn(3, 6))
+    mn.set_edge_factor((3, 2), np.random.randn(2, 6))
+    mn.set_edge_factor((3, 0), np.random.randn(2, 4)) # uncomment this to make loopy
 
     gb = Gibbs(mn)
-    gb.initStates()
+    gb.init_states()
     print(gb.States)
 
-    Itr = 10000
-    Num = 1000
+    itr = 10000
+    num = 1000
     s = 1
-    gb.GibbsSampling(Itr, Num, s)
+    gb.gibbs_sampling(itr, num, s)
 
 
 if  __name__ =='__main__':

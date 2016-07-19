@@ -62,7 +62,7 @@ def main():
                     dic1[k] = lbl_small[i,j]
                     dic2[k] = np.array(small_pix[j,i])
                     k += 1
-            learner.addData(dic1,dic2)
+            learner.add_data(dic1, dic2)
             print ('data is added')
 
 
@@ -76,7 +76,7 @@ def main():
     # add edge weights
     weights = np.append(weights, np.zeros( num_states * num_states))
 
-    learner.setRegularization(0, 1) # gradient checking doesn't work well with the l1 regularizer
+    learner.set_regularization(0, 1) # gradient checking doesn't work well with the l1 regularizer
 
     print ("Objective:")
     print (learner.objective(weights))
@@ -118,14 +118,14 @@ def main():
 
             bp = BeliefPropagator(mn)
             bp.runInference()
-            bp.computePairwiseBeliefs()
+            bp.compute_pairwise_beliefs()
 
             print ('done inference---------------------')
 
 
             Z = []
             for i in range(1,num_pixels+1):
-                Z.append(np.argmax(bp.varBeliefs[i]))
+                Z.append(np.argmax(bp.var_beliefs[i]))
 
             Z1 = np.reshape(Z,(height,width))
 

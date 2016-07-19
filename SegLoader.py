@@ -94,13 +94,13 @@ class SegLoader(object):
 
         # create pixel variables
         for pixel, feature_vec in feature_dict.items():
-            model.declareVariable(pixel, num_states)
-            model.setUnaryFeatures(pixel, feature_vec)
-            model.setUnaryFactor(pixel, np.zeros(num_states))
+            model.declare_variable(pixel, num_states)
+            model.set_unary_features(pixel, feature_vec)
+            model.set_unary_factor(pixel, np.zeros(num_states))
 
         # create edge factors
         for edge in SegLoader.get_all_edges(img):
-            model.setEdgeFactor(edge, np.eye(num_states))
+            model.set_edge_factor(edge, np.eye(num_states))
 
         model.create_matrices()
 

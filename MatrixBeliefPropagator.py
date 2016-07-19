@@ -8,9 +8,9 @@ from Inference import Inference
 class MatrixBeliefPropagator(Inference):
     """Object that can run belief propagation on a MarkovNet."""
 
-    def __init__(self, markovNet):
-        """Initialize belief propagator for markovNet."""
-        self.mn = markovNet
+    def __init__(self, markov_net):
+        """Initialize belief propagator for markov_net."""
+        self.mn = markov_net
         self.varBeliefs = dict()
         self.pairBeliefs = dict()
 
@@ -42,16 +42,16 @@ class MatrixBeliefPropagator(Inference):
         print self.conditioning_mat
         self.mn.unary_mat += self.conditioning_mat
 
-    def computeBeliefs(self):
+    def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         self.condition_state()
         self.belief_mat = self.mn.unary_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
-        logZ = logsumexp(self.belief_mat, 0)
+        log_z = logsumexp(self.belief_mat, 0)
 
-        self.belief_mat = self.belief_mat - logZ
+        self.belief_mat = self.belief_mat - log_z
 
 
-    def computePairwiseBeliefs(self):
+    def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
 
         adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
@@ -72,9 +72,9 @@ class MatrixBeliefPropagator(Inference):
         self.pair_belief_tensor = beliefs
 
 
-    def updateMessages(self):
+    def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
-        self.computeBeliefs()
+        self.compute_beliefs()
 
         adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
                                 - np.hstack((self.message_mat[:, self.mn.num_edges:],
@@ -99,23 +99,23 @@ class MatrixBeliefPropagator(Inference):
         return expanded_beliefs - pairwise_beliefs
 
 
-    def computeInconsistency(self):
+    def compute_inconsistency(self):
         """Return the total disagreement between each unary belief and its pairwise beliefs."""
         disagreement = np.sum(np.abs(self._compute_inconsistency_vector()))
 
         return disagreement
 
-    def infer(self, tolerance = 1e-8, display = 'iter', maxIter = 300):
+    def infer(self, tolerance = 1e-8, display = 'iter', max_iter = 300):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
-        while change > tolerance and iteration < maxIter:
-            change = self.updateMessages()
+        while change > tolerance and iteration < max_iter:
+            change = self.update_messages()
             if display == "full":
-                disagreement = self.computeInconsistency()
-                energyFunc = self.compute_energy_functional()
-                dualObj = self.compute_dual_objective()
-                print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energyFunc, dualObj))
+                disagreement = self.compute_inconsistency()
+                energy_func = self.compute_energy_functional()
+                dual_obj = self.compute_dual_objective()
+                print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
             elif display == "iter":
                 print("Iteration %d, change in messages %f." % (iteration, change))
             iteration += 1
@@ -153,8 +153,8 @@ class MatrixBeliefPropagator(Inference):
 
     def get_feature_expectations(self):
         self.infer(display='off')
-        self.computeBeliefs()
-        self.computePairwiseBeliefs()
+        self.compute_beliefs()
+        self.compute_pairwise_beliefs()
 
         summed_features = np.inner(np.exp(self.belief_mat), self.mn.feature_mat).T
 
@@ -166,8 +166,8 @@ class MatrixBeliefPropagator(Inference):
 
     def compute_energy_functional(self):
         """Compute the energy functional."""
-        self.computeBeliefs()
-        self.computePairwiseBeliefs()
+        self.compute_beliefs()
+        self.compute_pairwise_beliefs()
         return self.compute_energy() + self.compute_bethe_entropy()
 
     def compute_dual_objective(self):
@@ -187,9 +187,9 @@ def logsumexp(matrix, dim = None):
     if matrix.size <= 1:
         return matrix
 
-    maxVal = np.nan_to_num(matrix.max())
+    max_val = np.nan_to_num(matrix.max())
     with np.errstate(divide='ignore'):
-        return np.log(np.sum(np.exp(matrix - maxVal), dim, keepdims=True)) + maxVal
+        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 def main():
     """Test basic functionality of BeliefPropagator."""
@@ -204,37 +204,37 @@ def main():
 
     k = [2, 2, 3, 3, 3]
 
-    mn.setUnaryFactor(0, np.random.randn(k[0]))
-    mn.setUnaryFactor(1, np.random.randn(k[1]))
-    mn.setUnaryFactor(2, np.random.randn(k[2]))
-    mn.setUnaryFactor(3, np.random.randn(k[3]))
-    mn.setUnaryFactor(4, np.random.randn(k[3]))
+    mn.set_unary_factor(0, np.random.randn(k[0]))
+    mn.set_unary_factor(1, np.random.randn(k[1]))
+    mn.set_unary_factor(2, np.random.randn(k[2]))
+    mn.set_unary_factor(3, np.random.randn(k[3]))
+    mn.set_unary_factor(4, np.random.randn(k[3]))
 
     # factor4 = np.random.randn(k[4])
     # factor4[2] = -float('inf')
 
-    # mn.setUnaryFactor(4, factor4)
+    # mn.set_unary_factor(4, factor4)
 
-    mn.setEdgeFactor((0,1), np.random.randn(k[0], k[1]))
-    mn.setEdgeFactor((1,2), np.random.randn(k[1], k[2]))
-    mn.setEdgeFactor((3,2), np.random.randn(k[3], k[2]))
-    mn.setEdgeFactor((3,4), np.random.randn(k[3], k[4]))
-    # mn.setEdgeFactor((1,4), np.random.randn(k[1], k[4]))
-    # mn.setEdgeFactor((3,0), np.random.randn(k[3], k[0])) # uncomment this to make loopy
+    mn.set_edge_factor((0, 1), np.random.randn(k[0], k[1]))
+    mn.set_edge_factor((1, 2), np.random.randn(k[1], k[2]))
+    mn.set_edge_factor((3, 2), np.random.randn(k[3], k[2]))
+    mn.set_edge_factor((3, 4), np.random.randn(k[3], k[4]))
+    # mn.set_edge_factor((1,4), np.random.randn(k[1], k[4]))
+    # mn.set_edge_factor((3,0), np.random.randn(k[3], k[0])) # uncomment this to make loopy
 
-    print("Neighbors of 0: " + repr(mn.getNeighbors(0)))
-    print("Neighbors of 1: " + repr(mn.getNeighbors(1)))
+    print("Neighbors of 0: " + repr(mn.get_neighbors(0)))
+    print("Neighbors of 1: " + repr(mn.get_neighbors(1)))
 
     bp = MatrixBeliefPropagator(mn)
 
     # for t in range(15):
-    #     change = bp.updateMessages()
-    #     disagreement = bp.computeInconsistency()
+    #     change = bp.update_messages()
+    #     disagreement = bp.compute_inconsistency()
     #     print("Iteration %d, change in messages %f. Calibration disagreement: %f" % (t, change, disagreement))
 
     bp.infer(display='full')
 
-    bp.computePairwiseBeliefs()
+    bp.compute_pairwise_beliefs()
 
     bp.load_beliefs()
 
@@ -245,7 +245,7 @@ def main():
     unary_error = 0
 
     for i in mn.variables:
-        bf_marg = bf.unaryMarginal(i)
+        bf_marg = bf.unary_marginal(i)
         bp_marg = np.exp(bp.varBeliefs[i])
 
         unary_error += np.sum(np.abs(bf_marg - bp_marg))
@@ -256,9 +256,9 @@ def main():
     pairwise_error = 0.0
 
     for var in mn.variables:
-        for neighbor in mn.getNeighbors(var):
+        for neighbor in mn.get_neighbors(var):
             edge = (var, neighbor)
-            bf_marg = bf.pairwiseMarginal(var, neighbor)
+            bf_marg = bf.pairwise_marginal(var, neighbor)
             bp_marg = np.exp(bp.pairBeliefs[edge])
 
             pairwise_error += np.sum(np.abs(bf_marg - bp_marg))
@@ -270,7 +270,7 @@ def main():
 
     print ("Bethe energy functional: %f" % bp.compute_energy_functional())
 
-    print ("Brute force log partition function: %f" % np.log(bf.computeZ()))
+    print ("Brute force log partition function: %f" % np.log(bf.compute_z()))
 
 
     print ("Brute force entropy: %f" % np.log(bf.entropy()))
@@ -282,8 +282,8 @@ def main():
     bp_old.runInference(display='full')
 
     print ("Old Bethe energy functional: %f" % bp_old.computeEnergyFunctional())
-    print ("Old Bethe entropy: %f" % bp_old.computeBetheEntropy())
-    print ("Old belief prop energy: %f" % bp_old.computeEnergy())
+    print ("Old Bethe entropy: %f" % bp_old.compute_bethe_entropy())
+    print ("Old belief prop energy: %f" % bp_old.compute_energy())
 
     print("Running grid timing comparison to loop BP")
 
@@ -295,12 +295,12 @@ def main():
 
     for x in range(length):
         for y in range(length):
-            mn.setUnaryFactor((x, y), np.random.random(k))
+            mn.set_unary_factor((x, y), np.random.random(k))
 
     for x in range(length - 1):
         for y in range(length):
-            mn.setEdgeFactor(((x, y), (x + 1, y)), np.random.random((k, k)))
-            mn.setEdgeFactor(((y, x), (y, x + 1)), np.random.random((k, k)))
+            mn.set_edge_factor(((x, y), (x + 1, y)), np.random.random((k, k)))
+            mn.set_edge_factor(((y, x), (y, x + 1)), np.random.random((k, k)))
 
     log_bp = BeliefPropagator(mn)
 
@@ -309,7 +309,7 @@ def main():
     import time
 
     t0 = time.time()
-    bp.infer(display='final', maxIter=30000)
+    bp.infer(display='final', max_iter=30000)
     t1 = time.time()
 
     bp_time = t1 - t0

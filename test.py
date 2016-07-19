@@ -138,8 +138,8 @@ def main():
 
 
     bp.infer(display = "off")
-    bp.computeBeliefs()
-    bp.computePairwiseBeliefs()
+    bp.compute_beliefs()
+    bp.compute_pairwise_beliefs()
     bp.load_beliefs()
     Z = []
     for i in range(1,num_pixels+1):
@@ -169,8 +169,8 @@ def main():
     bp = MatrixBeliefPropagator(mn)
 
     bp.infer(display = "off")
-    bp.computeBeliefs()
-    bp.computePairwiseBeliefs()
+    bp.compute_beliefs()
+    bp.compute_pairwise_beliefs()
     bp.load_beliefs()
     Z = []
     for i in range(1,num_pixels+1):
@@ -195,7 +195,7 @@ def Create_MarkovNet(height,width,w_unary,w_pair,pixels):
     ########Set Unary Factor
     for i in range(num_pixels):
         k = i +1
-        mn.setUnaryFactor(k,np.dot(w_unary,pixels[k]))
+        mn.set_unary_factor(k, np.dot(w_unary, pixels[k]))
     
 #     k = 1
 #     for i in range(0,height):
@@ -203,11 +203,11 @@ def Create_MarkovNet(height,width,w_unary,w_pair,pixels):
 #             pxl = (pixels[j,i])
 # 
 # #             pxl = np.array(pixels[j,i])
-#             mn.setUnaryFactor(k,np.dot(w_unary,pxl))
+#             mn.set_unary_factor(k,np.dot(w_unary,pxl))
 # 
 #             k += 1
 
-#    print ('setUnaryFactor done------')
+#    print ('set_unary_factor done------')
 #     ##########Set Pairwise
 # 
     
@@ -230,96 +230,96 @@ def Create_MarkovNet(height,width,w_unary,w_pair,pixels):
         
         
         
-    mn.setEdgeFactor((1,2), w_pair)
+    mn.set_edge_factor((1, 2), w_pair)
     all_edges.add((1,2))
-    mn.setEdgeFactor((1,1+width),w_pair)
+    mn.set_edge_factor((1, 1 + width), w_pair)
     all_edges.add((1,1+width))
         
-    mn.setEdgeFactor((width,width-1),w_pair)
+    mn.set_edge_factor((width, width - 1), w_pair)
     all_edges.add((width,width-1))
-    mn.setEdgeFactor((width,width+width),w_pair)
+    mn.set_edge_factor((width, width + width), w_pair)
     all_edges.add((width,width+width))
         
         
-    mn.setEdgeFactor((left_ind,left_ind +1),w_pair)
+    mn.set_edge_factor((left_ind, left_ind + 1), w_pair)
     all_edges.add((left_ind,left_ind +1))
-    mn.setEdgeFactor((left_ind,left_ind - width),w_pair)
+    mn.set_edge_factor((left_ind, left_ind - width), w_pair)
     all_edges.add((left_ind,left_ind - width))
         
-    mn.setEdgeFactor((num_pixels,num_pixels - 1),w_pair)
+    mn.set_edge_factor((num_pixels, num_pixels - 1), w_pair)
     all_edges.add((num_pixels,num_pixels - 1))
-    mn.setEdgeFactor((num_pixels,num_pixels - width),w_pair)
+    mn.set_edge_factor((num_pixels, num_pixels - width), w_pair)
     all_edges.add((num_pixels,num_pixels - width))
         
         
     for i in (left_pixels):
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges :
-            mn.setEdgeFactor((i,i+1),w_pair)
+            mn.set_edge_factor((i, i + 1), w_pair)
             all_edges.add((i,i+1))
                 
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            mn.setEdgeFactor((i,i-width),w_pair)
+            mn.set_edge_factor((i, i - width), w_pair)
             all_edges.add((i,i-width))
                 
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            mn.setEdgeFactor((i,i+width),w_pair)
+            mn.set_edge_factor((i, i + width), w_pair)
             all_edges.add((i,i+width))
         
     for i in (right_pixels):
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            mn.setEdgeFactor((i,i-1),w_pair)
+            mn.set_edge_factor((i, i - 1), w_pair)
             all_edges.add((i,i-1))
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            mn.setEdgeFactor((i,i-width),w_pair)
+            mn.set_edge_factor((i, i - width), w_pair)
             all_edges.add((i,i-width))
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            mn.setEdgeFactor((i,i+width),w_pair)
+            mn.set_edge_factor((i, i + width), w_pair)
             all_edges.add((i,i+width))
         
     for i in  up_pixels:
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            mn.setEdgeFactor((i,i+1),w_pair)
+            mn.set_edge_factor((i, i + 1), w_pair)
             all_edges.add((i,i+1))
                 
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            mn.setEdgeFactor((i,i-1),w_pair)
+            mn.set_edge_factor((i, i - 1), w_pair)
             all_edges.add((i,i-1))
                 
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            mn.setEdgeFactor((i,i+width),w_pair)
+            mn.set_edge_factor((i, i + width), w_pair)
             all_edges.add((i,i+width))
         
     for i in  down_pixels:
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            mn.setEdgeFactor((i,i+1),w_pair)
+            mn.set_edge_factor((i, i + 1), w_pair)
             all_edges.add((i,i+1))
                 
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            mn.setEdgeFactor((i,i-1),w_pair)
+            mn.set_edge_factor((i, i - 1), w_pair)
             all_edges.add((i,i-1))
                 
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            mn.setEdgeFactor((i,i-width),w_pair)
+            mn.set_edge_factor((i, i - width), w_pair)
             all_edges.add((i,i-width))
         
     for i in (usual_pixels):
         if (i,i+1) not in all_edges and (i+1,i) not in all_edges:
-            mn.setEdgeFactor((i,i+1),w_pair)
+            mn.set_edge_factor((i, i + 1), w_pair)
             all_edges.add((i,i+1))
                 
         if (i,i-1) not in all_edges and (i-1,i) not in all_edges:
-            mn.setEdgeFactor((i,i-1),w_pair)
+            mn.set_edge_factor((i, i - 1), w_pair)
             all_edges.add((i,i-1))
                 
         if (i,i-width) not in all_edges and (i-width,i) not in all_edges:
-            mn.setEdgeFactor((i,i-width),w_pair)
+            mn.set_edge_factor((i, i - width), w_pair)
             all_edges.add((i,i-width))
         if (i,i+width) not in all_edges and (i+width,i) not in all_edges:
-            mn.setEdgeFactor((i,i+width),w_pair)
+            mn.set_edge_factor((i, i + width), w_pair)
             all_edges.add((i,i+width))
 
 
-#    print ('setEdgeFactor done------')
+#    print ('set_edge_factor done------')
     return mn
     
 

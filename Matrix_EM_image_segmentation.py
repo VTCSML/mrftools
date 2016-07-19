@@ -96,12 +96,12 @@ def train_EM(learner,weights,folder_name,height,width,d):
         # =====================================
         # E-step: inference
         # =====================================
-        learner.E_step(weights,'EM')
+        learner.e_step(weights, 'EM')
   
         # =====================================
         # M-step: learning parameters
         # =====================================
-        weights = learner.M_step(weights)
+        weights = learner.m_step(weights)
         new_weights = weights
 
         if np.linalg.norm(np.subtract(old_weights,new_weights)) < 0.00001:
@@ -315,8 +315,8 @@ def test_data(weights,height,width,d,num_states,image, messages=None):
         bp.set_messages(messages)
 
     bp.runInference(display = "off")
-    bp.computeBeliefs()
-    bp.computePairwiseBeliefs()
+    bp.compute_beliefs()
+    bp.compute_pairwise_beliefs()
     bp.load_beliefs()
     Z = []
     for i in range(1,num_pixels+1):
@@ -396,7 +396,7 @@ def main():
 # # #     learner = joblib.load('learner/learner.pkl')
 # # # 
 # #      
-    learner.setRegularization(0, 0.25)
+    learner.set_regularization(0, 0.25)
     f = open(folder_name+'/reports_'+folder_name+'.txt','a')
     f.write('\n')
     f.write('********************************************')

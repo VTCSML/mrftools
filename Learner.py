@@ -49,24 +49,24 @@ class Learner(object):
             if method == 'subgradient' or method == 'EM':
                 bp.infer(display = 'off')
             elif method == 'paired':
-                bp.infer(display = 'off', maxIter = self.bpIter)
+                bp.infer(display = 'off', max_iter= self.bpIter)
         
-    def get_feature_expectations(self, beliefPropagators):
+    def get_feature_expectations(self, belief_propagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
         """
-        marginalSum = 0
+        marginal_sum = 0
         for i in range(self.num_examples):
-            bp = beliefPropagators[i]
-            marginalSum += bp.get_feature_expectations()
+            bp = belief_propagators[i]
+            marginal_sum += bp.get_feature_expectations()
             
-        return marginalSum / self.num_examples
+        return marginal_sum / self.num_examples
     
-    def get_betheEntropy(self,belief_propagator):
+    def get_bethe_entropy(self, belief_propagator):
         bethe = 0
         for i in range(self.num_examples):
             bp = belief_propagator[i]
-            bp.computeBeliefs()
-            bp.computePairwiseBeliefs()
+            bp.compute_beliefs()
+            bp.compute_pairwise_beliefs()
             bethe += bp.compute_bethe_entropy()
             
         bethe = bethe / self.num_examples
@@ -87,7 +87,7 @@ class Learner(object):
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
             res = minimize(self.subgrad_obj, new_weights, args='subgradient', method='L-BFGS-B', jac=self.subgrad_grad,
-                           callback=self.callbackF)
+                           callback=self.callback_f)
             new_weights = res.x
             # print check_grad(self.subgrad_obj, self.subgrad_grad, new_weights, 'subgradient')
 
@@ -99,7 +99,7 @@ class Learner(object):
         for bp in self.beliefPropagators + self.beliefPropagators_q:
             bp.initialize_messages()
 
-    def callbackF(self,w):
+    def callback_f(self, w):
         a = np.copy(w)
         if (self.weight_record.size) == 0:
             self.weight_record = a.reshape((1, a.size))
@@ -115,13 +115,13 @@ class Learner(object):
                 self.do_inference(self.beliefPropagators_q,method)
 
             self.tau_q = self.get_feature_expectations(self.beliefPropagators_q)
-            self.H_q = self.get_betheEntropy(self.beliefPropagators_q)
+            self.H_q = self.get_bethe_entropy(self.beliefPropagators_q)
         elif mode == 'p':
             self.setWeights(weights, self.models)
             if should_infere == True:
                 self.do_inference(self.beliefPropagators,method)
             self.tau_p = self.get_feature_expectations(self.beliefPropagators)
-            self.H_p = self.get_betheEntropy(self.beliefPropagators)
+            self.H_p = self.get_bethe_entropy(self.beliefPropagators)
 
     def objective(self, weights, method):
         self.calculate_tau(weights, method, 'p',True)
@@ -163,24 +163,24 @@ def main():
 
     np.random.seed(1)
 
-    model.declareVariable(0, 4)
-    model.declareVariable(1, 4)
-    model.declareVariable(2, 4)
+    model.declare_variable(0, 4)
+    model.declare_variable(1, 4)
+    model.declare_variable(2, 4)
 
     d = 2
 
-    model.setUnaryWeights(0, np.random.randn(4, d))
-    model.setUnaryWeights(1, np.random.randn(4, d))
-    model.setUnaryWeights(2, np.random.randn(4, d))
+    model.set_unary_weights(0, np.random.randn(4, d))
+    model.set_unary_weights(1, np.random.randn(4, d))
+    model.set_unary_weights(2, np.random.randn(4, d))
 
-    model.setUnaryFeatures(0, np.random.randn(d))
-    model.setUnaryFeatures(1, np.random.randn(d))
-    model.setUnaryFeatures(2, np.random.randn(d))
+    model.set_unary_features(0, np.random.randn(d))
+    model.set_unary_features(1, np.random.randn(d))
+    model.set_unary_features(2, np.random.randn(d))
 
-    model.setAllUnaryFactors()
+    model.set_all_unary_factors()
 
-    model.setEdgeFactor((0,1), np.zeros((4, 4)))
-    model.setEdgeFactor((1,2), np.zeros((4, 4)))
+    model.set_edge_factor((0, 1), np.zeros((4, 4)))
+    model.set_edge_factor((1, 2), np.zeros((4, 4)))
 
 #     from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 

@@ -19,17 +19,17 @@ def main():
 
     for x in range(length):
         for y in range(length):
-            mn.setUnaryFactor((x, y), np.zeros(k))
+            mn.set_unary_factor((x, y), np.zeros(k))
             features = np.random.randn(d, 1)
-            mn.setUnaryFeatures((x, y), features)
+            mn.set_unary_features((x, y), features)
             model.add_var((x, y), features)
 
     edge_weights = np.random.randn(k, k)
 
     for x in range(length - 1):
         for y in range(length):
-            mn.setEdgeFactor(((x, y), (x + 1, y)), edge_weights)
-            mn.setEdgeFactor(((y, x), (y, x + 1)), edge_weights)
+            mn.set_edge_factor(((x, y), (x + 1, y)), edge_weights)
+            mn.set_edge_factor(((y, x), (y, x + 1)), edge_weights)
             model.add_edge(((x, y), (x + 1, y)))
             model.add_edge(((y, x), (y, x + 1)))
 
