@@ -1,40 +1,20 @@
 import copy
 import time
 from _hashlib import new
-
 import numpy as np
 from scipy.optimize import minimize, check_grad
-
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
-from MatrixLogLinearMLE import MatrixLogLinearMLE
 from Learner import Learner
+from opt import *
 
 
 class PairedDual(Learner):
-    def __init__(self, base_model, inference_type):
-        super(PairedDual, self).__init__(base_model, inference_type)
-        
-    def ada_grad(self, x, args):
-        t = 1
-        tolerance = 1e-8
-        max_iter = 500
-        change = np.inf
-    
-        grad_sum = 0
-        while change > tolerance and t < max_iter:
-            self.subgrad_obj(x, 'paired')
-            old_x = x
-            g = self.subgrad_grad(x, args)
-            grad_sum += g * g
-            x = x - 1.0 * g / (np.sqrt(grad_sum) + 0.001)
-            change = np.sum(np.abs(x - old_x))
-            t += 1
-            self.callback_f(x)
-        return x
+    def __init__(self, inference_type):
+        super(PairedDual, self).__init__( inference_type)
 
     def learn(self, weights):
-        return self.adagrad(weights, 'paired')
+        return ada_grad(self.subgrad_obj,self.subgrad_grad,weights, 'paired',self.callback_f)
     
     
 def main():
