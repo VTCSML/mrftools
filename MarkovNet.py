@@ -8,15 +8,15 @@ class MarkovNet(object):
     def __init__(self):
         """Initialize a Markov net."""
         self.edgePotentials = dict()
-        self.unaryPotentials = dict()
+        self.unary_potentials = dict()
         self.neighbors = dict()
         self.variables = set()
-        self.numStates = dict()
+        self.num_states = dict()
         self.matrix_mode = False
 
     def set_unary_factor(self, variable, potential):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
-        self.unaryPotentials[variable] = potential
+        self.unary_potentials[variable] = potential
         if variable not in self.variables:
             self.declare_variable(variable, np.size(potential))
 
@@ -24,13 +24,13 @@ class MarkovNet(object):
         if variable not in self.variables:
             self.variables.add(variable)
             self.neighbors[variable] = set()
-            self.numStates[variable] = num_states
+            self.num_states[variable] = num_states
         else:
             print("Warning: declaring a variable %s that was previously declared." % repr(variable))
 
     def set_edge_factor(self, edge, potential):
         """Set a factor by inputting the involved variables then the potential function. The potential function should be a np matrix."""
-        assert np.shape(potential) == (len(self.unaryPotentials[edge[0]]), len(self.unaryPotentials[edge[1]])), "potential size %d, %d incompatible with unary sizes %d, %d" % (np.shape(potential)[0], np.shape(potential)[1], len(self.unaryPotentials[edge[0]]), len(self.unaryPotentials[edge[1]]))
+        assert np.shape(potential) == (len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]])), "potential size %d, %d incompatible with unary sizes %d, %d" % (np.shape(potential)[0], np.shape(potential)[1], len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]]))
 
         if edge[0] < edge[1]:
             self.edgePotentials[edge] = potential
@@ -55,7 +55,7 @@ class MarkovNet(object):
         """Evaluate the energy of a state. states should be a dictionary of variable: state (int) pairs."""
         energy = 0.0
         for var in self.variables:
-            energy += self.unaryPotentials[var][states[var]]
+            energy += self.unary_potentials[var][states[var]]
 
             for neighbor in self.neighbors[var]:
                 if var < neighbor:
@@ -82,7 +82,7 @@ class MarkovNet(object):
     def create_matrices(self):
         self.matrix_mode = True
 
-        self.max_states = max([len(x) for x in self.unaryPotentials.values()])
+        self.max_states = max([len(x) for x in self.unary_potentials.values()])
         self.unary_mat = -np.inf * np.ones((self.max_states, len(self.variables)))
         self.var_index = dict()
         self.var_list = []
@@ -90,7 +90,7 @@ class MarkovNet(object):
 
         i = 0
         for var in self.variables:
-            potential = self.unaryPotentials[var]
+            potential = self.unary_potentials[var]
             self.unary_mat[0:len(potential), i] = potential
             self.var_index[var] = i
             self.var_list.append(var)
