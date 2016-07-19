@@ -5,14 +5,13 @@ import numpy as np
 from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
-from MatrixLogLinearMLE import MatrixLogLinearMLE
 from Learner import Learner
 # from PIL.ImageGrab import grab
 
 class EM(Learner):
     
-    def __init__(self, base_model, inference_type):
-        super(EM, self).__init__(base_model, inference_type)
+    def __init__(self, inference_type):
+        super(EM, self).__init__( inference_type)
         
     def learn(self,weights):
         old_weights = np.inf
@@ -28,7 +27,7 @@ class EM(Learner):
         self.calculate_tau(weights,'EM','q',True)
 
     def m_step(self, weights):
-        res = minimize(self.objective, weights, args = 'EM', method='L-BFGS-B', jac = self.gradient, callback=self.callback_f)
+        res = minimize(self.objective, weights, args = ['EM'], method='L-BFGS-B', jac = self.gradient, callback=self.callback_f)
         return res.x
     
     

@@ -17,29 +17,22 @@ def sgd(func, grad, x, args, callback):
 
     return x
 
-def adagrad(func, grad, x, args, callback):
+def ada_grad(func, grad, x, args, callback):
     t = 1
     tolerance = 1e-8
     max_iter = 500
     change = np.inf
 
     grad_sum = 0
-
     while change > tolerance and t < max_iter:
+        func(x, args)
         old_x = x
-        if args:
-            g = grad(x, args)
-        else:
-            g = grad(x)
+        g = grad(x, args)
         grad_sum += g * g
         x = x - 1.0 * g / (np.sqrt(grad_sum) + 0.001)
         change = np.sum(np.abs(x - old_x))
         t += 1
         callback(x)
-        # print func(x, args)
-        # print change
-
-
     return x
 
 
