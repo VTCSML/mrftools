@@ -15,9 +15,6 @@ class TestGibbsSampling(unittest.TestCase):
         unary_potential = np.random.randn(2)
         edge_potential = np.random.randn(2, 2)
 
-        print unary_potential
-        print edge_potential
-
         mn.set_unary_factor(0, unary_potential)
         mn.set_unary_factor(1, unary_potential)
         mn.set_unary_factor(2, unary_potential)
@@ -30,11 +27,8 @@ class TestGibbsSampling(unittest.TestCase):
 
         gb = Gibbs(mn)
         gb.init_states()
-        print "result:"
-        print(gb.states)
-
         itr = 1000
-        num = 100000
+        num = 10000
         gb.gibbs_sampling(itr, num)
 
         from BruteForce import BruteForce
@@ -45,7 +39,7 @@ class TestGibbsSampling(unittest.TestCase):
             bf_result = bf.unary_marginal(var)
             print gb_result
             print bf_result
-            np.testing.assert_allclose(gb_result, bf_result, rtol=2e-2, atol=0)
+            np.testing.assert_allclose(gb_result, bf_result, rtol=5e-2, atol=0)
 
 
 
