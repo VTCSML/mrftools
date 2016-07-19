@@ -6,7 +6,7 @@ from LogLinearModel import LogLinearModel
 from EM import EM
 from PairedDual import PairedDual
 
-class TesetLearner(unittest.TestCase):
+class TestLearner(unittest.TestCase):
 
     def test_learner(self):
         d = 2
