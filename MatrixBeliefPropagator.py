@@ -120,13 +120,13 @@ class MatrixBeliefPropagator(Inference):
         self.compute_pairwise_beliefs()
 
         for (var, i) in self.mn.var_index.items():
-            self.var_beliefs[var] = self.belief_mat[:len(self.mn.unaryPotentials[var]), i]
+            self.var_beliefs[var] = self.belief_mat[:len(self.mn.unary_potentials[var]), i]
 
         for i in range(self.mn.num_edges):
             (var, neighbor) = self.mn.edges[i]
 
-            belief = self.pair_belief_tensor[:len(self.mn.unaryPotentials[var]),
-                     :len(self.mn.unaryPotentials[neighbor]), i]
+            belief = self.pair_belief_tensor[:len(self.mn.unary_potentials[var]),
+                     :len(self.mn.unary_potentials[neighbor]), i]
 
             self.pair_beliefs[(var, neighbor)] = belief
 
