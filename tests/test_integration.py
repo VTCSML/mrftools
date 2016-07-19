@@ -1,4 +1,4 @@
-from SegLoader import SegLoader
+from ImageLoader import ImageLoader
 from Learner import Learner
 import numpy as np
 from MatrixBeliefPropagator import MatrixBeliefPropagator
@@ -8,7 +8,7 @@ import unittest
 class IntegrationTest(unittest.TestCase):
 
     def test_loading_and_learning(self):
-        loader = SegLoader(16, 16)
+        loader = ImageLoader(16, 16)
 
         images, models, labels, names = loader.load_all_images_and_labels('./train', 2)
 
@@ -21,3 +21,6 @@ class IntegrationTest(unittest.TestCase):
 
         learner.learn(weights)
 
+
+if __name__ == '__main__':
+    unittest.main()

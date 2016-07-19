@@ -8,7 +8,7 @@ from LogLinearModel import LogLinearModel
 import time
 
 
-class SegLoader(object):
+class ImageLoader(object):
 
     def __init__(self, max_width=0, max_height=0):
         self.max_width = max_width
@@ -45,17 +45,12 @@ class SegLoader(object):
     def draw_image_and_label(self, name):
         img = self.load_image(name)
         labels = self.load_label_img(name)
-        features, pixel_ids = SegLoader.compute_features(img)
+        features = ImageLoader.compute_features(img)
 
-        plt.subplot(131)
+        plt.subplot(121)
         plt.imshow(img, interpolation='nearest')
         plt.xlabel('Original Image')
-        plt.subplot(132)
-        # k = np.random.randint(0, self.features[i].shape[1])
-        k = 4
-        plt.imshow(features[:, k].reshape(img.height, img.width), interpolation='nearest')
-        plt.xlabel("Feature %d" % k)
-        plt.subplot(133)
+        plt.subplot(122)
         plt.imshow(labels, interpolation='nearest')
         plt.xlabel("Labels")
         plt.show()
@@ -70,7 +65,7 @@ class SegLoader(object):
         for i, filename in enumerate(files):
             full_name = os.path.join(directory, filename)
             img = self.load_image(full_name)
-            model = SegLoader.create_model(img, num_states)
+            model = ImageLoader.create_model(img, num_states)
             label_vec = self.load_label_dict(full_name)
 
             names.append(filename)
@@ -90,7 +85,7 @@ class SegLoader(object):
     def create_model(img, num_states):
         model = LogLinearModel()
 
-        feature_dict = SegLoader.compute_features(img)
+        feature_dict = ImageLoader.compute_features(img)
 
         # create pixel variables
         for pixel, feature_vec in feature_dict.items():
@@ -99,7 +94,7 @@ class SegLoader(object):
             model.set_unary_factor(pixel, np.zeros(num_states))
 
         # create edge factors
-        for edge in SegLoader.get_all_edges(img):
+        for edge in ImageLoader.get_all_edges(img):
             model.set_edge_factor(edge, np.eye(num_states))
 
         model.create_matrices()
@@ -177,10 +172,13 @@ class SegLoader(object):
 def main():
     """test loading"""
 
-    loader = SegLoader()
-    images, models, labels, names = loader.load_all_images_and_labels('./train', 2)
+    loader = ImageLoader()
+    images, models, labels, names = loader.load_all_images_and_labels('./tests/train', 2)
 
-
+    files = [x for x in os.listdir('./tests/train') if x.endswith(".jpg") or x.endswith('.png')]
+    for i, filename in enumerate(files):
+        full_name = os.path.join('./tests/train', filename)
+        loader.draw_image_and_label(full_name)
 
 if __name__ == '__main__':
     main()
