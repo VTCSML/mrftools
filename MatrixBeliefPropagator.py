@@ -27,24 +27,18 @@ class MatrixBeliefPropagator(Inference):
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
 
-    def condition(self,states):
-        """computer condition_mat for mode q"""
-        label_mask = -float('inf') * np.ones((self.mn.max_states, len(self.mn.variables)))
-        for (var, i) in self.mn.var_index.items():
-            if states[var] != -100:
-                label_mask[states[var], i] = 0
-            else:
-                label_mask[:, i] = 0
-        
-        self.conditioning_mat = label_mask
+    def condition(self, var, state):
+        i = self.mn.var_index[var]
+        self.conditioning_mat[:,i] = -np.inf
+        if state != -100:
+            self.conditioning_mat[state, i] = 0
+        else:
+            self.conditioning_mat[:, i] = 0
 
-    def condition_state(self):
-        self.mn.unary_mat += self.conditioning_mat
-
-    def compute_beliefs(self):
+    def computeBeliefs(self):
+#         print self.conditioning_mat
         """Compute unary beliefs based on current messages."""
-        self.condition_state()
-        self.belief_mat = self.mn.unary_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
+        self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
         log_z = logsumexp(self.belief_mat, 0)
 
         self.belief_mat = self.belief_mat - log_z
