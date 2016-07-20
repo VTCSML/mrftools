@@ -120,16 +120,19 @@ class TestBeliefPropagator(unittest.TestCase):
 
         bp = MatrixBeliefPropagator(mn)
 
+        bp.set_max_iter(30000)
+        slow_bp.set_max_iter(30000)
+
         import time
 
         t0 = time.time()
-        bp.infer(display='final', max_iter=30000)
+        bp.infer(display='final')
         t1 = time.time()
 
         bp_time = t1 - t0
 
         t0 = time.time()
-        slow_bp.infer(display='final', max_iter=30000)
+        slow_bp.infer(display='final')
         t1 = time.time()
 
         slow_bp_time = t1 - t0
@@ -150,3 +153,24 @@ class TestBeliefPropagator(unittest.TestCase):
                 assert np.allclose(bp.pair_beliefs[edge], slow_bp.pair_beliefs[edge]), "pairwise beliefs don't agree" \
                            + "\n" + repr(bp.pair_beliefs[edge]) \
                            + "\n" + repr(slow_bp.pair_beliefs[edge])
+
+    def test_conditioning(self):
+        mn = self.create_loop_model()
+
+        bp = MatrixBeliefPropagator(mn)
+
+        bp.condition(2, 0)
+
+        bp.infer()
+        bp.load_beliefs()
+
+        assert np.allclose(bp.var_beliefs[2][0], 0), "Conditioned variable was not set to correct state"
+
+        beliefs0 = bp.var_beliefs[0]
+
+        bp.condition(2, 1)
+        bp.infer()
+        bp.load_beliefs()
+        beliefs1 = bp.var_beliefs[0]
+
+        assert not np.allclose(beliefs0, beliefs1), "Conditioning var 2 did not change beliefs of var 0"

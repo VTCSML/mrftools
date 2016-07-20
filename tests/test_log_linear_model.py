@@ -2,6 +2,7 @@ import unittest
 from MarkovNet import MarkovNet
 import numpy as np
 from LogLinearModel import LogLinearModel
+from MatrixBeliefPropagator import MatrixBeliefPropagator
 
 
 class TestLogLinearModel(unittest.TestCase):
@@ -76,3 +77,50 @@ class TestLogLinearModel(unittest.TestCase):
 
         for i in range(len(k)):
             mn.set_unary_weights(i, np.random.randn(k[i], d))
+
+    def test_edge_features(self):
+        mn = self.create_chain_model()
+
+        d = 3
+
+        for i in range(5):
+            mn.set_edge_features((i, i+1), np.random.randn(d))
+
+        mn.create_matrices()
+        mn.set_weight_matrix(np.random.randn(4, 4))
+        mn.set_edge_weight_matrix(np.random.randn(d, 16))
+
+        bp = MatrixBeliefPropagator(mn)
+
+        bp.infer()
+        bp.load_beliefs()
+
+        unconditional_marginals = bp.var_beliefs[4]
+
+        bp.condition(0, 2)
+        bp.infer()
+        bp.load_beliefs()
+
+        conditional_marginals = bp.var_beliefs[4]
+
+        assert not np.allclose(unconditional_marginals, conditional_marginals), \
+                "Conditioning on variable 0 did not change marginal of variable 4"
+
+        mn.set_edge_features((2, 3), np.zeros(d))
+        mn.create_matrices()
+        mn.set_weight_matrix(np.random.randn(4, 4))
+        mn.set_edge_weight_matrix(np.random.randn(d, 16))
+
+        bp.infer()
+        bp.load_beliefs()
+
+        unconditional_marginals = bp.var_beliefs[4]
+
+        bp.condition(0, 2)
+        bp.infer()
+        bp.load_beliefs()
+
+        conditional_marginals = bp.var_beliefs[4]
+
+        assert np.allclose(unconditional_marginals, conditional_marginals), \
+            "Conditioning on var 0 changed marginal of var 4, when the features should have made them independent"

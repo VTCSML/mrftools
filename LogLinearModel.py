@@ -12,7 +12,14 @@ class LogLinearModel(MarkovNet):
         super(LogLinearModel, self).__init__()
         self.unary_features = dict()
         self.unary_feature_weights = dict()
+        self.edge_features = dict()
         self.num_features = dict()
+        self.num_edge_features = dict()
+
+    def set_edge_factor(self, edge, potential):
+        super(LogLinearModel, self).set_edge_factor(edge, potential)
+        # set default edge feature
+        self.set_edge_features(edge, np.array([1.0]))
 
     def set_unary_weights(self, var, weights):
         """Set the log-linear weights for the unary features of var.
@@ -33,10 +40,18 @@ class LogLinearModel(MarkovNet):
 
         self.num_features[var] = len(values)
 
+    def set_edge_features(self, edge, values):
+        reversed_edge = (edge[1], edge[0])
+        self.edge_features[edge] = values
+        self.num_edge_features[edge] = len(values)
+
+        self.edge_features[reversed_edge] = values
+        self.num_edge_features[reversed_edge] = len(values)
+
     def set_all_unary_factors(self):
         for var in self.variables:
             self.set_unary_factor(var, self.unary_feature_weights[var].dot(self.unary_features[var]))
-
+ 
     def set_feature_matrix(self, feature_mat):
         assert (np.array_equal(self.feature_mat.shape, feature_mat.shape))
 
@@ -44,25 +59,40 @@ class LogLinearModel(MarkovNet):
 
     def set_weight_matrix(self, weight_mat):
         assert (np.array_equal(self.weight_mat.shape, weight_mat.shape))
-
         self.weight_mat[:, :] = weight_mat
 
-    def set_unary_matrix(self):
+    def set_edge_weight_matrix(self, edge_weight_mat):
+        assert (np.array_equal(self.edge_weight_mat.shape, edge_weight_mat.shape))
+        self.edge_weight_mat[:, :] = edge_weight_mat
+
+    def update_unary_matrix(self):
         self.set_unary_mat(self.weight_mat.T.dot(self.feature_mat))
+
+    def update_edge_tensor(self):
+        half_edge_tensor = self.edge_weight_mat.T.dot(self.edge_feature_mat).reshape(
+            (self.max_states, self.max_states, self.num_edges))
+        self.edge_pot_tensor[:,:,:] = np.concatenate((half_edge_tensor, half_edge_tensor), axis=2)
 
     def create_matrices(self):
         super(LogLinearModel, self).create_matrices()
 
+        # create unary matrices
         self.max_features = max([x for x in self.num_features.values()])
-
         self.weight_mat = np.zeros((self.max_features, self.max_states))
-
         self.feature_mat = np.zeros((self.max_features, len(self.variables)))
 
         for var in self.variables:
             index = self.var_index[var]
             self.feature_mat[:, index] = self.unary_features[var]
 
+        # create edge matrices
+
+        self.max_edge_features = max([x for x in self.num_edge_features.values()])
+        self.edge_weight_mat = np.zeros((self.max_edge_features, self.max_states**2))
+        self.edge_feature_mat = np.zeros((self.max_edge_features, self.num_edges))
+
+        for i, edge in enumerate(self.edges):
+            self.edge_feature_mat[:, i] = self.edge_features[edge]
 
 def main():
     """Test function for MarkovNet."""

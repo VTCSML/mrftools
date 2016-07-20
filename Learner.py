@@ -111,6 +111,7 @@ class Learner(object):
         """Set weights of Markov net from vector using the order in self.potentials."""
         for model in models:
             max_features = model.max_features
+            max_edge_features = model.max_edge_features
             num_vars = len(model.variables)
             max_states = model.max_states
             num_edges = model.num_edges
@@ -118,13 +119,13 @@ class Learner(object):
             feature_size = max_features * max_states
             feature_weights = weight_vector[:feature_size].reshape((max_features, max_states))
 
-            pairwise_weights = weight_vector[feature_size:].reshape((max_states, max_states, 1)) * np.ones(
-                (1, 1, num_edges))
+            pairwise_weights = weight_vector[feature_size:].reshape((max_edge_features, max_states**2))
 
             model.set_weight_matrix(feature_weights)
-            model.set_edge_tensor(pairwise_weights)
+            model.set_edge_weight_matrix(pairwise_weights)
 
-            model.set_unary_matrix()
+            model.update_unary_matrix()
+            model.update_edge_tensor()
 
     def calculate_tau(self, weights, belief_propagators, should_infer=True):
         self.set_weights(weights, self.models_q)

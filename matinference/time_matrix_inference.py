@@ -36,7 +36,7 @@ def main():
     unary_weight_mat = np.random.randn(d, k)
     mn.create_matrices()
     mn.set_weight_matrix(unary_weight_mat)
-    mn.set_unary_matrix()
+    mn.update_unary_matrix()
 
     bp = MatrixBeliefPropagator(mn)
 

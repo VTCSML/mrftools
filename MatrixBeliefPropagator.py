@@ -33,11 +33,8 @@ class MatrixBeliefPropagator(Inference):
 
     def condition(self, var, state):
         i = self.mn.var_index[var]
-        self.conditioning_mat[:,i] = -np.inf
-        if state != -100:
-            self.conditioning_mat[state, i] = 0
-        else:
-            self.conditioning_mat[:, i] = 0
+        self.conditioning_mat[:, i] = -np.inf
+        self.conditioning_mat[state, i] = 0
 
     def compute_beliefs(self):
 #         print self.conditioning_mat

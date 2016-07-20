@@ -14,13 +14,13 @@ class TestLearner(unittest.TestCase):
 
         np.random.seed(0)
 
-        data = [({0: 2, 1: -100, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
-                ({0: -100, 1: 2, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
+        data = [({0: 2, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
+                ({1: 2, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
 
         models = []
         labels = []
         for i in range(len(data)):
-            m = self.create_model(num_states,d)
+            m = self.create_model(num_states, d)
             models.append(m)
             dic = data[i][0]
             label_vec = dic
@@ -30,7 +30,6 @@ class TestLearner(unittest.TestCase):
 
         for model, states in zip(models, labels):
             learner.add_data(states, model)
-
 
     def test_learner(self):
         weights = np.zeros(24)
@@ -48,6 +47,8 @@ class TestLearner(unittest.TestCase):
             assert (new_obj <= old_obj), "subgradient objective is not decreasing"
             old_obj = new_obj
 
+            assert new_obj >= 0, "Learner objective was not non-negative"
+
     def test_EM(self):
         weights = np.zeros(24)
         learner = EM(MatrixBeliefPropagator)
@@ -61,6 +62,11 @@ class TestLearner(unittest.TestCase):
         old_obj = learner.subgrad_obj(learner.weight_record[0,:])
         new_obj = learner.subgrad_obj(learner.weight_record[-1,:])
         assert (new_obj <= old_obj), "EM objective did not decrease"
+
+        for i in range(l):
+            new_obj = learner.subgrad_obj(learner.weight_record[i, :])
+            assert new_obj >= 0, "EM objective was not non-negative"
+
     def test_paired_dual(self):
         weights = np.zeros(24)
         learner = PairedDual(MatrixBeliefPropagator)
@@ -72,11 +78,13 @@ class TestLearner(unittest.TestCase):
         l = weight_record.shape[0]
         t = learner.time_record[0]
 
-        old_obj = learner.dual_obj(learner.weight_record[0,:])
-        new_obj = learner.dual_obj(learner.weight_record[-1,:])
+        old_obj = learner.subgrad_obj(learner.weight_record[0,:])
+        new_obj = learner.subgrad_obj(learner.weight_record[-1,:])
         assert (new_obj <= old_obj), "paired dual objective did not decrease"
 
-
+        for i in range(l):
+            new_obj = learner.subgrad_obj(learner.weight_record[i, :])
+            assert new_obj >= 0, "Paired dual objective was not non-negative"
 
     def create_model(self,num_states,d):
         model = LogLinearModel()

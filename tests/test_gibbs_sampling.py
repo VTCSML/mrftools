@@ -10,7 +10,7 @@ class TestGibbsSampling(unittest.TestCase):
     def test_gibbs_sampling(self):
         mn = MarkovNet()
 
-        np.random.seed(1)
+        np.random.seed(0)
 
         unary_potential = np.random.randn(2)
         edge_potential = np.random.randn(2, 2)
