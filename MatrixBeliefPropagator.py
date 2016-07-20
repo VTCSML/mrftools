@@ -23,6 +23,10 @@ class MatrixBeliefPropagator(Inference):
         self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
+        self.max_iter = 300
+
+    def set_max_iter(self, max_iter):
+        self.max_iter = max_iter
 
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
@@ -98,11 +102,11 @@ class MatrixBeliefPropagator(Inference):
 
         return disagreement
 
-    def infer(self, tolerance = 1e-8, display = 'iter', max_iter = 300):
+    def infer(self, tolerance = 1e-8, display = 'iter'):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
-        while change > tolerance and iteration < max_iter:
+        while change > tolerance and iteration < self.max_iter:
             change = self.update_messages()
             if display == "full":
                 disagreement = self.compute_inconsistency()

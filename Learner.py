@@ -11,10 +11,7 @@ class Learner(object):
     def __init__(self,inference_type):
         self.tau_q = []
         self.tau_p = []
-        self.H_p = 0
-        self.H_q = 0
         self.models_q = []
-        self.term_q_p = 0
         self.bpIter = 1
         self.weight_record = np.array([])
         self.time_record = np.array([])
@@ -22,8 +19,8 @@ class Learner(object):
         self.num_examples = 0
         self.models = []
         self.models_q = []
-        self.beliefPropagators_q = []
-        self.beliefPropagators = []
+        self.belief_propagators_q = []
+        self.belief_propagators = []
         self.l1_regularization = 0.00
         self.l2_regularization = 1
 
@@ -37,7 +34,7 @@ class Learner(object):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
 
         self.models.append(model)
-        self.beliefPropagators.append(self.inference_type(model))
+        self.belief_propagators.append(self.inference_type(model))
 
         model_q = copy.deepcopy(model)
         self.models_q.append(model_q)
@@ -46,17 +43,13 @@ class Learner(object):
         for (var, state) in labels.items():
             bp_q.condition(var, state)
         
-        self.beliefPropagators_q.append(bp_q)
+        self.belief_propagators_q.append(bp_q)
         
         self.num_examples += 1
         
-    def do_inference(self, belief_propagators, method):
-        for i in range(self.num_examples):
-            bp = self.beliefPropagators[i]
-            if method == 'subgradient' or method == 'EM':
-                bp.infer(display = 'off')
-            elif method == 'paired':
-                bp.infer(display = 'off', max_iter= self.bpIter)
+    def do_inference(self, belief_propagators):
+        for bp in belief_propagators:
+            bp.infer(display = 'off')
         
     def get_feature_expectations(self, belief_propagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
@@ -68,10 +61,9 @@ class Learner(object):
             
         return marginal_sum / self.num_examples
     
-    def get_bethe_entropy(self, belief_propagator):
+    def get_bethe_entropy(self, belief_propagators):
         bethe = 0
-        for i in range(self.num_examples):
-            bp = belief_propagator[i]
+        for bp in belief_propagators:
             bp.compute_beliefs()
             bp.compute_pairwise_beliefs()
             bethe += bp.compute_bethe_entropy()
@@ -79,13 +71,13 @@ class Learner(object):
         bethe = bethe / self.num_examples
         return bethe
     
-    def subgrad_obj(self,weights,method):
-        self.calculate_tau(weights,method,'q',True)
-        return self.objective(weights,method)
+    def subgrad_obj(self, weights, options=None):
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        return self.objective(weights)
     
-    def subgrad_grad(self,weights,method):
-        self.calculate_tau(weights,method,'q',False)
-        return self.gradient(weights,method)
+    def subgrad_grad(self, weights, options=None):
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
+        return self.gradient(weights)
     
     def learn(self, weights):
         old_weights = np.inf
@@ -103,7 +95,7 @@ class Learner(object):
     def reset(self):
         self.weight_record =  np.array([])
         self.time_record = np.array([])
-        for bp in self.beliefPropagators + self.beliefPropagators_q:
+        for bp in self.belief_propagators + self.belief_propagators_q:
             bp.initialize_messages()
 
     def callback_f(self, w):
@@ -117,9 +109,6 @@ class Learner(object):
 
     def set_weights(self, weight_vector, models):
         """Set weights of Markov net from vector using the order in self.potentials."""
-
-
-
         for model in models:
             max_features = model.max_features
             num_vars = len(model.variables)
@@ -137,26 +126,18 @@ class Learner(object):
 
             model.set_unary_matrix()
 
-    def calculate_tau(self, weights, method, mode,should_infere):
-        if mode == 'q':
-            self.set_weights(weights, self.models_q)
-            if should_infere == True:
-                self.do_inference(self.beliefPropagators_q,method)
+    def calculate_tau(self, weights, belief_propagators, should_infer=True):
+        self.set_weights(weights, self.models_q)
+        if should_infer:
+            self.do_inference(belief_propagators)
 
-            self.tau_q = self.get_feature_expectations(self.beliefPropagators_q)
-            self.H_q = self.get_bethe_entropy(self.beliefPropagators_q)
-        elif mode == 'p':
-            self.set_weights(weights, self.models)
-            if should_infere == True:
-                self.do_inference(self.beliefPropagators,method)
-            self.tau_p = self.get_feature_expectations(self.beliefPropagators)
-            self.H_p = self.get_bethe_entropy(self.beliefPropagators)
+        return self.get_feature_expectations(belief_propagators)
 
-    def objective(self, weights, method):
-        self.calculate_tau(weights, method, 'p',True)
+    def objective(self, weights, options=None):
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        term_p = weights.dot(self.tau_p) + self.H_p
-        term_q = weights.dot(self.tau_q) + self.H_q
+        term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / self.num_examples
+        term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / self.num_examples
         self.term_q_p = term_p - term_q
 
         objec = 0.0
@@ -165,11 +146,10 @@ class Learner(object):
         objec += 0.5 * self.l2_regularization * weights.dot(weights)
         objec += self.term_q_p
 
-#         print objec
         return objec
         
-    def gradient(self,weights,method):
-        self.calculate_tau(weights, method, 'p',False)
+    def gradient(self, weights, options=None):
+        self.calculate_tau(weights, self.belief_propagators, False)
 
         grad = np.zeros(len(weights))
       
@@ -233,7 +213,7 @@ def main():
 #         print 'dataaaaaaaa'
         learner.add_data(states, features)
 
-    learner.setRegularization(.2, 1)
+    learner.set_regularization(.2, 1)
     
     
     weights = np.ones(4 * d)

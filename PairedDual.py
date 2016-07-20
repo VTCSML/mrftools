@@ -10,12 +10,30 @@ from opt import *
 
 
 class PairedDual(Learner):
-    def __init__(self, inference_type):
-        super(PairedDual, self).__init__( inference_type)
+    def __init__(self, inference_type, bp_iter=1):
+        super(PairedDual, self).__init__(inference_type)
+
+        for bp in self.belief_propagators + self.belief_propagators_q:
+            bp.set_max_iter(bp_iter)
 
     def learn(self, weights):
-        return ada_grad(self.subgrad_obj,self.subgrad_grad,weights, 'paired',self.callback_f)
-    
+        return ada_grad(self.subgrad_obj, self.subgrad_grad, weights, None, self.callback_f)
+
+    def dual_obj(self, weights):
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+
+        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / self.num_examples
+        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / self.num_examples
+        self.term_q_p = term_p - term_q
+
+        objec = 0.0
+        # add regularization penalties
+        objec += self.l1_regularization * np.sum(np.abs(weights))
+        objec += 0.5 * self.l2_regularization * weights.dot(weights)
+        objec += self.term_q_p
+
+        return objec
     
 def main():
     """Simple test_functions function for maximum likelihood."""

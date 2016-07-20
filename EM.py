@@ -24,10 +24,10 @@ class EM(Learner):
         return new_weights
 
     def e_step(self, weights):
-        self.calculate_tau(weights,'EM','q',True)
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
 
     def m_step(self, weights):
-        res = minimize(self.objective, weights, args = ['EM'], method='L-BFGS-B', jac = self.gradient, callback=self.callback_f)
+        res = minimize(self.objective, weights, None, method='L-BFGS-B', jac = self.gradient, callback=self.callback_f)
         return res.x
     
     

@@ -14,6 +14,10 @@ class BeliefPropagator(Inference):
         self.messages = dict()
         self.init_messages()
         self.init_beliefs()
+        self.max_iter = 300
+
+    def set_max_iter(self, max_iter):
+        self.max_iter = max_iter
 
     def init_messages(self):
         """Initialize messages to default initialization (set to zeros)."""
@@ -109,11 +113,11 @@ class BeliefPropagator(Inference):
                 disagreement += np.sum(np.abs(unary_belief - pair_belief))
         return disagreement
 
-    def infer(self, tolerance = 1e-8, display = 'iter', max_iter = 300):
+    def infer(self, tolerance = 1e-8, display = 'iter'):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
-        while change > tolerance and iteration < max_iter:
+        while change > tolerance and iteration < self.max_iter:
             change = self.update_messages()
             if display == "full":
                 disagreement = self.compute_inconsistency()
