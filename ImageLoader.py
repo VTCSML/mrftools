@@ -158,12 +158,11 @@ class ImageLoader(object):
 
         prod = base_features.dot(coeffs)
 
-        feature_mat = np.hstack((np.sin(prod), np.cos(prod)))
+        feature_mat = np.hstack((np.sin(prod), np.cos(prod), np.ones((img.width * img.height, 1))))
 
-        # TODO: compute HoG features
+        # TODO: compute edge features
 
         # package up feature matrix as feature dictionary
-
         feature_vectors = [np.array(x) for x in feature_mat.tolist()]
         feature_dict = dict(zip(pixel_ids, feature_vectors))
 
