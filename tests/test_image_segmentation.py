@@ -85,7 +85,6 @@ class TestImageSegmentation(unittest.TestCase):
         mn = MarkovNet()
         np.random.seed(1)
         num_pixels = height * width
-
         self.get_all_edges(width,height)
 
 
@@ -263,6 +262,66 @@ class TestImageSegmentation(unittest.TestCase):
 
 
                     #     def test_training_accuracy(self):
+
+    def test_fixed_points(self):
+        # # =====================================
+        # # first train by subgradient
+        # # =====================================
+        initial_weights = np.zeros(9 + 9)
+        learner = Learner(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        subgrad_weights = learner.learn(initial_weights)
+
+        learner.reset()
+        learner = EM(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        EM_weights = learner.learn(subgrad_weights)
+        assert (np.allclose(EM_weights, subgrad_weights)), "Model learned by subgrad is different from EM"
+
+        learner.reset()
+        learner = PairedDual(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        paired_weights = learner.learn(subgrad_weights)
+        assert (np.allclose(paired_weights, subgrad_weights)), "Model learned by subgrad is different from paired dual"
+
+        # =====================================
+        # first train by EM
+        # =====================================
+        learner.reset()
+        learner = EM(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        EM_weights = learner.learn(initial_weights)
+
+        learner.reset()
+        learner = Learner(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        subgrad_weights = learner.learn(EM_weights)
+        assert (np.allclose(EM_weights, subgrad_weights)), "Model learned by EM is different from subgrad"
+
+        learner.reset()
+        learner = PairedDual( MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        paired_weights = learner.learn(EM_weights)
+        assert (np.allclose(EM_weights, paired_weights)), "Model learned by EM is different from paired dual"
+        # =====================================
+        # first train by paired dual
+        # =====================================
+        learner.reset()
+        learner = PairedDual(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        paired_weights = learner.learn(initial_weights)
+
+        learner.reset()
+        learner = EM(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        EM_weights = learner.learn(paired_weights)
+        assert (np.allclose(EM_weights, paired_weights)), "Model learned by paired dual is different from EM"
+
+        learner.reset()
+        learner = Learner(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        subgrad_weights = learner.learn(paired_weights)
+        assert (np.allclose(subgrad_weights, paired_weights)), "Model learned by paired dual is different from subgrad"
 
 
 if __name__ == '__main__':
