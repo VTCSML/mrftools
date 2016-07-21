@@ -44,7 +44,6 @@ class MatrixBeliefPropagator(Inference):
 
         self.belief_mat = self.belief_mat - log_z
 
-
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
 
@@ -64,7 +63,6 @@ class MatrixBeliefPropagator(Inference):
         beliefs -= log_partitions
 
         self.pair_belief_tensor = beliefs
-
 
     def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
@@ -132,7 +130,6 @@ class MatrixBeliefPropagator(Inference):
             self.pair_beliefs[(var, neighbor)] = belief
 
             self.pair_beliefs[(neighbor, var)] = belief.T
-
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""

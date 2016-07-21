@@ -27,8 +27,8 @@ class TestBeliefPropagator(unittest.TestCase):
 
         mn.set_edge_factor((0, 1), np.random.randn(k[0], k[1]))
         mn.set_edge_factor((1, 2), np.random.randn(k[1], k[2]))
-        mn.set_edge_factor((3, 2), np.random.randn(k[3], k[2]))
-        mn.set_edge_factor((1, 4), np.random.randn(k[1], k[4]))
+        mn.set_edge_factor((2, 3), np.random.randn(k[2], k[3]))
+        mn.set_edge_factor((3, 4), np.random.randn(k[3], k[4]))
 
         return mn
 
