@@ -56,9 +56,7 @@ class MatrixBeliefPropagator(Inference):
 
         beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
 
-        max_val = beliefs.max(axis = (0, 1), keepdims=True)
-
-        log_partitions = np.log(np.sum(np.exp(beliefs - max_val), axis = (0, 1), keepdims=True)) + max_val
+        log_partitions = logsumexp(beliefs, (0, 1))
 
         beliefs -= log_partitions
 
@@ -181,8 +179,8 @@ def logsumexp(matrix, dim = None):
     if matrix.size <= 1:
         return matrix
 
-    max_val = np.nan_to_num(matrix.max())
-    with np.errstate(divide='ignore'):
+    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+    with np.errstate(divide='ignore', under='ignore'):
         return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 def main():

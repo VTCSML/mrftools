@@ -174,3 +174,17 @@ class TestBeliefPropagator(unittest.TestCase):
         beliefs1 = bp.var_beliefs[0]
 
         assert not np.allclose(beliefs0, beliefs1), "Conditioning var 2 did not change beliefs of var 0"
+
+    def test_overflow(self):
+        mn = self.create_chain_model()
+
+        # set a really large factor
+        mn.set_unary_factor(0, [1000, 2000, 3000, 4000])
+
+        mn.create_matrices()
+
+        bp = MatrixBeliefPropagator(mn)
+
+        with np.errstate(all='raise'):
+            bp.infer()
+            bp.load_beliefs()

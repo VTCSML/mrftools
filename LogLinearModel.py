@@ -57,6 +57,20 @@ class LogLinearModel(MarkovNet):
 
         self.feature_mat[:, :] = feature_mat
 
+    def set_weights(self, weight_vector):
+        num_vars = len(self.variables)
+
+        feature_size = self.max_features * self.max_states
+        feature_weights = weight_vector[:feature_size].reshape((self.max_features, self.max_states))
+
+        pairwise_weights = weight_vector[feature_size:].reshape((self.max_edge_features, self.max_states ** 2))
+
+        self.set_weight_matrix(feature_weights)
+        self.set_edge_weight_matrix(pairwise_weights)
+
+        self.update_unary_matrix()
+        self.update_edge_tensor()
+
     def set_weight_matrix(self, weight_mat):
         assert (np.array_equal(self.weight_mat.shape, weight_mat.shape))
         self.weight_mat[:, :] = weight_mat

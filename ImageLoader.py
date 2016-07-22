@@ -17,7 +17,7 @@ class ImageLoader(object):
     def load_image(self, path):
         img = Image.open(path)
         if self.max_width > 0 and self.max_height > 0:
-            img = img.resize((self.max_width, self.max_height), resample=PIL.Image.NEAREST)
+            img = img.resize((self.max_width, self.max_height), resample=PIL.Image.BICUBIC)
         return img
 
     def load_label_img(self, image_name):
