@@ -19,8 +19,11 @@ class TestImageLoader(unittest.TestCase):
             full_name = os.path.join('./train', filename)
             img = Image.open(full_name)
             features = models[i].unary_features
+            edge_features = models[i].edge_features
+            edges = ImageLoader.get_all_edges(img)
             assert np.allclose(len(labels[i]), img.width * img.height), "the size of labels is right"
             assert np.allclose(len(features), img.width * img.height), "the size of features is right"
+            assert np.allclose(len(edge_features) / 2, len(edges)), "the size of edge features is right"
 
     def test_unary_only(self):
         num_features = 65
