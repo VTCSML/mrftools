@@ -164,7 +164,7 @@ class TestImageSegmentation(unittest.TestCase):
         old_obj = np.Inf
         for i in range(l):
             new_obj = learner.subgrad_obj(learner.weight_record[i, :])
-            assert (new_obj <= old_obj), "subgradient objective does not decrease"
+            assert (new_obj <= old_obj + 1e-8), "subgradient objective did not decrease" + repr((new_obj, old_obj))
             old_obj = new_obj
 
     def test_EM_obj(self):

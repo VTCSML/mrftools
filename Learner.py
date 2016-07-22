@@ -31,7 +31,8 @@ class Learner(object):
         self.l2_regularization = l2
         
     def add_data(self, labels, model):
-        """Add data example to training set. The states variable should be a dictionary containing all the states of the unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
+        """Add data example to training set. The states variable should be a dictionary containing all the states of the
+         unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
 
         self.models.append(model)
         self.belief_propagators.append(self.inference_type(model))
@@ -85,10 +86,8 @@ class Learner(object):
 
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
-            res = minimize(self.subgrad_obj, new_weights, args=['subgradient'], method='L-BFGS-B', jac=self.subgrad_grad,
-                           callback=self.callback_f)
+            res = minimize(self.subgrad_obj, new_weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=self.callback_f)
             new_weights = res.x
-            # print check_grad(self.subgrad_obj, self.subgrad_grad, new_weights, 'subgradient')
 
         return new_weights
 
@@ -107,13 +106,13 @@ class Learner(object):
             self.weight_record = np.vstack((self.weight_record,a))
             self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
-    def set_weights(self, weight_vector, models):
+    def set_weights(self, weight_vector, belief_propagators):
         """Set weights of Markov net from vector using the order in self.potentials."""
-        for model in models:
-            model.set_weights(weight_vector)
+        for bp in belief_propagators:
+            bp.mn.set_weights(weight_vector)
 
     def calculate_tau(self, weights, belief_propagators, should_infer=True):
-        self.set_weights(weights, self.models_q)
+        self.set_weights(weights, belief_propagators)
         if should_infer:
             self.do_inference(belief_propagators)
 
@@ -121,6 +120,7 @@ class Learner(object):
 
     def objective(self, weights, options=None):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+        self.set_weights(weights, self.belief_propagators_q)
 
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / self.num_examples
         term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / self.num_examples
@@ -135,7 +135,8 @@ class Learner(object):
         return objec
         
     def gradient(self, weights, options=None):
-        self.calculate_tau(weights, self.belief_propagators, False)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
+        self.set_weights(weights, self.belief_propagators_q)
 
         grad = np.zeros(len(weights))
       

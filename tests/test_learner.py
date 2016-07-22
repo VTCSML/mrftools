@@ -5,6 +5,8 @@ import numpy as np
 from LogLinearModel import LogLinearModel
 from EM import EM
 from PairedDual import PairedDual
+from scipy.optimize import check_grad, approx_fprime
+import matplotlib.pyplot as plt
 
 class TestLearner(unittest.TestCase):
 
@@ -14,22 +16,51 @@ class TestLearner(unittest.TestCase):
 
         np.random.seed(0)
 
-        data = [({0: 2, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)}),
-                ({1: 2, 2: 0}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
+        labels = [{0: 2,       2: 1},
+                  {      1: 2, 2: 0},
+                  {0: 2, 1: 3,     },
+                  {0: 0, 1: 2, 2: 3}]
 
         models = []
-        labels = []
-        for i in range(len(data)):
-            m = self.create_model(num_states, d)
+        for i in range(len(labels)):
+            m = self.create_random_model(num_states, d)
             models.append(m)
-            dic = data[i][0]
-            label_vec = dic
-            labels.append(label_vec)
-            # for keys,values in dic.items():
-            #     print values
 
         for model, states in zip(models, labels):
             learner.add_data(states, model)
+
+    def test_gradient(self):
+        weights = np.zeros(24)
+        learner = Learner(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        learner.set_regularization(0.0, 1.0)
+        gradient_error = check_grad(learner.subgrad_obj, learner.subgrad_grad, weights)
+
+        # numerical_grad = approx_fprime(weights, learner.subgrad_obj, 1e-4)
+        # analytical_grad = learner.subgrad_grad(weights)
+        # plt.plot(numerical_grad, 'r')
+        # plt.plot(analytical_grad, 'b')
+        # plt.show()
+
+        print("Gradient error: %f" % gradient_error)
+        assert gradient_error < 1e-1, "Gradient is wrong"
+
+    def test_m_step_gradient(self):
+        weights = np.zeros(24)
+        learner = EM(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        learner.set_regularization(0.0, 1.0)
+        learner.e_step(weights)
+        gradient_error = check_grad(learner.objective, learner.gradient, weights)
+
+        # numerical_grad = approx_fprime(weights, learner.objective, 1e-4)
+        # analytical_grad = learner.gradient(weights)
+        # plt.plot(numerical_grad, 'r')
+        # plt.plot(analytical_grad, 'b')
+        # plt.show()
+
+        print("Gradient error: %f" % gradient_error)
+        assert gradient_error < 1e-1, "Gradient is wrong"
 
     def test_learner(self):
         weights = np.zeros(24)
@@ -86,7 +117,7 @@ class TestLearner(unittest.TestCase):
             new_obj = learner.subgrad_obj(learner.weight_record[i, :])
             assert new_obj >= 0, "Paired dual objective was not non-negative"
 
-    def create_model(self,num_states,d):
+    def create_random_model(self, num_states, d):
         model = LogLinearModel()
 
         model.declare_variable(0, num_states)
@@ -106,5 +137,5 @@ class TestLearner(unittest.TestCase):
         model.set_edge_factor((0, 1), np.zeros((num_states, num_states)))
         model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
 
-        return  model
+        return model
 

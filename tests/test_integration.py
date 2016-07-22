@@ -9,11 +9,13 @@ import matplotlib.pyplot as plt
 class IntegrationTest(unittest.TestCase):
 
     def test_loading_and_learning(self):
-        loader = ImageLoader(32, 32)
+        loader = ImageLoader(16, 16)
 
         images, models, labels, names = loader.load_all_images_and_labels('./train', 2)
 
         learner = Learner(MatrixBeliefPropagator)
+
+        learner.set_regularization(0.0, 0.00001)
 
         for model, states in zip(models, labels):
             learner.add_data(states, model)
@@ -33,23 +35,27 @@ class IntegrationTest(unittest.TestCase):
 
         models[i].set_weights(new_weights)
         bp = MatrixBeliefPropagator(models[i])
-        bp.infer()
+        bp.infer(display='final')
         bp.load_beliefs()
 
         beliefs = np.zeros((images[i].height, images[i].width))
+        label_img = np.zeros((images[i].height, images[i].width))
         errors = 0
         baseline = 0
 
         for x in range(images[i].width):
             for y in range(images[i].height):
                 beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
+                label_img[y, x] = labels[i][(x, y)]
                 errors += np.abs(labels[i][(x, y)] - np.round(beliefs[y, x]))
                 baseline += labels[i][(x, y)]
 
         # # uncomment this to plot the beliefs
-        # plt.subplot(121)
+        # plt.subplot(131)
         # plt.imshow(images[i], interpolation="nearest")
-        # plt.subplot(122)
+        # plt.subplot(132)
+        # plt.imshow(label_img, interpolation="nearest")
+        # plt.subplot(133)
         # plt.imshow(beliefs, interpolation="nearest")
         # plt.show()
 
