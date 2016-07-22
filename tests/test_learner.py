@@ -116,7 +116,7 @@ class TestLearner(unittest.TestCase):
         assert (new_obj <= old_obj), "paired dual objective did not decrease"
 
         for i in range(l):
-            new_obj = learner.subgrad_obj(learner.weight_record[i, :])
+            new_obj = learner.subgrad_obj(weight_record[i, :])
             assert new_obj >= 0, "Paired dual objective was not non-negative"
 
     def create_random_model(self, num_states, d):

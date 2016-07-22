@@ -32,7 +32,8 @@ def ada_grad(func, grad, x, args, callback):
         x = x - 1.0 * g / (np.sqrt(grad_sum) + 0.001)
         change = np.sum(np.abs(x - old_x))
         t += 1
-        callback(x)
+        if callback:
+            callback(x)
     return x
 
 
