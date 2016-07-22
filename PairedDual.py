@@ -16,8 +16,8 @@ class PairedDual(Learner):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(bp_iter)
 
-    def learn(self, weights):
-        return ada_grad(self.subgrad_obj, self.subgrad_grad, weights, None, self.callback_f)
+    def learn(self, weights,callback_f):
+        return ada_grad(self.subgrad_obj, self.subgrad_grad, weights, None, callback_f)
 
     def dual_obj(self, weights):
         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)

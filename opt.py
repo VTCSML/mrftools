@@ -39,6 +39,21 @@ def ada_grad(func, grad, x, args, callback):
 import matplotlib.pyplot as plt
 import time
 
+class WeightRecord(object):
+    def __init__(self):
+        self.weight_record = np.array([])
+        self.time_record = np.array([])
+
+    def callback(self, x):
+        a = np.copy(x)
+        if (self.weight_record.size) == 0:
+            self.weight_record = a.reshape((1, a.size))
+            self.time_record = np.array([int(round(time.time() * 1000))])
+        else:
+            self.weight_record = np.vstack((self.weight_record,a))
+            self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
+
+
 class ObjectivePlotter(object):
 
     def __init__(self, func):

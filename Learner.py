@@ -80,13 +80,13 @@ class Learner(object):
         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
     
-    def learn(self, weights):
+    def learn(self, weights,callback_f):
         old_weights = np.inf
         new_weights = weights
 
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
-            res = minimize(self.subgrad_obj, new_weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=self.callback_f)
+            res = minimize(self.subgrad_obj, new_weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
             new_weights = res.x
 
         return new_weights
@@ -96,15 +96,6 @@ class Learner(object):
         self.time_record = np.array([])
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.initialize_messages()
-
-    def callback_f(self, w):
-        a = np.copy(w)
-        if (self.weight_record.size) == 0:
-            self.weight_record = a.reshape((1, a.size))
-            self.time_record = np.array([int(round(time.time() * 1000))])
-        else:
-            self.weight_record = np.vstack((self.weight_record,a))
-            self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
     def set_weights(self, weight_vector, belief_propagators):
         """Set weights of Markov net from vector using the order in self.potentials."""

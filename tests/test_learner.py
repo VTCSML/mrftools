@@ -7,6 +7,7 @@ from EM import EM
 from PairedDual import PairedDual
 from scipy.optimize import check_grad, approx_fprime
 import matplotlib.pyplot as plt
+from opt import WeightRecord
 
 class TestLearner(unittest.TestCase):
 
@@ -67,14 +68,14 @@ class TestLearner(unittest.TestCase):
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        weight_record = learner.weight_record
-        time_record = learner.time_record
-        l = weight_record.shape[0]
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights,wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
         old_obj = np.Inf
         for i in range(l):
-            new_obj = learner.subgrad_obj(learner.weight_record[i,:])
+            new_obj = learner.subgrad_obj(weight_record[i,:])
             assert (new_obj <= old_obj), "subgradient objective is not decreasing"
             old_obj = new_obj
 
@@ -85,17 +86,18 @@ class TestLearner(unittest.TestCase):
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        weight_record = learner.weight_record
-        time_record = learner.time_record
-        l = weight_record.shape[0]
-        t = learner.time_record[0]
-        old_obj = learner.subgrad_obj(learner.weight_record[0,:])
-        new_obj = learner.subgrad_obj(learner.weight_record[-1,:])
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
+
+        old_obj = learner.subgrad_obj(weight_record[0,:])
+        new_obj = learner.subgrad_obj(weight_record[-1,:])
         assert (new_obj <= old_obj), "EM objective did not decrease"
 
         for i in range(l):
-            new_obj = learner.subgrad_obj(learner.weight_record[i, :])
+            new_obj = learner.subgrad_obj(weight_record[i, :])
             assert new_obj >= 0, "EM objective was not non-negative"
 
     def test_paired_dual(self):
@@ -103,14 +105,14 @@ class TestLearner(unittest.TestCase):
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        weight_record = learner.weight_record
-        time_record = learner.time_record
-        l = weight_record.shape[0]
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights,wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
 
-        old_obj = learner.subgrad_obj(learner.weight_record[0,:])
-        new_obj = learner.subgrad_obj(learner.weight_record[-1,:])
+        old_obj = learner.subgrad_obj(weight_record[0,:])
+        new_obj = learner.subgrad_obj(weight_record[-1,:])
         assert (new_obj <= old_obj), "paired dual objective did not decrease"
 
         for i in range(l):
