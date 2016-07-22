@@ -150,7 +150,8 @@ class MatrixBeliefPropagator(Inference):
 
         summed_features = np.inner(np.exp(self.belief_mat), self.mn.feature_mat).T
 
-        summed_pair_features = np.sum(np.exp(self.pair_belief_tensor) * self.mn.edge_feature_mat, 2)
+        summed_pair_features = np.exp(self.pair_belief_tensor).reshape(
+            (self.mn.max_states**2, self.mn.num_edges)).dot(self.mn.edge_feature_mat.T).T
 
         marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
 

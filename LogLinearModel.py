@@ -18,8 +18,9 @@ class LogLinearModel(MarkovNet):
 
     def set_edge_factor(self, edge, potential):
         super(LogLinearModel, self).set_edge_factor(edge, potential)
-        # set default edge feature
-        self.set_edge_features(edge, np.array([1.0]))
+        if edge not in self.edge_features:
+            # set default edge feature
+            self.set_edge_features(edge, np.array([1.0]))
 
     def set_unary_weights(self, var, weights):
         """Set the log-linear weights for the unary features of var.

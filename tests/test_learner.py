@@ -31,7 +31,7 @@ class TestLearner(unittest.TestCase):
             learner.add_data(states, model)
 
     def test_gradient(self):
-        weights = np.zeros(24)
+        weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
         learner.set_regularization(0.0, 1.0)
@@ -47,7 +47,7 @@ class TestLearner(unittest.TestCase):
         assert gradient_error < 1e-1, "Gradient is wrong"
 
     def test_m_step_gradient(self):
-        weights = np.zeros(24)
+        weights = np.zeros(8 + 32)
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
         learner.set_regularization(0.0, 1.0)
@@ -64,7 +64,7 @@ class TestLearner(unittest.TestCase):
         assert gradient_error < 1e-1, "Gradient is wrong"
 
     def test_learner(self):
-        weights = np.zeros(24)
+        weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
@@ -76,13 +76,13 @@ class TestLearner(unittest.TestCase):
         old_obj = np.Inf
         for i in range(l):
             new_obj = learner.subgrad_obj(weight_record[i,:])
-            assert (new_obj <= old_obj), "subgradient objective is not decreasing"
+            assert (new_obj <= old_obj + 1e-8), "subgradient objective is not decreasing"
             old_obj = new_obj
 
             assert new_obj >= 0, "Learner objective was not non-negative"
 
     def test_EM(self):
-        weights = np.zeros(24)
+        weights = np.zeros(8 + 32)
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
@@ -101,7 +101,7 @@ class TestLearner(unittest.TestCase):
             assert new_obj >= 0, "EM objective was not non-negative"
 
     def test_paired_dual(self):
-        weights = np.zeros(24)
+        weights = np.zeros(8 + 32)
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
@@ -138,6 +138,9 @@ class TestLearner(unittest.TestCase):
 
         model.set_edge_factor((0, 1), np.zeros((num_states, num_states)))
         model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
+
+        model.set_edge_features((0, 1), np.random.randn(d))
+        model.set_edge_features((1, 2), np.random.randn(d))
 
         return model
 

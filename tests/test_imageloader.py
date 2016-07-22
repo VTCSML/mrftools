@@ -31,7 +31,7 @@ class TestImageLoader(unittest.TestCase):
 
         all_pixel, all_label = load_all_images_and_labels('./train', num_features)
 
-        initial_w = np.random.rand(num_features * num_states, 1)
+        initial_w = np.zeros(num_features * num_states)
         res = minimize(objective, initial_w, method="L-BFGS-B", args=(all_pixel, all_label, num_features, num_states),
                        jac=gradient)
         weights = res.x
@@ -51,7 +51,6 @@ def softmax(x):
     x_shifted = x - np.max(x, axis=1, keepdims=True)
     return np.exp(x_shifted) / np.sum(np.exp(x_shifted), 1, keepdims=True)
 
-
 def objective(weights, features, label_vec, num_features, num_states):
     probabilities = np.dot(features, weights.reshape((num_features, num_states)))
     probabilities = softmax(probabilities)
@@ -63,7 +62,6 @@ def objective(weights, features, label_vec, num_features, num_states):
 
     return -np.sum(label_mat * np.nan_to_num(np.log(probabilities))) + np.dot(weights.ravel(), weights.ravel())
     # return -np.sum(label_mat * np.nan_to_num(np.log(probabilities)))
-
 
 def gradient(weights, features, label_vec, num_features, num_states):
     probabilities = np.dot(features, weights.reshape((num_features, num_states)))
@@ -78,7 +76,6 @@ def gradient(weights, features, label_vec, num_features, num_states):
     # g = -features.T.dot(label_mat - probabilities).ravel()
     return g
 
-
 def accuracy(weights, features, label_vec,  num_features, num_states):
     total_error = 0
     probabilities = np.dot(features, weights.reshape((num_features, num_states)))
@@ -92,14 +89,12 @@ def accuracy(weights, features, label_vec,  num_features, num_states):
 
     return accuracy
 
-
-####################
 def load_all_images_and_labels(path, num_features):
     loader = ImageLoader()
     all_pixel = np.random.randn(0,num_features)
     all_label = []
 
-# files = [x for x in os.listdir('./train') if x.endswith(".jpg") or x.endswith('.png')]
+    # files = [x for x in os.listdir('./train') if x.endswith(".jpg") or x.endswith('.png')]
     files = [x for x in os.listdir(path) if x.endswith(".jpg") or x.endswith('.png')]
     for i, filename in enumerate(files):
         full_name = os.path.join(path, filename)
@@ -108,10 +103,9 @@ def load_all_images_and_labels(path, num_features):
         height = img.size[1]
         width = img.size[0]
 
-        features = ImageLoader.compute_features(img)
+        features, edge_features = ImageLoader.compute_features(img)
         pixel = np.asarray(list(features.values()))
         all_pixel = np.concatenate((all_pixel, pixel), axis=0)
-
 
         label_dict = loader.load_label_dict(full_name)
         label_vec = np.asarray(list(label_dict.values()))

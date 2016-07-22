@@ -20,12 +20,16 @@ class IntegrationTest(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
-        weights = np.zeros(65 * 2 + 4)
+        d_unary = 65
+        num_states = 2
+        d_edge = 10
+
+        weights = np.zeros(d_unary * num_states + d_edge * num_states**2)
 
         new_weights = learner.learn(weights)
 
-        unary_mat = new_weights[:65 * 2].reshape((65, 2))
-        pair_mat = new_weights[65*2:].reshape((2, 2))
+        unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
+        pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states**2))
         print("Unary weights:\n" + repr(unary_mat))
         print("Pairwise weights:\n" + repr(pair_mat))
 

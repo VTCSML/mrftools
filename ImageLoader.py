@@ -74,7 +74,7 @@ class ImageLoader(object):
 
             labels.append(label_vec)
 
-            if i % 10 == 0:
+            if i % 10 == 0 or i == len(files)-1:
                 elapsed = time.time() - start
                 eta = np.true_divide(elapsed, i + 1) * (len(files) - i - 1)
                 print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i, len(files), elapsed, eta))
