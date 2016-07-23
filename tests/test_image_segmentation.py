@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from MarkovNet import MarkovNet
 from LogLinearModel import LogLinearModel
 import itertools
+from opt import WeightRecord
 
 
 class TestImageSegmentation(unittest.TestCase):
@@ -155,15 +156,15 @@ class TestImageSegmentation(unittest.TestCase):
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        weight_record = learner.weight_record
-        time_record = learner.time_record
-        l = weight_record.shape[0]
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
 
         old_obj = np.Inf
         for i in range(l):
-            new_obj = learner.subgrad_obj(learner.weight_record[i, :])
+            new_obj = learner.subgrad_obj(weight_record[i, :])
             assert (new_obj <= old_obj + 1e-8), "subgradient objective did not decrease" + repr((new_obj, old_obj))
             old_obj = new_obj
 
@@ -172,13 +173,13 @@ class TestImageSegmentation(unittest.TestCase):
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        weight_record = learner.weight_record
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        weight_record = wr_obj.weight_record
         time_record = learner.time_record
-        l = weight_record.shape[0]
-        t = learner.time_record[0]
-        old_obj = learner.subgrad_obj(learner.weight_record[0, :])
-        new_obj = learner.subgrad_obj(learner.weight_record[-1, :])
+        l = (weight_record.shape)[0]
+        old_obj = learner.subgrad_obj(weight_record[0, :])
+        new_obj = learner.subgrad_obj(weight_record[-1, :])
         assert (new_obj <= old_obj), "EM objective did not decrease"
 
     def test_paired_dual_obj(self):
@@ -186,14 +187,14 @@ class TestImageSegmentation(unittest.TestCase):
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        weight_record = learner.weight_record
-        time_record = learner.time_record
-        l = weight_record.shape[0]
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
 
-        old_obj = learner.dual_obj(learner.weight_record[0, :])
-        new_obj = learner.dual_obj(learner.weight_record[-1, :])
+        old_obj = learner.dual_obj(weight_record[0, :])
+        new_obj = learner.dual_obj(weight_record[-1, :])
         assert (new_obj <= old_obj), "paired dual objective did not decrease"
 
     def test_subgradient_training_accuracy(self):
@@ -201,10 +202,11 @@ class TestImageSegmentation(unittest.TestCase):
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        subgrad_weight_record = learner.weight_record
-        time_record = learner.time_record
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        subgrad_weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        t = wr_obj.time_record[0]
         subgrad_time = np.true_divide(np.array(time_record) - t, 1000)
 
         subgrad_accuracy_ave_train = self.get_ave_accuracy(len(subgrad_time), subgrad_weight_record)
@@ -221,10 +223,11 @@ class TestImageSegmentation(unittest.TestCase):
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        em_weight_record = learner.weight_record
-        time_record = learner.time_record
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        em_weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        t = time_record[0]
         em_time = np.true_divide(np.array(time_record) - t, 1000)
 
         em_accuracy_ave_train = self.get_ave_accuracy(len(em_time), em_weight_record)
@@ -241,10 +244,11 @@ class TestImageSegmentation(unittest.TestCase):
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
-        learner.learn(weights)
-        em_weight_record = learner.weight_record
-        time_record = learner.time_record
-        t = learner.time_record[0]
+        wr_obj = WeightRecord()
+        learner.learn(weights, wr_obj.callback)
+        em_weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        t = time_record[0]
         em_time = np.true_divide(np.array(time_record) - t, 1000)
 
         paired_dual_accuracy_ave_train = self.get_ave_accuracy(len(em_time), em_weight_record)
@@ -263,18 +267,18 @@ class TestImageSegmentation(unittest.TestCase):
         initial_weights = np.zeros(9 + 9)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        subgrad_weights = learner.learn(initial_weights)
+        subgrad_weights = learner.learn(initial_weights, None)
 
         learner.reset()
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        em_weights = learner.learn(subgrad_weights)
+        em_weights = learner.learn(subgrad_weights, None)
         assert (np.allclose(em_weights, subgrad_weights)), "Model learned by subgrad is different from EM"
 
         learner.reset()
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        paired_weights = learner.learn(subgrad_weights)
+        paired_weights = learner.learn(subgrad_weights, None)
         assert (np.allclose(paired_weights, subgrad_weights)), "Model learned by subgrad is different from paired dual"
 
         # =====================================
@@ -283,18 +287,18 @@ class TestImageSegmentation(unittest.TestCase):
         learner.reset()
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        em_weights = learner.learn(initial_weights)
+        em_weights = learner.learn(initial_weights, None)
 
         learner.reset()
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        subgrad_weights = learner.learn(em_weights)
+        subgrad_weights = learner.learn(em_weights, None)
         assert (np.allclose(em_weights, subgrad_weights)), "Model learned by EM is different from subgrad"
 
         learner.reset()
         learner = PairedDual( MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        paired_weights = learner.learn(em_weights)
+        paired_weights = learner.learn(em_weights, None)
         assert (np.allclose(em_weights, paired_weights)), "Model learned by EM is different from paired dual"
         # =====================================
         # first train by paired dual
@@ -302,12 +306,12 @@ class TestImageSegmentation(unittest.TestCase):
         learner.reset()
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        paired_weights = learner.learn(initial_weights)
+        paired_weights = learner.learn(initial_weights, None)
 
         learner.reset()
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        em_weights = learner.learn(paired_weights)
+        em_weights = learner.learn(paired_weights, None)
         assert (np.allclose(em_weights, paired_weights)), "Model learned by paired dual is different from EM"
 
         learner.reset()
