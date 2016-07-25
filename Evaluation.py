@@ -11,54 +11,67 @@ class Evaluation(object):
         self.max_width = max_width
         self.max_height = max_height
 
-    def evaluation_images(self, directory, weights, num_states):
-
+    def evaluation_images(self, directory, weights, num_states, num_images, max_iter= 300, inc='false', plot = 'true'):
+        np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
-        images, models, labels, names = loader.load_all_images_and_labels(directory, num_states)
+        images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
 
         average_errors = 0
+        total_inconsistency = 0
 
         for i in range(len(images)):
-            models[i].set_weights(weights)
-            bp = MatrixBeliefPropagator(models[i])
-            bp.infer(display='final')
-            bp.load_beliefs()
+            if i < num_images:
+                models[i].set_weights(weights)
+                bp = MatrixBeliefPropagator(models[i])
+                bp.set_max_iter(max_iter)
+                bp.infer(display='final')
+                bp.load_beliefs()
 
-            beliefs = np.zeros((images[i].height, images[i].width))
-            label_img = np.zeros((images[i].height, images[i].width))
-            errors = 0
-            baseline = 0
+                beliefs = np.zeros((images[i].height, images[i].width))
+                label_img = np.zeros((images[i].height, images[i].width))
+                errors = 0
+                baseline = 0
 
-            for x in range(images[i].width):
-                for y in range(images[i].height):
-                    beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
-                    label_img[y, x] = labels[i][(x, y)]
-                    errors += np.abs(labels[i][(x, y)] - np.round(beliefs[y, x]))
-                    baseline += labels[i][(x, y)]
+                for x in range(images[i].width):
+                    for y in range(images[i].height):
+                        beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
+                        label_img[y, x] = labels[i][(x, y)]
+                        errors += np.abs(labels[i][(x, y)] - np.round(beliefs[y, x]))
+                        baseline += labels[i][(x, y)]
 
-            error_rate = np.true_divide(errors, images[i].width * images[i].height)
-            baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
+                error_rate = np.true_divide(errors, images[i].width * images[i].height)
+                baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
-            # uncomment this to plot the beliefs
-            plt.subplot(131)
-            plt.imshow(images[i], interpolation="nearest")
-            plt.subplot(132)
-            plt.imshow(label_img, interpolation="nearest")
-            plt.subplot(133)
-            plt.imshow(beliefs, interpolation="nearest")
-            plt.show()
+                if plot == 'true':
+                    self.draw_results(images[i], label_img, beliefs)
 
-            print("Results for the %dth image:" % (i + 1))
-            print("Error rate: %f" % error_rate)
-            print("Baseline from guessing all background: %f" % baseline_rate)
-            assert errors < baseline, "Learned model did no better than guessing all background."
+                print("Results for the %dth image:" % (i + 1))
+                print("Error rate: %f" % error_rate)
+                print("Baseline from guessing all background: %f" % baseline_rate)
+                assert errors < baseline, "Learned model did no better than guessing all background."
+                if inc == "true":
+                    inconsistency = bp._compute_inconsistency_vector()
+                    total_inconsistency += inconsistency
+                    print("inconsistency of %s: %f" % (names[i], np.sum(inconsistency)))
 
-            average_errors += error_rate
+                average_errors += error_rate
 
-        average_errors = np.true_divide(average_errors, i + 1)
+            average_errors = np.true_divide(average_errors, i + 1)
+        if inc == "true":
+            print("Overall inconsistency: %f" % np.sum(total_inconsistency))
+
 
         return average_errors
+
+    def draw_results(self, image, label, beliefs):
+        plt.subplot(131)
+        plt.imshow(image, interpolation="nearest")
+        plt.subplot(132)
+        plt.imshow(label, interpolation="nearest")
+        plt.subplot(133)
+        plt.imshow(beliefs, interpolation="nearest")
+        plt.show()
 
 
 def main():
@@ -66,7 +79,7 @@ def main():
 
     loader = ImageLoader(16, 16)
 
-    images, models, labels, names = loader.load_all_images_and_labels('./tests/train', 2)
+    images, models, labels, names = loader.load_all_images_and_labels('./tests/train', 2, 2)
 
     learner = Learner(MatrixBeliefPropagator)
 
@@ -84,7 +97,7 @@ def main():
     new_weights = learner.learn(weights)
 
     Eval = Evaluation(16, 16)
-    average_errors = Eval.evaluation_images('./tests/test', new_weights, 2)
+    average_errors = Eval.evaluation_images('./tests/test', new_weights, 2, 2)
     print ("Average Error rate: %f" % average_errors)
 
 

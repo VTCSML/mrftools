@@ -55,7 +55,7 @@ class ImageLoader(object):
         plt.xlabel("Labels")
         plt.show()
 
-    def load_all_images_and_labels(self, directory, num_states):
+    def load_all_images_and_labels(self, directory, num_states, num_images):
         images = []
         models = []
         labels = []
@@ -63,21 +63,22 @@ class ImageLoader(object):
         files = [x for x in os.listdir(directory) if x.endswith(".jpg") or x.endswith('.png')]
         start = time.time()
         for i, filename in enumerate(files):
-            full_name = os.path.join(directory, filename)
-            img = self.load_image(full_name)
-            model = ImageLoader.create_model(img, num_states)
-            label_vec = self.load_label_dict(full_name)
+            if i < num_images:
+                full_name = os.path.join(directory, filename)
+                img = self.load_image(full_name)
+                model = ImageLoader.create_model(img, num_states)
+                label_vec = self.load_label_dict(full_name)
 
-            names.append(filename)
-            images.append(img)
-            models.append(model)
+                names.append(filename)
+                images.append(img)
+                models.append(model)
 
-            labels.append(label_vec)
+                labels.append(label_vec)
 
-            if i % 10 == 0 or i == len(files)-1:
-                elapsed = time.time() - start
-                eta = np.true_divide(elapsed, i + 1) * (len(files) - i - 1)
-                print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i, len(files), elapsed, eta))
+                if i % 10 == 0 or i == num_images-1:
+                    elapsed = time.time() - start
+                    eta = np.true_divide(elapsed, i + 1) * (len(files) - i - 1)
+                    print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i+1, num_images, elapsed, eta))
 
         return images, models, labels, names
 

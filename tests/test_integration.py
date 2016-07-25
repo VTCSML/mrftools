@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 class IntegrationTest(unittest.TestCase):
 
     def test_loading_and_learning(self):
-        loader = ImageLoader(16, 16)
+        loader = ImageLoader(20, 20)
 
-        images, models, labels, names = loader.load_all_images_and_labels('./train', 2)
+        images, models, labels, names = loader.load_all_images_and_labels('./train', 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 
