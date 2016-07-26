@@ -13,7 +13,7 @@ class TestImageLoader(unittest.TestCase):
     def test_load_draw(self):
 
         loader = ImageLoader()
-        images, models, labels, names = loader.load_all_images_and_labels('./train', 2, 2)
+        images, models, labels, names = loader.load_all_images_and_labels('./train', 2)
         files = [x for x in os.listdir('./train') if x.endswith(".jpg") or x.endswith('.png')]
         for i, filename in enumerate(files):
             full_name = os.path.join('./train', filename)

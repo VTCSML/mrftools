@@ -50,9 +50,9 @@ class Evaluator(object):
                 print("Error rate: %f" % error_rate)
                 print("Baseline from guessing all background: %f" % baseline_rate)
                 if inc == "true":
-                    inconsistency = bp._compute_inconsistency_vector()
+                    inconsistency = bp.compute_inconsistency()
                     total_inconsistency += inconsistency
-                    print("inconsistency of %s: %f" % (names[i], np.sum(inconsistency)))
+                    print("inconsistency of %s: %f" % (names[i], inconsistency))
 
                 average_errors += error_rate
 

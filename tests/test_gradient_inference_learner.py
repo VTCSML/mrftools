@@ -54,21 +54,18 @@ class TestGradientInferenceLearner(unittest.TestCase):
 
         return model
 
-    def test_gradient(self):
-        weights_messages = 0.05 * np.random.randn(8 + 32 + 64)
+    def test_message_convergence(self):
+        weights = 0.05 * np.random.randn(8 + 32)
         learner = GradientInferenceLearner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
         learner.set_regularization(0.0, 1.0)
-        gradient_error = check_grad(learner.dual_obj, learner.dual_grad, weights_messages)
+        learner.learn(weights)
 
-        # numerical_grad = approx_fprime(weights_messages, learner.dual_obj, 1e-6)
-        # analytical_grad = learner.dual_grad(weights_messages)
-        # plt.plot(numerical_grad, 'r')
-        # plt.plot(analytical_grad, 'b')
-        # plt.show()
+        for bp in learner.belief_propagators:
+            bp.compute_beliefs()
+            bp.compute_pairwise_beliefs()
 
-        print("Gradient error: %f" % gradient_error)
-        assert gradient_error < 1e-1, "Gradient is wrong"
+            assert bp.compute_inconsistency() < 1e-2, "Belief propagator was not consistent"
 
 
     def test_gradient_learner(self):

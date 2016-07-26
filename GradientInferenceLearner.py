@@ -26,7 +26,7 @@ class GradientInferenceLearner(Learner):
             self.bp_list.append(bp)
             self.message_start.append(self.message_start[-1] + bp.message_mat.size)
 
-    def learn(self, weights, callback_f):
+    def learn(self, weights, callback_f=None):
         weights_messages = np.zeros(self.message_start[-1])
         weights_messages[:self.weight_dim] = weights
 

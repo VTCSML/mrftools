@@ -55,12 +55,13 @@ class ImageLoader(object):
         plt.xlabel("Labels")
         plt.show()
 
-    def load_all_images_and_labels(self, directory, num_states, num_images):
+    def load_all_images_and_labels(self, directory, num_states, num_images=np.inf):
         images = []
         models = []
         labels = []
         names = []
         files = [x for x in os.listdir(directory) if x.endswith(".jpg") or x.endswith('.png')]
+        num_images = min(len(files), num_images)
         start = time.time()
         for i, filename in enumerate(files):
             if i < num_images:
