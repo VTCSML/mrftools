@@ -144,7 +144,6 @@ class MatrixBeliefPropagator(Inference):
         return energy
 
     def get_feature_expectations(self):
-        self.infer(display='off')
         self.compute_beliefs()
         self.compute_pairwise_beliefs()
 

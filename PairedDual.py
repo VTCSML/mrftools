@@ -16,10 +16,10 @@ class PairedDual(Learner):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(bp_iter)
 
-    def learn(self, weights,callback_f):
-        return ada_grad(self.subgrad_obj, self.subgrad_grad, weights, None, callback_f)
+    def learn(self, weights, callback_f):
+        return ada_grad(self.dual_obj, self.subgrad_grad, weights, None, callback_f)
 
-    def dual_obj(self, weights):
+    def dual_obj(self, weights, options=None):
         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
@@ -65,7 +65,7 @@ def main():
 
 #     from TemplatedLogLinearMLE import TemplatedLogLinearMLE
 
-    learner = PairedDual(model,MatrixBeliefPropagator)
+    learner = PairedDual(model, MatrixBeliefPropagator)
     
     data = [({0: 2, 1: -100, 2: 1}, {0: np.random.randn(d), 1: np.random.randn(d), 2: np.random.randn(d)})]
 

@@ -8,11 +8,10 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator
 
 
 class Learner(object):
-    def __init__(self,inference_type):
+    def __init__(self, inference_type):
         self.tau_q = []
         self.tau_p = []
         self.models_q = []
-        self.bpIter = 1
         self.weight_record = np.array([])
         self.time_record = np.array([])
         self.inference_type = inference_type
@@ -23,7 +22,7 @@ class Learner(object):
         self.belief_propagators = []
         self.l1_regularization = 0.00
         self.l2_regularization = 1
-
+        self.weight_dim = None
 
     def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -33,9 +32,15 @@ class Learner(object):
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
-
         self.models.append(model)
         self.belief_propagators.append(self.inference_type(model))
+
+        if self.weight_dim == None:
+            self.weight_dim = model.max_states * model.max_features + model.max_edge_features * model.max_states**2
+        else:
+            assert self.weight_dim == model.max_states * model.max_features + \
+                                      model.max_edge_features * model.max_states**2,\
+                "Parameter dimensionality did not match"
 
         model_q = copy.deepcopy(model)
         self.models_q.append(model_q)
