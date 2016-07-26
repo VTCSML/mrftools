@@ -5,13 +5,13 @@ from ImageLoader import ImageLoader
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 
 
-class Evaluation(object):
+class Evaluator(object):
 
     def __init__(self, max_width=0, max_height=0):
         self.max_width = max_width
         self.max_height = max_height
 
-    def evaluation_images(self, directory, weights, num_states, num_images, max_iter= 300, inc='false', plot = 'true'):
+    def evaluate_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
@@ -23,7 +23,7 @@ class Evaluation(object):
         for i in range(len(images)):
             if i < num_images:
                 models[i].set_weights(weights)
-                bp = MatrixBeliefPropagator(models[i])
+                bp = inference_type(models[i])
                 bp.set_max_iter(max_iter)
                 bp.infer(display='final')
                 bp.load_beliefs()
@@ -49,7 +49,6 @@ class Evaluation(object):
                 print("Results for the %dth image:" % (i + 1))
                 print("Error rate: %f" % error_rate)
                 print("Baseline from guessing all background: %f" % baseline_rate)
-                assert errors < baseline, "Learned model did no better than guessing all background."
                 if inc == "true":
                     inconsistency = bp._compute_inconsistency_vector()
                     total_inconsistency += inconsistency
@@ -96,7 +95,7 @@ def main():
 
     new_weights = learner.learn(weights)
 
-    Eval = Evaluation(16, 16)
+    Eval = Evaluator(16, 16)
     average_errors = Eval.evaluation_images('./tests/test', new_weights, 2, 2)
     print ("Average Error rate: %f" % average_errors)
 
