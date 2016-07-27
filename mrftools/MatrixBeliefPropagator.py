@@ -24,6 +24,8 @@ class MatrixBeliefPropagator(Inference):
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.max_iter = 300
+        self.fully_conditioned = False
+        self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
     def set_max_iter(self, max_iter):
         self.max_iter = max_iter
@@ -35,32 +37,40 @@ class MatrixBeliefPropagator(Inference):
         i = self.mn.var_index[var]
         self.conditioning_mat[:, i] = -np.inf
         self.conditioning_mat[state, i] = 0
+        self.conditioned[i] = True
+
+        if np.all(self.conditioned):
+            # compute beliefs and set flag to never recompute them
+            self.compute_beliefs()
+            self.compute_pairwise_beliefs()
+            self.fully_conditioned = True
 
     def compute_beliefs(self):
 #         print self.conditioning_mat
         """Compute unary beliefs based on current messages."""
-        self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
-        log_z = logsumexp(self.belief_mat, 0)
+        if not self.fully_conditioned:
+            self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
+            log_z = logsumexp(self.belief_mat, 0)
 
-        self.belief_mat = self.belief_mat - log_z
+            self.belief_mat = self.belief_mat - log_z
 
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
+        if not self.fully_conditioned:
+            adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+                                    - np.hstack((self.message_mat[:, self.mn.num_edges:],
+                                                               self.message_mat[:, :self.mn.num_edges]))
 
-        adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
-                                - np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                           self.message_mat[:, :self.mn.num_edges]))
+            to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape((self.mn.max_states, 1, self.mn.num_edges))
+            from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape((1, self.mn.max_states, self.mn.num_edges))
 
-        to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape((self.mn.max_states, 1, self.mn.num_edges))
-        from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape((1, self.mn.max_states, self.mn.num_edges))
+            beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
 
-        beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
+            log_partitions = logsumexp(beliefs, (0, 1))
 
-        log_partitions = logsumexp(beliefs, (0, 1))
+            beliefs -= log_partitions
 
-        beliefs -= log_partitions
-
-        self.pair_belief_tensor = beliefs
+            self.pair_belief_tensor = beliefs
 
     def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
@@ -80,14 +90,12 @@ class MatrixBeliefPropagator(Inference):
         return change
 
     def _compute_inconsistency_vector(self):
-
         expanded_beliefs = np.exp(self.mn.message_to_index.dot(self.belief_mat.T).T)
 
         pairwise_beliefs = np.hstack((np.sum(np.exp(self.pair_belief_tensor), axis = 0),
                                       np.sum(np.exp(self.pair_belief_tensor), axis = 1)))
 
         return expanded_beliefs - pairwise_beliefs
-
 
     def compute_inconsistency(self):
         """Return the total disagreement between each unary belief and its pairwise beliefs."""
@@ -131,8 +139,11 @@ class MatrixBeliefPropagator(Inference):
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
-        entropy = - np.sum(np.nan_to_num(self.pair_belief_tensor) * np.exp(self.pair_belief_tensor)) \
-                  - np.sum((1 - self.mn.degrees) * (np.nan_to_num(self.belief_mat) * np.exp(self.belief_mat)))
+        if self.fully_conditioned:
+            entropy = 0
+        else:
+            entropy = - np.sum(np.nan_to_num(self.pair_belief_tensor) * np.exp(self.pair_belief_tensor)) \
+                      - np.sum((1 - self.mn.degrees) * (np.nan_to_num(self.belief_mat) * np.exp(self.belief_mat)))
 
         return entropy
 
@@ -147,10 +158,10 @@ class MatrixBeliefPropagator(Inference):
         self.compute_beliefs()
         self.compute_pairwise_beliefs()
 
-        summed_features = np.inner(np.exp(self.belief_mat), self.mn.feature_mat).T
+        summed_features = self.mn.feature_mat.dot(np.exp(self.belief_mat).T)
 
-        summed_pair_features = np.exp(self.pair_belief_tensor).reshape(
-            (self.mn.max_states**2, self.mn.num_edges)).dot(self.mn.edge_feature_mat.T).T
+        summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(
+            (self.mn.max_states**2, self.mn.num_edges)).T)
 
         marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
 

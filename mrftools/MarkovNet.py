@@ -7,7 +7,7 @@ class MarkovNet(object):
 
     def __init__(self):
         """Initialize a Markov net."""
-        self.edgePotentials = dict()
+        self.edge_potentials = dict()
         self.unary_potentials = dict()
         self.neighbors = dict()
         self.variables = set()
@@ -33,19 +33,19 @@ class MarkovNet(object):
         assert np.shape(potential) == (len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]])), "potential size %d, %d incompatible with unary sizes %d, %d" % (np.shape(potential)[0], np.shape(potential)[1], len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]]))
 
         if edge[0] < edge[1]:
-            self.edgePotentials[edge] = potential
+            self.edge_potentials[edge] = potential
         else:
-            self.edgePotentials[(edge[1], edge[0])] = potential.T
+            self.edge_potentials[(edge[1], edge[0])] = potential.T
 
         self.neighbors[edge[0]].add(edge[1])
         self.neighbors[edge[1]].add(edge[0])
 
     def get_potential(self, pair):
         """Return the potential between pair[0] and pair[1]. If (pair[1], pair[0]) is in our dictionary instead, return the transposed potential."""
-        if pair in self.edgePotentials:
-            return self.edgePotentials[pair]
+        if pair in self.edge_potentials:
+            return self.edge_potentials[pair]
         else:
-            return self.edgePotentials[(pair[1], pair[0])].T
+            return self.edge_potentials[(pair[1], pair[0])].T
 
     def get_neighbors(self, variable):
         """Return the neighbors of variable."""

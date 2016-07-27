@@ -2,6 +2,7 @@
 
 from MarkovNet import MarkovNet
 import numpy as np
+from scipy.sparse import csr_matrix
 
 
 class LogLinearModel(MarkovNet):
@@ -81,10 +82,10 @@ class LogLinearModel(MarkovNet):
         self.edge_weight_mat[:, :] = edge_weight_mat
 
     def update_unary_matrix(self):
-        self.set_unary_mat(self.weight_mat.T.dot(self.feature_mat))
+        self.set_unary_mat(self.feature_mat.T.dot(self.weight_mat).T)
 
     def update_edge_tensor(self):
-        half_edge_tensor = self.edge_weight_mat.T.dot(self.edge_feature_mat).reshape(
+        half_edge_tensor = self.edge_feature_mat.T.dot(self.edge_weight_mat).T.reshape(
             (self.max_states, self.max_states, self.num_edges))
         self.edge_pot_tensor[:,:,:] = np.concatenate((half_edge_tensor, half_edge_tensor), axis=2)
 
@@ -108,3 +109,57 @@ class LogLinearModel(MarkovNet):
 
         for i, edge in enumerate(self.edges):
             self.edge_feature_mat[:, i] = self.edge_features[edge]
+
+    def create_indicator_model(self, markov_net):
+        n = len(markov_net.variables)
+
+        # set unary variables
+        for i, var in enumerate(markov_net.variables):
+            self.declare_variable(var, num_states=markov_net.num_states[var])
+            self.set_unary_factor(var, markov_net.unary_potentials[var])
+            indicator_features = np.zeros(n)
+            indicator_features[i] = 1.0
+            self.set_unary_features(var, indicator_features)
+
+        # count edges
+        num_edges = 0
+        for var in markov_net.variables:
+            for neighbor in markov_net.get_neighbors(var):
+                num_edges += 1
+
+        # create edge indicator features
+        i = 0
+        for var in markov_net.variables:
+            for neighbor in markov_net.get_neighbors(var):
+                edge = (var, neighbor)
+                self.set_edge_factor(edge, markov_net.get_potential(edge))
+                indicator_features = np.zeros(num_edges)
+                indicator_features[i] = 1.0
+                self.set_edge_features(edge, indicator_features)
+                i += 1
+
+        self.create_matrices()
+
+        self.feature_mat = csr_matrix(self.feature_mat)
+        self.edge_feature_mat = csr_matrix(self.edge_feature_mat)
+
+        for (var, i) in self.var_index.items():
+            self.weight_mat[i, :] = -np.inf
+            potential = self.unary_potentials[var]
+            self.weight_mat[i, :len(potential)] = potential
+
+        for i, edge in enumerate(self.edges):
+            padded_potential = -np.inf * np.ones((self.max_states, self.max_states))
+            potential = self.get_potential(edge)
+            padded_potential[:self.num_states[edge[0]], :self.num_states[edge[1]]] = potential
+            self.edge_weight_mat[i, :] = padded_potential.ravel()
+
+    def load_factors_from_matrices(self):
+        self.update_unary_matrix()
+        self.update_edge_tensor()
+
+        for (var, i) in self.var_index.items():
+            self.set_unary_factor(var, self.unary_mat[:self.num_states[var], i].ravel())
+
+        for i, edge in enumerate(self.edges):
+            self.set_edge_factor(edge, self.edge_pot_tensor[:self.num_states[edge[0]], :self.num_states[edge[1]], i])

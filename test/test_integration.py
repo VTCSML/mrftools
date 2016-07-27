@@ -1,6 +1,7 @@
 from mrftools import *
 import numpy as np
 import unittest
+import os
 import matplotlib.pyplot as plt
 
 
@@ -9,7 +10,7 @@ class TestIntegration(unittest.TestCase):
     def test_loading_and_learning(self):
         loader = ImageLoader(20, 20)
 
-        images, models, labels, names = loader.load_all_images_and_labels('./test/train', 2, 3)
+        images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train'), 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 

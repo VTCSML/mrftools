@@ -89,7 +89,7 @@ class TreeReweightedBeliefPropagator(BeliefPropagator):
 
     def _random_tree(self):
 
-        all_edges = [x for x in self.mn.edgePotentials.iterkeys()]
+        all_edges = [x for x in self.mn.edge_potentials.iterkeys()]
         shuffle(all_edges)
 
         group = dict()
@@ -113,7 +113,7 @@ class TreeReweightedBeliefPropagator(BeliefPropagator):
     def sample_tree_probabilities(self, coverage):
 
         counts = dict()
-        for edge in self.mn.edgePotentials:
+        for edge in self.mn.edge_potentials:
             counts[edge] = 0
 
         total = 0

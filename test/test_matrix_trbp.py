@@ -94,7 +94,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
 
         edge_probabilities = dict()
 
-        for edge in mn.edgePotentials:
+        for edge in mn.edge_potentials:
             edge_probabilities[edge] = 1 # BP
 
         trbp = MatrixTRBeliefPropagator(mn, edge_probabilities)
@@ -151,7 +151,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
 
             edge_probabilities = dict()
 
-            for edge in mn.edgePotentials:
+            for edge in mn.edge_potentials:
                 edge_probabilities[edge] = 0.5
 
             interior_prob = 0.5

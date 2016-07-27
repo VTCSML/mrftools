@@ -121,3 +121,37 @@ class TestLogLinearModel(unittest.TestCase):
 
         assert np.allclose(unconditional_marginals, conditional_marginals), \
             "Conditioning on var 0 changed marginal of var 4, when the features should have made them independent"
+
+    def test_indicator_form(self):
+        mn = MarkovNet()
+
+        num_states = [3, 2, 4, 5]
+
+        for i in range(len(num_states)):
+            mn.set_unary_factor(i, np.random.randn(num_states[i]))
+
+        edges = [(0, 1), (0, 2), (2, 3), (1, 3)]
+
+        for edge in edges:
+            mn.set_edge_factor(edge, np.random.randn(num_states[edge[0]], num_states[edge[1]]))
+
+        model = LogLinearModel()
+        model.create_indicator_model(mn)
+
+        bp = BeliefPropagator(mn)
+        bp.infer(display='final')
+        bp.compute_beliefs()
+        bp.compute_pairwise_beliefs()
+
+        bp_ind = MatrixBeliefPropagator(model)
+        bp_ind.infer(display='final')
+        bp_ind.load_beliefs()
+
+        for i in range(len(num_states)):
+            assert np.allclose(bp_ind.var_beliefs[i], bp.var_beliefs[i]), "unary beliefs disagree"
+
+        for edge in edges:
+            assert np.allclose(np.sum(np.exp(bp_ind.pair_beliefs[edge])), 1.0), "Pair beliefs don't normalize to 1"
+            assert np.allclose(bp_ind.pair_beliefs[edge], bp.pair_beliefs[edge]), "edge beliefs disagree: \n" +\
+                "indicator:\n" + repr(bp_ind.pair_beliefs[edge]) + "\noriginal:\n" + repr(bp.pair_beliefs[edge])
+

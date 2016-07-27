@@ -26,7 +26,7 @@ class TestTreeBeliefPropagator(unittest.TestCase):
 
         edge_probabilities = dict()
 
-        for edge in mn.edgePotentials:
+        for edge in mn.edge_potentials:
             edge_probabilities[edge] = 1  # BP
 
         return mn, edge_probabilities
@@ -127,7 +127,7 @@ class TestTreeBeliefPropagator(unittest.TestCase):
 
             edge_probabilities = dict()
 
-            for edge in mn.edgePotentials:
+            for edge in mn.edge_potentials:
                 edge_probabilities[edge] = 0.5
 
             interior_prob = 0.5
