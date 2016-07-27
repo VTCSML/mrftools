@@ -1,5 +1,5 @@
 import unittest
-from MarkovNet import MarkovNet
+from mrftools import *
 import numpy as np
 
 

@@ -1,8 +1,7 @@
-import numpy as np
-from MarkovNet import MarkovNet
-from BeliefPropagator import BeliefPropagator
-
 import unittest
+
+import numpy as np
+from mrftools import *
 
 
 class TestBeliefPropagator(unittest.TestCase):
@@ -47,8 +46,6 @@ class TestBeliefPropagator(unittest.TestCase):
         bp.infer(display='full')
 
         bp.compute_pairwise_beliefs()
-
-        from BruteForce import BruteForce
 
         bf = BruteForce(mn)
 

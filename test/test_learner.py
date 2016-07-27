@@ -1,13 +1,9 @@
 import unittest
-from MatrixBeliefPropagator import MatrixBeliefPropagator
-from Learner import Learner
 import numpy as np
-from LogLinearModel import LogLinearModel
-from EM import EM
-from PairedDual import PairedDual
 from scipy.optimize import check_grad, approx_fprime
 import matplotlib.pyplot as plt
-from opt import WeightRecord
+from mrftools import *
+
 
 class TestLearner(unittest.TestCase):
 

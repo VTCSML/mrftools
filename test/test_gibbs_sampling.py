@@ -1,6 +1,5 @@
 from __future__ import division
-from MarkovNet import MarkovNet
-from GibbsSampling import Gibbs
+from mrftools import *
 import numpy as np
 
 import unittest
@@ -30,8 +29,6 @@ class TestGibbsSampling(unittest.TestCase):
         itr = 1000
         num = 10000
         gb.gibbs_sampling(itr, num)
-
-        from BruteForce import BruteForce
 
         bf = BruteForce(mn)
         for var in mn.variables:

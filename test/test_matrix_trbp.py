@@ -1,13 +1,9 @@
 import unittest
-
-from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
-from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
-from MarkovNet import MarkovNet
-from BruteForce import BruteForce
-
+from mrftools import *
 import numpy as np
 
-class TestTreeBeliefPropagator(unittest.TestCase):
+
+class TestMatrixTreeBeliefPropagator(unittest.TestCase):
     def create_chain_model(self):
         """Test basic functionality of BeliefPropagator."""
         mn = MarkovNet()
@@ -107,8 +103,6 @@ class TestTreeBeliefPropagator(unittest.TestCase):
         trbp.load_beliefs()
 
         trbp.compute_pairwise_beliefs()
-
-        from BruteForce import BruteForce
 
         bf = BruteForce(mn)
 

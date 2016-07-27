@@ -1,12 +1,9 @@
 import numpy as np
-from MarkovNet import MarkovNet
-from BeliefPropagator import BeliefPropagator
-from MatrixBeliefPropagator import MatrixBeliefPropagator
-
+from mrftools import *
 import unittest
 
 
-class TestBeliefPropagator(unittest.TestCase):
+class TestMatrixBeliefPropagator(unittest.TestCase):
 
     def create_chain_model(self):
         """Test basic functionality of BeliefPropagator."""
@@ -50,8 +47,6 @@ class TestBeliefPropagator(unittest.TestCase):
         bp.infer(display='full')
 
         bp.load_beliefs()
-
-        from BruteForce import BruteForce
 
         bf = BruteForce(mn)
 

@@ -1,11 +1,7 @@
 import unittest
-
-from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
-from BeliefPropagator import BeliefPropagator
-from MarkovNet import MarkovNet
-from BruteForce import BruteForce
-
+from mrftools import *
 import numpy as np
+
 
 class TestTreeBeliefPropagator(unittest.TestCase):
     def set_up_tree_model(self):
@@ -78,8 +74,6 @@ class TestTreeBeliefPropagator(unittest.TestCase):
         bp.infer()
 
         trbp.compute_pairwise_beliefs()
-
-        from BruteForce import BruteForce
 
         bf = BruteForce(mn)
 

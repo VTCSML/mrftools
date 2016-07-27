@@ -1,9 +1,6 @@
 import unittest
-from MarkovNet import MarkovNet
 import numpy as np
-from LogLinearModel import LogLinearModel
-from MatrixBeliefPropagator import MatrixBeliefPropagator
-
+from mrftools import *
 
 class TestLogLinearModel(unittest.TestCase):
 

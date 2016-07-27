@@ -1,17 +1,15 @@
-from ImageLoader import ImageLoader
-from Learner import Learner
+from mrftools import *
 import numpy as np
-from MatrixBeliefPropagator import MatrixBeliefPropagator
-
 import unittest
 import matplotlib.pyplot as plt
 
-class IntegrationTest(unittest.TestCase):
+
+class TestIntegration(unittest.TestCase):
 
     def test_loading_and_learning(self):
         loader = ImageLoader(20, 20)
 
-        images, models, labels, names = loader.load_all_images_and_labels('./train', 2, 3)
+        images, models, labels, names = loader.load_all_images_and_labels('./test/train', 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 

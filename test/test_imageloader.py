@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import PIL
 import os
-from ImageLoader import ImageLoader
+from mrftools import *
 from scipy.optimize import minimize, check_grad
 
 
@@ -13,10 +13,10 @@ class TestImageLoader(unittest.TestCase):
     def test_load_draw(self):
 
         loader = ImageLoader()
-        images, models, labels, names = loader.load_all_images_and_labels('./train', 2)
-        files = [x for x in os.listdir('./train') if x.endswith(".jpg") or x.endswith('.png')]
+        images, models, labels, names = loader.load_all_images_and_labels('./test/train', 2)
+        files = [x for x in os.listdir('./test/train') if x.endswith(".jpg") or x.endswith('.png')]
         for i, filename in enumerate(files):
-            full_name = os.path.join('./train', filename)
+            full_name = os.path.join('./test/train', filename)
             img = Image.open(full_name)
             features = models[i].unary_features
             edge_features = models[i].edge_features
@@ -29,7 +29,7 @@ class TestImageLoader(unittest.TestCase):
         num_features = 65
         num_states = 2
 
-        all_pixel, all_label = load_all_images_and_labels('./train', num_features)
+        all_pixel, all_label = load_all_images_and_labels('./test/train', num_features)
 
         initial_w = np.zeros(num_features * num_states)
         res = minimize(objective, initial_w, method="L-BFGS-B", args=(all_pixel, all_label, num_features, num_states),
@@ -40,7 +40,7 @@ class TestImageLoader(unittest.TestCase):
         print ("accuracy on training set: %f" % (accuracy_training))
         assert (accuracy_training >= 0.9), "Unary classification accuracy on training data is less than 0.9"
 
-        all_pixel, all_label = load_all_images_and_labels('./test', num_features)
+        all_pixel, all_label = load_all_images_and_labels('./test/test', num_features)
         accuracy_testing = accuracy(weights, all_pixel, all_label, num_features, num_states)
         print ("accuracy on testing set: %f" % (accuracy_testing))
         assert (accuracy_testing >= 0.7), "Unary classification accuracy on testing data is less than 0.7"

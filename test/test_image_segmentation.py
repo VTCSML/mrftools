@@ -1,19 +1,8 @@
-'''
-Created on Jul 14, 2016
-
-@author: elahehraisi
-'''
 import unittest
-from MatrixBeliefPropagator import MatrixBeliefPropagator
-from Learner import Learner
-from EM import EM
-from PairedDual import PairedDual
+from mrftools import *
 import numpy as np
 import matplotlib.pyplot as plt
-from MarkovNet import MarkovNet
-from LogLinearModel import LogLinearModel
 import itertools
-from opt import WeightRecord
 
 
 class TestImageSegmentation(unittest.TestCase):
