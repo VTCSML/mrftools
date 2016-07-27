@@ -108,34 +108,3 @@ class LogLinearModel(MarkovNet):
 
         for i, edge in enumerate(self.edges):
             self.edge_feature_mat[:, i] = self.edge_features[edge]
-
-def main():
-    """Test function for MarkovNet."""
-    model = LogLinearModel()
-
-    model.declare_variable(0, 4)
-    model.declare_variable(1, 3)
-    model.declare_variable(2, 5)
-
-    model.set_unary_weights(0, np.random.randn(4, 3))
-    model.set_unary_weights(1, np.random.randn(3, 3))
-    model.set_unary_weights(2, np.random.randn(5, 3))
-
-    model.set_unary_features(0, np.random.randn(3))
-    model.set_unary_features(1, np.random.randn(3))
-    model.set_unary_features(2, np.random.randn(3))
-
-    model.set_all_unary_factors()
-
-    model.set_edge_factor((0, 1), np.random.randn(4, 3))
-    model.set_edge_factor((1, 2), np.random.randn(3, 5))
-
-    print("Neighbors of 0: " + repr(model.get_neighbors(0)))
-    print("Neighbors of 1: " + repr(model.get_neighbors(1)))
-    print("Neighbors of 2: " + repr(model.get_neighbors(2)))
-
-    print(model.evaluate_state([0, 0, 0]))
-
-
-if __name__ == '__main__':
-    main()

@@ -33,7 +33,9 @@ class GradientInferenceLearner(Learner):
         for index, bp in enumerate(self.bp_list):
             weights_messages[self.message_start[index]:self.message_start[index+1]] = bp.message_mat.ravel()
 
-        return ada_grad(self.dual_obj, self.dual_grad, weights_messages, None, callback_f)
+        new_weights_messages = ada_grad(self.dual_obj, self.dual_grad, weights_messages, None, callback_f)
+
+        return new_weights_messages[:self.weight_dim]
 
     def dual_obj(self, weights_messages, options=None):
         weights = weights_messages[:self.weight_dim]

@@ -13,5 +13,5 @@ from LogLinearModel import LogLinearModel
 from MatrixCache import MatrixCache
 from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
-
+from GradientInferenceLearner import GradientInferenceLearner
 

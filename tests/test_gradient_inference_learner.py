@@ -9,6 +9,7 @@ from scipy.optimize import check_grad, approx_fprime
 import matplotlib.pyplot as plt
 from opt import WeightRecord
 from GradientInferenceLearner import GradientInferenceLearner
+from opt import ObjectivePlotter
 
 class TestGradientInferenceLearner(unittest.TestCase):
 
@@ -67,6 +68,25 @@ class TestGradientInferenceLearner(unittest.TestCase):
 
             assert bp.compute_inconsistency() < 1e-2, "Belief propagator was not consistent"
 
+    def test_agreement_with_paired_dual(self):
+        weights = np.zeros(8 + 32)
+        learner = GradientInferenceLearner(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+        learner.set_regularization(0.0, 1.0)
+        # plotter = ObjectivePlotter(learner.dual_obj)
+        # plotter.interval = 0.1
+        grad_weights = learner.learn(weights) #, plotter.callback)
+
+        pd_learner = PairedDual(MatrixBeliefPropagator)
+        self.set_up_learner(pd_learner)
+        learner.set_regularization(0.0, 1.0)
+        pd_weights = pd_learner.learn(weights)
+
+        # plt.plot(pd_weights, 'r')
+        # plt.plot(grad_weights, 'b')
+        # plt.show()
+
+        assert np.sum((pd_weights - grad_weights)**2) / (np.sum(pd_weights**2 + grad_weights**2)) <= 1e-2
 
     def test_gradient_learner(self):
         weights = np.zeros(8 + 32)

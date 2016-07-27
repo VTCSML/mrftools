@@ -21,16 +21,16 @@ def ada_grad(func, grad, x, args, callback):
     t = 1
     tolerance = 1e-8
     max_iter = 500
-    change = np.inf
+    grad_norm = np.inf
 
     grad_sum = 0
-    while change > tolerance and t < max_iter:
+    while grad_norm > tolerance and t < max_iter:
         func(x, args)
         old_x = x
         g = grad(x, args)
         grad_sum += g * g
-        x = x - 1.0 * g / (np.sqrt(grad_sum) + 0.001)
-        change = np.sum(np.abs(x - old_x))
+        x = x - 0.1 * g / (np.sqrt(grad_sum) + 0.001)
+        grad_norm = np.sqrt(g.dot(g))
         t += 1
         if callback:
             callback(x)
@@ -73,18 +73,15 @@ class ObjectivePlotter(object):
 
             plt.clf()
 
-            plt.subplot(211)
+            plt.subplot(121)
 
             plt.plot(self.objectives)
+            plt.ylabel('Objective')
+            plt.xlabel('Iteration')
 
-            plt.subplot(223)
-            unary = plt.imshow(np.reshape(x[0:21 * 2], (21, 2)).T, interpolation='nearest', cmap=plt.get_cmap('gray'))
-            plt.colorbar(unary)
-
-            plt.subplot(224)
-            pair = plt.imshow(np.reshape(x[21 * 2:], (2, 2)), interpolation='nearest', cmap=plt.get_cmap('gray'))
-            plt.colorbar(pair)
-
+            plt.subplot(122)
+            plt.plot(x)
+            plt.title('Current solution')
 
             plt.pause(1e-16)
 

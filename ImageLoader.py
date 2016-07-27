@@ -200,18 +200,3 @@ class ImageLoader(object):
         edge_feature_dict = dict(zip(edge_ids, edge_feature_vectors))
 
         return feature_dict, edge_feature_dict
-
-def main():
-    """test loading"""
-
-    loader = ImageLoader()
-    images, models, labels, names = loader.load_all_images_and_labels('./tests/train', 2)
-
-    files = [x for x in os.listdir('./tests/train') if x.endswith(".jpg") or x.endswith('.png')]
-    for i, filename in enumerate(files):
-        full_name = os.path.join('./tests/train', filename)
-        loader.draw_image_and_label(full_name)
-
-if __name__ == '__main__':
-    main()
-

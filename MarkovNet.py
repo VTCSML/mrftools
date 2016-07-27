@@ -144,24 +144,3 @@ class MarkovNet(object):
                                       (2 * self.num_edges, len(self.variables)))
         self.message_from_index = csc_matrix((np.ones(len(from_rows)), (from_rows, from_cols)),
                                       (2 * self.num_edges, len(self.variables)))
-
-
-def main():
-    """Test function for MarkovNet."""
-    mn = MarkovNet()
-
-    mn.set_unary_factor(0, np.random.randn(4))
-    mn.set_unary_factor(1, np.random.randn(3))
-    mn.set_unary_factor(2, np.random.randn(5))
-
-    mn.set_edge_factor((0, 1), np.random.randn(4, 3))
-    mn.set_edge_factor((1, 2), np.random.randn(3, 5))
-
-    print("Neighbors of 0: " + repr(mn.get_neighbors(0)))
-    print("Neighbors of 1: " + repr(mn.get_neighbors(1)))
-    print("Neighbors of 2: " + repr(mn.get_neighbors(2)))
-
-    print(mn.evaluate_state([0, 0, 0]))
-
-if  __name__ =='__main__':
-    main()
