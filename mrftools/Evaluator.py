@@ -11,11 +11,12 @@ class Evaluator(object):
         self.max_width = max_width
         self.max_height = max_height
 
-    def evaluate_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true'):
+
+    def evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
-        images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
+        # images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
 
         average_errors = 0
         total_inconsistency = 0
@@ -60,6 +61,20 @@ class Evaluator(object):
         if inc == "true":
             print("Overall inconsistency: %f" % np.sum(total_inconsistency))
 
+
+        return average_errors
+
+
+
+
+    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true'):
+        np.set_printoptions(precision=10)
+        loader = ImageLoader(self.max_width, self.max_height)
+
+        images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
+
+        average_errors = self.evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type,
+                                 max_iter, inc, plot)
 
         return average_errors
 
