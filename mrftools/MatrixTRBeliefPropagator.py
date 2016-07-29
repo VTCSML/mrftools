@@ -9,6 +9,8 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
 
         if tree_probabilities:
             self._set_tree_probabilities(tree_probabilities)
+        else:
+            self._set_tree_probabilities(markov_net.tree_probabilities)
 
     def _set_tree_probabilities(self, tree_probabilities):
         self.tree_probabilities = np.zeros(2 * self.mn.num_edges)

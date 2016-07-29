@@ -48,6 +48,26 @@ class TestImageLoader(unittest.TestCase):
         print ("accuracy on testing set: %f" % (accuracy_testing))
         assert (accuracy_testing >= 0.7), "Unary classification accuracy on testing data is less than 0.7"
 
+    def test_tree_probabilities_calculate(self):
+        height = 3
+        width = 3
+        tree_prob =  ImageLoader.calculate_tree_probabilities_snake_shape(width, height)
+        assert (tree_prob[(0,0),(0,1)] == 0.75), "side edge probability does not equal to 0.75"
+        assert (tree_prob[(0, 1), (0, 0)] == 0.75), "side edge probability does not equal to 0.75"
+        assert (tree_prob[(1, 1), (1, 0)] == 0.5), "center edge probability does not equal to 0.5"
+
+        side_edge_count = 0
+        center_edge_count = 0
+        for keys in tree_prob:
+            if tree_prob[keys] == 0.75:
+                side_edge_count += 1
+            else:
+                center_edge_count += 1
+
+
+        assert (side_edge_count == 16), "number of side edges not correct: %d" % (side_edge_count)
+        assert (center_edge_count == 8), "number of center edges not correct"
+
 
 
 def softmax(x):

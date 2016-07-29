@@ -87,6 +87,10 @@ class ImageLoader(object):
     def create_model(img, num_states):
         model = LogLinearModel()
 
+        tree_prob = ImageLoader.calculate_tree_probabilities_snake_shape(img.width, img.height)
+
+        model.tree_probabilities = tree_prob
+
         feature_dict, edge_feature_dict = ImageLoader.compute_features(img)
 
         # create pixel variables
@@ -200,3 +204,26 @@ class ImageLoader(object):
         edge_feature_dict = dict(zip(edge_ids, edge_feature_vectors))
 
         return feature_dict, edge_feature_dict
+
+    @staticmethod
+    def calculate_tree_probabilities_snake_shape(width, height):
+        tree_prob = dict()
+        for x in range(width):
+            for y in range(height - 1):
+                if x == 0 or x == width - 1:
+                    tree_prob[((x, y), (x, y + 1))] = 0.75
+                    tree_prob[((x, y + 1), (x, y))] = 0.75
+                else:
+                    tree_prob[((x, y), (x, y + 1))] = 0.5
+                    tree_prob[((x, y + 1), (x, y))] = 0.5
+
+        for x in range(width - 1):
+            for y in range(height):
+                if y == 0 or y == height - 1:
+                    tree_prob[((x, y), (x + 1, y))] = 0.75
+                    tree_prob[((x + 1, y), (x, y))] = 0.75
+                else:
+                    tree_prob[((x, y), (x + 1, y))] = 0.5
+                    tree_prob[((x + 1, y), (x, y))] = 0.5
+
+        return tree_prob

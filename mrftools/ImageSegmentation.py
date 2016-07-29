@@ -2,6 +2,7 @@ import numpy as np
 from ImageLoader import ImageLoader
 from Learner import Learner
 from MatrixBeliefPropagator import MatrixBeliefPropagator
+from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from Evaluator import Evaluator
 import os
 
@@ -10,15 +11,17 @@ def main():
     d_unary = 65
     num_states = 2
     d_edge = 10
-    max_height = 5
-    max_width = 5
+    max_height = 30
+    max_width = 30
     num_training_images = 1
     num_testing_images = 0
     max_iter = 5
     inc = 'true'
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
+    plot = 'true'
 
-    inference_type = MatrixBeliefPropagator
+    # inference_type = MatrixBeliefPropagator
+    inference_type = MatrixTRBeliefPropagator
 
     loader = ImageLoader(max_height, max_width)
 
@@ -26,7 +29,7 @@ def main():
 
     learner = Learner(inference_type)
 
-    learner.set_regularization(0.0, 0.00001)
+    learner.set_regularization(0.0, 1.0)
 
     for model, states in zip(models, labels):
      learner.add_data(states, model)
@@ -48,12 +51,18 @@ def main():
     Eval = Evaluator(max_height, max_width)
     if num_training_images > 0:
         print("Training:")
-        train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc)
+        if inc == "true":
+            train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc, plot)
+        else:
+            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc, plot)
         print ("Average Train Error rate: %f" % train_errors)
 
     if num_testing_images > 0:
         print("Test:")
-        test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter)
+        if inc == "true":
+            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
+        else:
+            test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
         print ("Average Test Error rate: %f" % test_errors)
 
 

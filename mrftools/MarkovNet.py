@@ -13,6 +13,7 @@ class MarkovNet(object):
         self.variables = set()
         self.num_states = dict()
         self.matrix_mode = False
+        self.tree_probabilities = dict()
 
     def set_unary_factor(self, variable, potential):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
