@@ -46,7 +46,6 @@ class MatrixBeliefPropagator(Inference):
             self.fully_conditioned = True
 
     def compute_beliefs(self):
-#         print self.conditioning_mat
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
             self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
@@ -110,8 +109,8 @@ class MatrixBeliefPropagator(Inference):
         while change > tolerance and iteration < self.max_iter:
             change = self.update_messages()
             if display == "full":
-                disagreement = self.compute_inconsistency()
                 energy_func = self.compute_energy_functional()
+                disagreement = self.compute_inconsistency()
                 dual_obj = self.compute_dual_objective()
                 print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
             elif display == "iter":

@@ -28,9 +28,12 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
-        entropy = - np.sum(self.tree_probabilities[:self.mn.num_edges] *
-                           np.nan_to_num(self.pair_belief_tensor) * np.exp(self.pair_belief_tensor)) \
-                  - np.sum((1 - self.expected_degrees) * (np.nan_to_num(self.belief_mat) * np.exp(self.belief_mat)))
+        if self.fully_conditioned:
+            entropy = 0
+        else:
+            entropy = - np.sum(self.tree_probabilities[:self.mn.num_edges] *
+                               np.nan_to_num(self.pair_belief_tensor) * np.exp(self.pair_belief_tensor)) \
+                      - np.sum((1 - self.expected_degrees) * (np.nan_to_num(self.belief_mat) * np.exp(self.belief_mat)))
 
         return entropy
 
@@ -52,31 +55,27 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
         return change
 
     def compute_beliefs(self):
-        #         print self.conditioning_mat
         """Compute unary beliefs based on current messages."""
-        self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(
-            (self.message_mat * self.tree_probabilities).T).T
-        log_z = logsumexp(self.belief_mat, 0)
+        if not self.fully_conditioned:
+            self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(
+                (self.message_mat * self.tree_probabilities).T).T
+            log_z = logsumexp(self.belief_mat, 0)
 
-        self.belief_mat = self.belief_mat - log_z
+            self.belief_mat = self.belief_mat - log_z
 
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
+        if not self.fully_conditioned:
+            adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+                                    - np.hstack((self.message_mat[:, self.mn.num_edges:],
+                                                 self.message_mat[:, :self.mn.num_edges]))
 
-        adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
-                                - np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                             self.message_mat[:, :self.mn.num_edges]))
+            to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape((self.mn.max_states, 1, self.mn.num_edges))
+            from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape((1, self.mn.max_states, self.mn.num_edges))
 
-        to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape((self.mn.max_states, 1, self.mn.num_edges))
-        from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape((1, self.mn.max_states, self.mn.num_edges))
+            beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] / self.tree_probabilities[self.mn.num_edges:] \
+                      + to_messages + from_messages
 
-        beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] / self.tree_probabilities[self.mn.num_edges:] \
-                  + to_messages + from_messages
+            beliefs -= logsumexp(beliefs, (0, 1))
 
-        max_val = beliefs.max(axis=(0, 1), keepdims=True)
-
-        log_partitions = np.log(np.sum(np.exp(beliefs - max_val), axis=(0, 1), keepdims=True)) + max_val
-
-        beliefs -= log_partitions
-
-        self.pair_belief_tensor = beliefs
+            self.pair_belief_tensor = beliefs

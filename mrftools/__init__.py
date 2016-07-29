@@ -14,4 +14,5 @@ from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from GradientInferenceLearner import GradientInferenceLearner
 from opt import *
+from ConvexBeliefPropagator import ConvexBeliefPropagator
 
