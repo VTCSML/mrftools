@@ -162,5 +162,13 @@ class TestConvexBP(unittest.TestCase):
         # plt.plot(x, y)
         # plt.show()
 
+        assert np.allclose(y.min(), y[10]), "Minimum was not at converged messages"
+
+        deriv = y[1:] - y[:-1]
+        second_deriv = deriv[1:] - deriv[:-1]
+        print second_deriv
+        assert np.all(second_deriv >= 0), "Estimated second derivative was not non-negative"
+
+
 if __name__ == '__main__':
     unittest.main()
