@@ -123,7 +123,7 @@ class LogLinearModel(MarkovNet):
             indicator_features[i] = 1.0
             self.set_unary_features(var, indicator_features)
 
-        # count edge_index
+        # count edges
         num_edges = 0
         for var in markov_net.variables:
             for neighbor in markov_net.get_neighbors(var):

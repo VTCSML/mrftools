@@ -79,8 +79,8 @@ class TestImageLoader(unittest.TestCase):
                 center_edge_count += 1
 
 
-        assert (side_edge_count == 16), "number of side edge_index not correct: %d" % (side_edge_count)
-        assert (center_edge_count == 8), "number of center edge_index not correct"
+        assert (side_edge_count == 16), "number of side edges not correct: %d" % (side_edge_count)
+        assert (center_edge_count == 8), "number of center edges not correct"
 
     def test_model_matrix_structure(self):
         loader = ImageLoader(10, 10)

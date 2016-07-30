@@ -125,13 +125,13 @@ class ImageLoader(object):
     def get_all_edges(img):
         edges = []
 
-        # add horizontal edge_index
+        # add horizontal edges
         for x in range(img.width-1):
             for y in range(img.height):
                 edge = ((x, y), (x+1, y))
                 edges.append(edge)
 
-        # add vertical edge_index
+        # add vertical edges
         for x in range(img.width):
             for y in range(img.height-1):
                 edge = ((x, y), (x, y+1))
