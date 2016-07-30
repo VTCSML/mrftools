@@ -67,7 +67,8 @@ class TestIntegration(unittest.TestCase):
         assert errors < baseline, "Learned model did no better than guessing all background."
 
     def test_consistency(self):
-        loader = ImageLoader(1, 2)
+        loader = ImageLoader(1, 4)
+        np.random.seed(0)
 
         images, models, labels, names = loader.load_all_images_and_labels(
             os.path.join(os.path.dirname(__file__), 'train'), 2, 1)
@@ -80,29 +81,81 @@ class TestIntegration(unittest.TestCase):
         new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
 
         models[i].set_weights(new_weights)
-        bp = MatrixBeliefPropagator(models[i])
-        bp.infer(display='full')
-        bp.load_beliefs()
-
         models[i].load_factors_from_matrices()
 
-        bf = BruteForce(models[i])
-        unary_error = np.sum(np.abs(bf.unary_marginal((0, 0)) - np.exp(bp.var_beliefs[(0, 0)])))
-        print "Unary marginal error compared to brute force: %e" % unary_error
-        edge = models[i].edges[0]
-        edge_error = np.sum(np.abs(bf.pairwise_marginal(edge[0], edge[1]) - np.exp(bp.pair_beliefs[edge])))
-        print "Pair %s marginal error compared to brute force: %e" % (edge, edge_error)
-        assert unary_error < 1e-3, "Unary error was too large compared to brute force"
-        assert edge_error < 1e-3, "Pairwise error was too large compared to brute force"
+        for inference_type in [BeliefPropagator, MatrixBeliefPropagator]:
 
-        for var in bp.mn.variables:
-            unary_belief = np.exp(bp.var_beliefs[var])
-            assert np.allclose(np.sum(unary_belief), 1.0), "Unary belief not normalized"
-            for neighbor in bp.mn.get_neighbors(var):
-                pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                assert np.allclose(np.sum(pair_belief), 1.0), "Pair belief not normalized"
-                print pair_belief, unary_belief
-                assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
+            bp = inference_type(models[i])
+            bp.infer(display='full')
+            bp.load_beliefs()
+
+            bf = BruteForce(models[i])
+
+            # check unary marginal agreement with brute force
+            for var in sorted(bp.mn.variables):
+                unary_belief = np.exp(bp.var_beliefs[var])
+                assert np.allclose(np.sum(unary_belief), 1.0), "Unary belief not normalized"
+                unary_error = np.sum(np.abs(bf.unary_marginal(var) - unary_belief))
+                print "Unary marginal for %s. Error compared to brute force: %e" % (repr(var), unary_error)
+                assert unary_error < 1e-3, "Unary error was too large compared to brute force"
+
+            # check pairwise marginal agreement with brute force
+            for var in sorted(bp.mn.variables):
+                for neighbor in sorted(bp.mn.get_neighbors(var)):
+                    edge_error = np.sum(
+                        np.abs(bf.pairwise_marginal(var, neighbor) - np.exp(bp.pair_beliefs[(var, neighbor)])))
+                    print "Pair %s marginal error compared to brute force: %e" % (repr((var, neighbor)), edge_error)
+                    assert edge_error < 1e-3, "Pairwise error was too large compared to brute force"
+
+            # check consistency
+            for var in sorted(bp.mn.variables):
+                unary_belief = np.exp(bp.var_beliefs[var])
+
+                for neighbor in sorted(bp.mn.get_neighbors(var)):
+                    pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                    assert np.allclose(np.sum(pair_belief), 1.0), "Pair belief not normalized"
+
+                    print pair_belief, unary_belief
+                    assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
+
+            print "Finished and passed tests for " + repr(inference_type)
+
+    def test_belief_propagators(self):
+        loader = ImageLoader(4, 4)
+        np.random.seed(0)
+
+        images, models, labels, names = loader.load_all_images_and_labels(
+            os.path.join(os.path.dirname(__file__), 'train'), 2, 1)
+        i = 0
+
+        d_unary = 65
+        num_states = 2
+        d_edge = 10
+
+        new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
+
+        models[i].set_weights(new_weights)
+        models[i].load_factors_from_matrices()
+
+        bp = BeliefPropagator(models[i])
+        bp.load_beliefs()
+
+        mat_bp = MatrixBeliefPropagator(models[i])
+        mat_bp.load_beliefs()
+
+        for i in range(4):
+            for var in sorted(bp.mn.variables):
+                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
+                    "BP and matBP did not agree on unary beliefs after %d message updates" % i
+                for neighbor in sorted(bp.mn.get_neighbors(var)):
+                    edge = (var, neighbor)
+                    assert np.allclose(bp.pair_beliefs[edge], mat_bp.pair_beliefs[edge]), \
+                        "BP and matBP did not agree on pair beliefs after %d message updates" % i
+            bp.update_messages()
+            bp.load_beliefs()
+            mat_bp.update_messages()
+            mat_bp.load_beliefs()
+
 
 
 if __name__ == '__main__':

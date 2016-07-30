@@ -155,3 +155,18 @@ class TestLogLinearModel(unittest.TestCase):
             assert np.allclose(bp_ind.pair_beliefs[edge], bp.pair_beliefs[edge]), "edge beliefs disagree: \n" +\
                 "indicator:\n" + repr(bp_ind.pair_beliefs[edge]) + "\noriginal:\n" + repr(bp.pair_beliefs[edge])
 
+    def test_matrix_structure(self):
+        model = self.create_chain_model()
+
+        model.create_matrices()
+
+        for i, edge in enumerate(model.edges):
+            from_index = model.var_index[edge[0]]
+            to_index = model.var_index[edge[1]]
+            assert model.message_from_index[i, from_index] == 1, "Message sender matrix map is wrong"
+            assert model.message_to_index[i, to_index] == 1, "Message receiver matrix map is wrong"
+
+        assert np.all(np.sum(model.message_from_index.todense(), axis=1) == 1), \
+            "Message sender map has a row that doesn't sume to 1.0"
+        assert np.all(np.sum(model.message_to_index.todense(), axis=1) == 1), \
+            "Message sender map has a row that doesn't sum to 1.0"

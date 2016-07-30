@@ -11,7 +11,6 @@ from scipy.optimize import minimize, check_grad
 class TestImageLoader(unittest.TestCase):
 
     def test_load_draw(self):
-
         loader = ImageLoader()
 
         train_dir = os.path.join(os.path.dirname(__file__), 'train')
@@ -68,6 +67,33 @@ class TestImageLoader(unittest.TestCase):
         assert (side_edge_count == 16), "number of side edges not correct: %d" % (side_edge_count)
         assert (center_edge_count == 8), "number of center edges not correct"
 
+    def test_model_matrix_structure(self):
+        loader = ImageLoader(10, 10)
+
+        train_dir = os.path.join(os.path.dirname(__file__), 'train')
+
+        images, models, labels, names = loader.load_all_images_and_labels(train_dir, 2, 1)
+
+        model = models[0]
+
+        model.create_matrices()
+
+        for i, edge in enumerate(model.edges):
+            from_index = model.var_index[edge[0]]
+            to_index = model.var_index[edge[1]]
+            assert model.message_from_index[i, from_index] == 1, "Message sender matrix map is wrong"
+            assert model.message_to_index[i, to_index] == 1, "Message receiver matrix map is wrong"
+
+        assert np.all(np.sum(model.message_from_index.todense(), axis=1) == 1), \
+            "Message sender map has a row that doesn't sum to 1.0"
+        assert np.all(np.sum(model.message_to_index.todense(), axis=1) == 1), \
+            "Message sender map has a row that doesn't sum to 1.0"
+
+        assert np.allclose(model.edge_pot_tensor[:, :, :model.num_edges],
+                           model.edge_pot_tensor[:, :, model.num_edges:]), "Edge tensor structure is wrong"
+        assert np.allclose(model.edge_pot_tensor[:, :, :model.num_edges],
+                           model.edge_pot_tensor[:, :, model.num_edges:].transpose(1, 0, 2)), \
+            "Edge tensor is not symmetric"
 
 
 def softmax(x):

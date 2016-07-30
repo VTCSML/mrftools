@@ -203,3 +203,25 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
                 # print pair_belief, unary_belief
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
+
+    def test_belief_propagator_messages(self):
+        model = self.create_grid_model()
+
+        bp = BeliefPropagator(model)
+        bp.load_beliefs()
+
+        mat_bp = MatrixBeliefPropagator(model)
+        mat_bp.load_beliefs()
+
+        for i in range(4):
+            for var in sorted(bp.mn.variables):
+                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
+                    "BP and matBP did not agree on unary beliefs after %d message updates" % i
+                for neighbor in sorted(bp.mn.get_neighbors(var)):
+                    edge = (var, neighbor)
+                    assert np.allclose(bp.pair_beliefs[edge], mat_bp.pair_beliefs[edge]), \
+                        "BP and matBP did not agree on pair beliefs after %d message updates" % i
+            bp.update_messages()
+            bp.load_beliefs()
+            mat_bp.update_messages()
+            mat_bp.load_beliefs()

@@ -190,6 +190,11 @@ class BeliefPropagator(Inference):
             marginals.extend(table.reshape((-1, 1)).tolist())
         return np.array(marginals)
 
+    def load_beliefs(self):
+        self.compute_beliefs()
+        self.compute_pairwise_beliefs()
+
+
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
     max_val = matrix.max()
