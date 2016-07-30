@@ -23,9 +23,24 @@ class TestImageLoader(unittest.TestCase):
             features = models[i].unary_features
             edge_features = models[i].edge_features
             edges = ImageLoader.get_all_edges(img)
-            assert np.allclose(len(labels[i]), img.width * img.height), "the size of labels is right"
-            assert np.allclose(len(features), img.width * img.height), "the size of features is right"
-            assert np.allclose(len(edge_features) / 2, len(edges)), "the size of edge features is right"
+            assert len(labels[i]) == img.width * img.height, "the size of labels is wrong"
+            assert len(features) == img.width * img.height, "the size of features is wrong"
+            assert len(edge_features) / 2 == len(edges), "the size of edge features is wrong"
+
+            for x in range(img.width):
+                for y in range(img.height):
+                    var = (x, y)
+                    assert len(features[var]) == 65, "Unary features were the wrong size"
+
+            for x in range(img.width):
+                for y in range(img.height - 1):
+                    edge = ((x, y), (x, y + 1))
+                    assert len(models[i].edge_features[edge]) == 11, "Edge features were the wrong size"
+
+            for x in range(img.width - 1):
+                for y in range(img.height):
+                    edge = ((x, y), (x + 1, y))
+                    assert len(models[i].edge_features[edge]) == 11, "Edge features were the wrong size"
 
     def test_unary_only(self):
         num_features = 65
@@ -51,7 +66,7 @@ class TestImageLoader(unittest.TestCase):
         height = 3
         width = 3
         tree_prob =  ImageLoader.calculate_tree_probabilities_snake_shape(width, height)
-        assert (tree_prob[(0,0),(0,1)] == 0.75), "side edge probability does not equal to 0.75"
+        assert (tree_prob[(0, 0), (0, 1)] == 0.75), "side edge probability does not equal to 0.75"
         assert (tree_prob[(0, 1), (0, 0)] == 0.75), "side edge probability does not equal to 0.75"
         assert (tree_prob[(1, 1), (1, 0)] == 0.5), "center edge probability does not equal to 0.5"
 
@@ -64,8 +79,8 @@ class TestImageLoader(unittest.TestCase):
                 center_edge_count += 1
 
 
-        assert (side_edge_count == 16), "number of side edges not correct: %d" % (side_edge_count)
-        assert (center_edge_count == 8), "number of center edges not correct"
+        assert (side_edge_count == 16), "number of side edge_index not correct: %d" % (side_edge_count)
+        assert (center_edge_count == 8), "number of center edge_index not correct"
 
     def test_model_matrix_structure(self):
         loader = ImageLoader(10, 10)
@@ -78,7 +93,7 @@ class TestImageLoader(unittest.TestCase):
 
         model.create_matrices()
 
-        for i, edge in enumerate(model.edges):
+        for edge, i in model.edge_index.items():
             from_index = model.var_index[edge[0]]
             to_index = model.var_index[edge[1]]
             assert model.message_from_index[i, from_index] == 1, "Message sender matrix map is wrong"

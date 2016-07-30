@@ -16,7 +16,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
     def _set_counting_numbers(self, counting_numbers):
         self.edge_counting_numbers = np.zeros(2 * self.mn.num_edges)
 
-        for i, edge in enumerate(self.mn.edges):
+        for edge, i in self.mn.edge_index.items():
             reversed_edge = edge[::-1]
             if edge in counting_numbers:
                 self.edge_counting_numbers[i] = counting_numbers[edge]
@@ -34,7 +34,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
         self.unary_coefficients = self.unary_counting_numbers.copy()
 
-        for i, edge in enumerate(self.mn.edges):
+        for edge, i in self.mn.edge_index.items():
             self.unary_coefficients[edge[0]] += self.edge_counting_numbers[i]
             self.unary_coefficients[edge[1]] += self.edge_counting_numbers[i]
 
@@ -57,8 +57,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                                      self.message_mat[:, :self.mn.num_edges]))
         adjusted_message_prod /= self.edge_counting_numbers
-        adjusted_message_prod += \
-            self.mn.message_from_index.dot(np.nan_to_num(self.belief_mat.T)).T
+        adjusted_message_prod += self.mn.message_from_index.dot(self.belief_mat.T).T
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1)) * self.edge_counting_numbers
         messages = np.nan_to_num(messages - messages.max(0))

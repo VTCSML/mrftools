@@ -49,9 +49,8 @@ class MatrixBeliefPropagator(Inference):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
             self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
-            log_z = logsumexp(self.belief_mat, 0)
 
-            self.belief_mat = self.belief_mat - log_z
+            self.belief_mat -= logsumexp(self.belief_mat, 0)
 
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
@@ -65,9 +64,7 @@ class MatrixBeliefPropagator(Inference):
 
             beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
 
-            log_partitions = logsumexp(beliefs, (0, 1))
-
-            beliefs -= log_partitions
+            beliefs -= logsumexp(beliefs, (0, 1))
 
             self.pair_belief_tensor = beliefs
 
@@ -75,11 +72,11 @@ class MatrixBeliefPropagator(Inference):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
         self.compute_beliefs()
 
-        adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
-                                - np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                           self.message_mat[:, :self.mn.num_edges]))
+        adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
+                                                                     self.message_mat[:, :self.mn.num_edges]))
+        adjusted_message_prod += self.mn.message_from_index.dot(self.belief_mat.T).T
 
-        messages = np.squeeze(logsumexp(self.mn.edge_pot_tensor + adjusted_message_prod, 1))
+        messages = np.squeeze(logsumexp(adjusted_message_prod, 1))
         messages = np.nan_to_num(messages - messages.max(0))
 
         change = np.sum(np.abs(messages - self.message_mat))
@@ -126,8 +123,8 @@ class MatrixBeliefPropagator(Inference):
         for (var, i) in self.mn.var_index.items():
             self.var_beliefs[var] = self.belief_mat[:len(self.mn.unary_potentials[var]), i]
 
-        for i in range(self.mn.num_edges):
-            (var, neighbor) = self.mn.edges[i]
+        for edge, i in self.mn.edge_index.items():
+            (var, neighbor) = edge
 
             belief = self.pair_belief_tensor[:len(self.mn.unary_potentials[var]),
                      :len(self.mn.unary_potentials[neighbor]), i]

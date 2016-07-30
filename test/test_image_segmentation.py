@@ -55,13 +55,13 @@ class TestImageSegmentation(unittest.TestCase):
     def get_all_edges(self, width, height):
         edges = []
 
-        # add horizontal edges
+        # add horizontal edge_index
         for x in range(width - 1):
             for y in range(height):
                 edge = ((x, y), (x + 1, y))
                 edges.append(edge)
 
-        # add vertical edges
+        # add vertical edge_index
         for x in range(width):
             for y in range(height - 1):
                 edge = ((x, y), (x, y + 1))

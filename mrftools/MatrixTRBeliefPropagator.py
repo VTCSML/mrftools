@@ -15,7 +15,7 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
     def _set_tree_probabilities(self, tree_probabilities):
         self.tree_probabilities = np.zeros(2 * self.mn.num_edges)
 
-        for i, edge in enumerate(self.mn.edges):
+        for edge, i in self.mn.edge_index.items():
             reversed_edge = edge[::-1]
             if edge in tree_probabilities:
                 self.tree_probabilities[i] = tree_probabilities[edge]

@@ -107,7 +107,7 @@ class MarkovNet(object):
                     self.num_edges += 1
 
         self.edge_pot_tensor = -np.inf * np.ones((self.max_states, self.max_states, 2 * self.num_edges))
-        self.edges = []
+        self.edge_index = {}
 
         from_rows = []
         from_cols = []
@@ -137,7 +137,7 @@ class MarkovNet(object):
                     to_rows.append(i + self.num_edges)
                     to_cols.append(var_i)
 
-                    self.edges.append((var, neighbor))
+                    self.edge_index[(var, neighbor)] = i
 
                     i += 1
 

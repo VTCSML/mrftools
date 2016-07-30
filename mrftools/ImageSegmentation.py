@@ -10,7 +10,7 @@ def main():
 
     d_unary = 65
     num_states = 2
-    d_edge = 10
+    d_edge = 11
     max_height = 30
     max_width = 30
     num_training_images = 1

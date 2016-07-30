@@ -16,7 +16,7 @@ def main():
     learners = []
     d_unary = 65
     num_states = 2
-    d_edge = 10
+    d_edge = 11
     max_height = 10
     max_width = 10
     num_training_images = 2

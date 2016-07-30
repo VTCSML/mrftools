@@ -160,7 +160,7 @@ class TestLogLinearModel(unittest.TestCase):
 
         model.create_matrices()
 
-        for i, edge in enumerate(model.edges):
+        for edge, i in model.edge_index.items():
             from_index = model.var_index[edge[0]]
             to_index = model.var_index[edge[1]]
             assert model.message_from_index[i, from_index] == 1, "Message sender matrix map is wrong"

@@ -58,6 +58,23 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
 
         return mn
 
+    def create_grid_model_simple_edges(self):
+        mn = MarkovNet()
+
+        length = 16
+
+        k = 8
+
+        for x in range(length):
+            for y in range(length):
+                mn.set_unary_factor((x, y), np.random.random(k))
+
+        for x in range(length - 1):
+            for y in range(length):
+                mn.set_edge_factor(((x, y), (x + 1, y)), np.eye(k))
+                mn.set_edge_factor(((y, x), (y, x + 1)), np.eye(k))
+
+        return mn
 
     def test_exactness(self):
         mn = self.create_chain_model()
@@ -205,8 +222,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_belief_propagator_messages(self):
-        model = self.create_grid_model()
-
+        model = self.create_grid_model_simple_edges()
         bp = BeliefPropagator(model)
         bp.load_beliefs()
 
@@ -215,12 +231,29 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
 
         for i in range(4):
             for var in sorted(bp.mn.variables):
-                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
-                    "BP and matBP did not agree on unary beliefs after %d message updates" % i
                 for neighbor in sorted(bp.mn.get_neighbors(var)):
                     edge = (var, neighbor)
+                    bp_message = bp.messages[edge]
+
+                    if edge in mat_bp.mn.edge_index:
+                        edge_index = mat_bp.mn.edge_index[edge]
+                    else:
+                        edge_index = mat_bp.mn.edge_index[(edge[1], edge[0])]
+
+                    mat_bp_message = mat_bp.message_mat[:, edge_index].ravel()
+
+                    assert np.allclose(bp_message, mat_bp_message), \
+                        "BP and matBP did not agree on message for edge %s in iter %d" % (repr(edge), i) \
+                        + "\nBP: " + repr(bp_message) + "\nmatBP: " + repr(mat_bp_message)
+
+                    # print "Message %s is OK" % repr(edge)
+
                     assert np.allclose(bp.pair_beliefs[edge], mat_bp.pair_beliefs[edge]), \
                         "BP and matBP did not agree on pair beliefs after %d message updates" % i
+
+                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
+                    "BP and matBP did not agree on unary beliefs after %d message updates" % i
+
             bp.update_messages()
             bp.load_beliefs()
             mat_bp.update_messages()

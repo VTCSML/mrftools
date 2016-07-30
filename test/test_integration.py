@@ -21,7 +21,7 @@ class TestIntegration(unittest.TestCase):
 
         d_unary = 65
         num_states = 2
-        d_edge = 10
+        d_edge = 11
 
         weights = np.zeros(d_unary * num_states + d_edge * num_states**2)
 
@@ -76,7 +76,7 @@ class TestIntegration(unittest.TestCase):
 
         d_unary = 65
         num_states = 2
-        d_edge = 10
+        d_edge = 11
 
         new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
 
@@ -130,27 +130,43 @@ class TestIntegration(unittest.TestCase):
 
         d_unary = 65
         num_states = 2
-        d_edge = 10
+        d_edge = 11
 
         new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
 
         models[i].set_weights(new_weights)
         models[i].load_factors_from_matrices()
 
-        bp = BeliefPropagator(models[i])
+        model = models[i]
+
+        bp = BeliefPropagator(model)
         bp.load_beliefs()
 
-        mat_bp = MatrixBeliefPropagator(models[i])
+        mat_bp = MatrixBeliefPropagator(model)
         mat_bp.load_beliefs()
 
         for i in range(4):
             for var in sorted(bp.mn.variables):
-                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
-                    "BP and matBP did not agree on unary beliefs after %d message updates" % i
                 for neighbor in sorted(bp.mn.get_neighbors(var)):
                     edge = (var, neighbor)
+                    bp_message = bp.messages[edge]
+
+                    if edge in mat_bp.mn.edge_index:
+                        edge_index = mat_bp.mn.edge_index[edge]
+                    else:
+                        edge_index = mat_bp.mn.edge_index[(edge[1], edge[0])]
+
+                    mat_bp_message = mat_bp.message_mat[:, edge_index]
+
+                    assert np.allclose(bp_message, mat_bp_message), \
+                        "BP and matBP did not agree on message for edge %s in iter %d" % (repr(edge), i) \
+                        + "\nBP: " + repr(bp_message) + "\nmatBP: " + repr(mat_bp_message)
+
                     assert np.allclose(bp.pair_beliefs[edge], mat_bp.pair_beliefs[edge]), \
                         "BP and matBP did not agree on pair beliefs after %d message updates" % i
+                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
+                    "BP and matBP did not agree on unary beliefs after %d message updates" % i
+
             bp.update_messages()
             bp.load_beliefs()
             mat_bp.update_messages()

@@ -37,11 +37,9 @@ class Learner(object):
         self.belief_propagators.append(self.inference_type(model))
 
         if self.weight_dim == None:
-            self.weight_dim = model.max_states * model.max_features + model.max_edge_features * model.max_states**2
+            self.weight_dim = model.weight_dim
         else:
-            assert self.weight_dim == model.max_states * model.max_features + \
-                                      model.max_edge_features * model.max_states**2,\
-                "Parameter dimensionality did not match"
+            assert self.weight_dim == model.weight_dim, "Parameter dimensionality did not match"
 
         model_q = copy.deepcopy(model)
         self.models_q.append(model_q)

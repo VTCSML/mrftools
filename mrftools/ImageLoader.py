@@ -125,13 +125,13 @@ class ImageLoader(object):
     def get_all_edges(img):
         edges = []
 
-        # add horizontal edges
+        # add horizontal edge_index
         for x in range(img.width-1):
             for y in range(img.height):
                 edge = ((x, y), (x+1, y))
                 edges.append(edge)
 
-        # add vertical edges
+        # add vertical edge_index
         for x in range(img.width):
             for y in range(img.height-1):
                 edge = ((x, y), (x, y+1))
@@ -177,18 +177,19 @@ class ImageLoader(object):
 
         edges = ImageLoader.get_all_edges(img)
 
-        edge_feature_mat = np.zeros((len(edges), nthresh))
+        edge_feature_mat = np.zeros((len(edges), nthresh + 1))
 
         for j, edge in enumerate(edges):
             diff = 0
-            edge_feats_vec = np.zeros(nthresh)
+            edge_feats_vec = np.zeros(nthresh + 1)
             for z in range(channels):
-                diff += np.true_divide((pixels[edge[0]][z]-pixels[edge[1]][z]), 255) ** 2
+                diff += np.true_divide((pixels[edge[0]][z] - pixels[edge[1]][z]), 255) ** 2
 
             diff = np.sqrt(diff)
             for n in range(nthresh):
                 thresh = .5 * n / nthresh
-                edge_feats_vec[n] = 1*(diff > thresh)
+                edge_feats_vec[n] = 1 * (diff > thresh)
+            edge_feats_vec[-1] = 1.0 # add bias feature
             edge_feature_mat[j, :] = edge_feats_vec
 
         # package up feature matrix as feature dictionary
