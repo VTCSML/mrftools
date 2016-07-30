@@ -66,5 +66,30 @@ class TestIntegration(unittest.TestCase):
         print("Baseline from guessing all background: %f" % np.true_divide(baseline, images[i].width * images[i].height))
         assert errors < baseline, "Learned model did no better than guessing all background."
 
+    def test_consistency(self):
+        loader = ImageLoader(10, 10)
+
+        images, models, labels, names = loader.load_all_images_and_labels(
+            os.path.join(os.path.dirname(__file__), 'train'), 2, 1)
+        i = 0
+
+        d_unary = 65
+        num_states = 2
+        d_edge = 10
+
+        new_weights = 0.01 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
+
+        models[i].set_weights(new_weights)
+        bp = MatrixBeliefPropagator(models[i])
+        bp.infer(display='full')
+        bp.load_beliefs()
+
+        for var in bp.mn.variables:
+            unary_belief = np.exp(bp.var_beliefs[var])
+            for neighbor in bp.mn.get_neighbors(var):
+                pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                print pair_belief, unary_belief
+                assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
+
 if __name__ == '__main__':
     unittest.main()
