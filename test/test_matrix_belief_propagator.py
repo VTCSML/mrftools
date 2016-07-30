@@ -61,7 +61,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
     def create_grid_model_simple_edges(self):
         mn = MarkovNet()
 
-        length = 16
+        length = 2
 
         k = 8
 
@@ -238,7 +238,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                     if edge in mat_bp.mn.edge_index:
                         edge_index = mat_bp.mn.edge_index[edge]
                     else:
-                        edge_index = mat_bp.mn.edge_index[(edge[1], edge[0])]
+                        edge_index = mat_bp.mn.edge_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
 
                     mat_bp_message = mat_bp.message_mat[:, edge_index].ravel()
 

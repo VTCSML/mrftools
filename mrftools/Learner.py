@@ -95,13 +95,8 @@ class Learner(object):
         return self.gradient(weights)
 
     def learn(self, weights, callback_f=None):
-        old_weights = np.inf
-        new_weights = weights
-
-        while not np.allclose(old_weights, new_weights):
-            old_weights = new_weights
-            res = minimize(self.subgrad_obj, new_weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
-            new_weights = res.x
+        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
+        new_weights = res.x
 
         return new_weights
 

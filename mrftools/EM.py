@@ -13,14 +13,14 @@ class EM(Learner):
     def __init__(self, inference_type):
         super(EM, self).__init__( inference_type)
         
-    def learn(self,weights, callback_f):
+    def learn(self, weights, callback_f):
         old_weights = np.inf
         new_weights = weights
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
             self.e_step(new_weights)
             new_weights = self.m_step(new_weights, callback_f)
-            
+
         return new_weights
 
     def e_step(self, weights):
@@ -29,4 +29,3 @@ class EM(Learner):
     def m_step(self, weights, callback_f):
         res = minimize(self.objective, weights, None, method='L-BFGS-B', jac = self.gradient, callback=callback_f)
         return res.x
-    
