@@ -175,33 +175,28 @@ class ImageLoader(object):
         else:
             print("Unknown mode: %s" % img.mode)
 
-        j = 0
-        for edge in ImageLoader.get_all_edges(img):
+        edges = ImageLoader.get_all_edges(img)
 
-            edge_ids.append(edge)
+        edge_feature_mat = np.zeros((len(edges), nthresh))
+
+        for j, edge in enumerate(edges):
             diff = 0
-            edge_feats_vec = []
+            edge_feats_vec = np.zeros(nthresh)
             for z in range(channels):
                 diff += np.true_divide((pixels[edge[0]][z]-pixels[edge[1]][z]), 255) ** 2
 
             diff = np.sqrt(diff)
             for n in range(nthresh):
                 thresh = .5 * n / nthresh
-                edge_feats_vec.append(1*(diff > thresh))
-
-            if j == 0:
-                edge_feature_mat = edge_feats_vec
-            else:
-                edge_feature_mat = np.vstack((edge_feature_mat, edge_feats_vec))
-
-            j += 1
+                edge_feats_vec[n] = 1*(diff > thresh)
+            edge_feature_mat[j, :] = edge_feats_vec
 
         # package up feature matrix as feature dictionary
         feature_vectors = [np.array(x) for x in feature_mat.tolist()]
         feature_dict = dict(zip(pixel_ids, feature_vectors))
 
         edge_feature_vectors = [np.array(x) for x in edge_feature_mat.tolist()]
-        edge_feature_dict = dict(zip(edge_ids, edge_feature_vectors))
+        edge_feature_dict = dict(zip(edges, edge_feature_vectors))
 
         return feature_dict, edge_feature_dict
 

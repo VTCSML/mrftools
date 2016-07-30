@@ -67,7 +67,7 @@ class TestIntegration(unittest.TestCase):
         assert errors < baseline, "Learned model did no better than guessing all background."
 
     def test_consistency(self):
-        loader = ImageLoader(10, 10)
+        loader = ImageLoader(1, 2)
 
         images, models, labels, names = loader.load_all_images_and_labels(
             os.path.join(os.path.dirname(__file__), 'train'), 2, 1)
@@ -77,19 +77,33 @@ class TestIntegration(unittest.TestCase):
         num_states = 2
         d_edge = 10
 
-        new_weights = 0.01 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
+        new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
 
         models[i].set_weights(new_weights)
         bp = MatrixBeliefPropagator(models[i])
         bp.infer(display='full')
         bp.load_beliefs()
 
+        models[i].load_factors_from_matrices()
+
+        bf = BruteForce(models[i])
+        unary_error = np.sum(np.abs(bf.unary_marginal((0, 0)) - np.exp(bp.var_beliefs[(0, 0)])))
+        print "Unary marginal error compared to brute force: %e" % unary_error
+        edge = models[i].edges[0]
+        edge_error = np.sum(np.abs(bf.pairwise_marginal(edge[0], edge[1]) - np.exp(bp.pair_beliefs[edge])))
+        print "Pair %s marginal error compared to brute force: %e" % (edge, edge_error)
+        assert unary_error < 1e-3, "Unary error was too large compared to brute force"
+        assert edge_error < 1e-3, "Pairwise error was too large compared to brute force"
+
         for var in bp.mn.variables:
             unary_belief = np.exp(bp.var_beliefs[var])
+            assert np.allclose(np.sum(unary_belief), 1.0), "Unary belief not normalized"
             for neighbor in bp.mn.get_neighbors(var):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                assert np.allclose(np.sum(pair_belief), 1.0), "Pair belief not normalized"
                 print pair_belief, unary_belief
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
+
 
 if __name__ == '__main__':
     unittest.main()

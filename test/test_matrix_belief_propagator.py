@@ -40,6 +40,25 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         mn.create_matrices()
         return mn
 
+    def create_grid_model(self):
+        mn = MarkovNet()
+
+        length = 16
+
+        k = 8
+
+        for x in range(length):
+            for y in range(length):
+                mn.set_unary_factor((x, y), np.random.random(k))
+
+        for x in range(length - 1):
+            for y in range(length):
+                mn.set_edge_factor(((x, y), (x + 1, y)), np.random.random((k, k)))
+                mn.set_edge_factor(((y, x), (y, x + 1)), np.random.random((k, k)))
+
+        return mn
+
+
     def test_exactness(self):
         mn = self.create_chain_model()
         bp = MatrixBeliefPropagator(mn)
@@ -96,20 +115,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                 assert np.allclose(np.sum(pair_belief), 1.0), "pairwise belief is not normalize"
 
     def test_speedup(self):
-        mn = MarkovNet()
-
-        length = 16
-
-        k = 8
-
-        for x in range(length):
-            for y in range(length):
-                mn.set_unary_factor((x, y), np.random.random(k))
-
-        for x in range(length - 1):
-            for y in range(length):
-                mn.set_edge_factor(((x, y), (x + 1, y)), np.random.random((k, k)))
-                mn.set_edge_factor(((y, x), (y, x + 1)), np.random.random((k, k)))
+        mn = self.create_grid_model()
 
         slow_bp = BeliefPropagator(mn)
 
@@ -183,3 +189,17 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         with np.errstate(all='raise'):
             bp.infer()
             bp.load_beliefs()
+
+    def test_grid_consistency(self):
+        mn = self.create_grid_model()
+        bp = MatrixBeliefPropagator(mn)
+        bp.infer(display='full')
+
+        bp.load_beliefs()
+
+        for var in mn.variables:
+            unary_belief = np.exp(bp.var_beliefs[var])
+            for neighbor in mn.get_neighbors(var):
+                pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                # print pair_belief, unary_belief
+                assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"

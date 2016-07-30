@@ -1,5 +1,6 @@
 import numpy as np
 from ImageLoader import ImageLoader
+from PairedDual import PairedDual
 from Learner import Learner
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
@@ -71,7 +72,10 @@ def main():
                 sheet1.write(n,1,inference_type_name, style)
                 sheet1.write(n,2,objective_type, style)
 
-                learner = Learner(inference_type)
+                if objective_type is 'dual':
+                    learner = PairedDual(inference_type, max_iter)
+                else:
+                    learner = Learner(inference_type)
                 learners.append(learner)
                 learner.set_regularization(0.0, 1.0)
 
@@ -86,7 +90,7 @@ def main():
 
                 weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
 
-                new_weights = learner.learn(weights, objective_type)
+                new_weights = learner.learn(weights)
 
                 unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
                 pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states ** 2))

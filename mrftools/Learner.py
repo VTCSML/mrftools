@@ -96,26 +96,16 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
-    def learn(self, weights, objective_type = 'primal', callback_f=None):
+    def learn(self, weights, callback_f=None):
         old_weights = np.inf
         new_weights = weights
 
-        if objective_type == "primal":
-            while not np.allclose(old_weights, new_weights):
-                old_weights = new_weights
-                res = minimize(self.subgrad_obj, new_weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
-                new_weights = res.x
+        while not np.allclose(old_weights, new_weights):
+            old_weights = new_weights
+            res = minimize(self.subgrad_obj, new_weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
+            new_weights = res.x
 
-            return new_weights
-
-        elif objective_type == "dual":
-            while not np.allclose(old_weights, new_weights):
-                old_weights = new_weights
-                res = minimize(self.subgrad_obj_dual, new_weights, method='L-BFGS-B', jac=self.subgrad_grad,
-                               callback=callback_f)
-                new_weights = res.x
-
-            return new_weights
+        return new_weights
 
     def reset(self):
         self.weight_record =  np.array([])
@@ -141,24 +131,6 @@ class Learner(object):
 
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
         term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-
-        self.term_q_p = term_p - term_q
-
-        objec = 0.0
-        # add regularization penalties
-        objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * weights.dot(weights)
-        objec += self.term_q_p
-
-        return objec
-
-
-    def objective_dual(self, weights, options=None):
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-        self.set_weights(weights, self.belief_propagators_q)
-
-        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
 
         self.term_q_p = term_p - term_q
 
