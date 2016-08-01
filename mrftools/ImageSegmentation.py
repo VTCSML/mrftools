@@ -2,6 +2,7 @@ import numpy as np
 from ImageLoader import ImageLoader
 from Learner import Learner
 from MatrixBeliefPropagator import MatrixBeliefPropagator
+from ConvexBeliefPropagator import ConvexBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from Evaluator import Evaluator
 import os
@@ -22,6 +23,8 @@ def main():
 
     # inference_type = MatrixBeliefPropagator
     inference_type = MatrixTRBeliefPropagator
+    # inference_type = ConvexBeliefPropagator
+    # Neet to set counting number
 
     loader = ImageLoader(max_height, max_width)
 
