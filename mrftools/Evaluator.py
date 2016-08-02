@@ -33,15 +33,21 @@ class Evaluator(object):
                 label_img = np.zeros((images[i].height, images[i].width))
                 errors = 0
                 baseline = 0
+                num_latent = 0
+
 
                 for x in range(images[i].width):
                     for y in range(images[i].height):
                         beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
-                        label_img[y, x] = labels[i][(x, y)]
-                        errors += np.abs(labels[i][(x, y)] - np.round(beliefs[y, x]))
-                        baseline += labels[i][(x, y)]
+                        if (x, y) in labels[i]:
+                            label_img[y, x] = labels[i][(x, y)]
+                            errors += np.abs(labels[i][(x, y)] - np.round(beliefs[y, x]))
+                            baseline += labels[i][(x, y)]
+                        else:
+                            num_latent += 1
 
-                error_rate = np.true_divide(errors, images[i].width * images[i].height)
+
+                error_rate = np.true_divide(errors, images[i].width * images[i].height - num_latent)
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
                 if plot == 'true':
