@@ -4,6 +4,7 @@ from PairedDual import PairedDual
 from Learner import Learner
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
+from ConvexBeliefPropagator import ConvexBeliefPropagator
 from Evaluator import Evaluator
 import time
 import os
@@ -25,8 +26,8 @@ def main():
     inc = 'true'
     plot = 'false'
     objective_types = ['primal', 'dual']
-    l2regularizations = [0.001, 1.0]
-    inference_types = {'BP': MatrixBeliefPropagator, 'TRBP': MatrixTRBeliefPropagator}
+    l2regularizations = [0.001, 0.01, 0.1, 1.0, 10]
+    inference_types = {'BP': MatrixBeliefPropagator, 'TRBP': MatrixTRBeliefPropagator, 'ConvexBP': ConvexBeliefPropagator}
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
 
     loader = ImageLoader(max_height, max_width)

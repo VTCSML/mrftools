@@ -14,7 +14,7 @@ def main():
     d_edge = 11
     max_height = 30
     max_width = 30
-    num_training_images = 1
+    num_training_images = 2
     num_testing_images = 0
     max_iter = 5
     inc = 'true'
@@ -22,9 +22,8 @@ def main():
     plot = 'true'
 
     # inference_type = MatrixBeliefPropagator
-    inference_type = MatrixTRBeliefPropagator
-    # inference_type = ConvexBeliefPropagator
-    # Neet to set counting number
+    # inference_type = MatrixTRBeliefPropagator
+    inference_type = ConvexBeliefPropagator
 
     loader = ImageLoader(max_height, max_width)
 
