@@ -13,7 +13,7 @@ class EM(Learner):
     def __init__(self, inference_type):
         super(EM, self).__init__( inference_type)
         
-    def learn(self, weights, callback_f):
+    def learn(self, weights, callback_f = None):
         old_weights = np.inf
         new_weights = weights
         while not np.allclose(old_weights, new_weights):
