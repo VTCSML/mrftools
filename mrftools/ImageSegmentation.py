@@ -15,8 +15,8 @@ def main():
     d_unary = 65
     num_states = 2
     d_edge = 11
-    max_height = 60
-    max_width = 60
+    max_height = 10
+    max_width = 10
     num_training_images = 2
     num_testing_images = 2
     max_iter = 5
@@ -59,7 +59,7 @@ def main():
     Eval = Evaluator(max_height, max_width)
     if num_training_images > 0:
         print("Training:")
-        if inc == "true":
+        if inc == True:
             train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc, plot)
         else:
             train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc, plot)
@@ -67,7 +67,7 @@ def main():
 
     if num_testing_images > 0:
         print("Test:")
-        if inc == "true":
+        if inc == True:
             test_errors, test_total_inconsistency = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
         else:
             test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
