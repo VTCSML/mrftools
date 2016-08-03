@@ -7,7 +7,7 @@ import random
 from collections import Counter
 import collections
 
-class Gibbs(object):
+class GibbsSampler(object):
     "Object that can run gibbs sampling on a MarkovNet"
 
     def __init__(self, markov_net):
@@ -28,8 +28,12 @@ class Gibbs(object):
             if rnd < 0:
                 return i
 
-    def init_states(self):
+    def init_states(self, seed=None):
         """Initialize the state of each node."""
+
+        if seed is not None:
+            np.random.seed(seed)
+
         for var in self.mn.variables:
             weight = self.mn.unary_potentials[var]
             weight = np.exp(weight - logsumexp(weight))

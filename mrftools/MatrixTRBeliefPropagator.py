@@ -1,6 +1,6 @@
 import numpy as np
 
-from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp
+from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
 class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
 
@@ -26,7 +26,7 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
             else:
                 raise KeyError('Edge %s was not assigned a probability.' % repr(edge))
 
-        self.expected_degrees = self.mn.message_to_index.T.dot(self.tree_probabilities)
+        self.expected_degrees = sparse_dot(self.tree_probabilities.T, self.mn.message_to_map).T
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
@@ -43,7 +43,7 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
         self.compute_beliefs()
 
-        adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+        adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
                                 - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                              self.message_mat[:, :self.mn.num_edges]))
 
@@ -59,8 +59,9 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(
-                (self.message_mat * self.tree_probabilities).T).T
+            self.belief_mat = self.mn.unary_mat + self.conditioning_mat
+            self.belief_mat += sparse_dot(self.message_mat * self.tree_probabilities, self.mn.message_to_map)
+
             log_z = logsumexp(self.belief_mat, 0)
 
             self.belief_mat = self.belief_mat - log_z
@@ -68,7 +69,7 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
-            adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+            adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
                                     - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                  self.message_mat[:, :self.mn.num_edges]))
 

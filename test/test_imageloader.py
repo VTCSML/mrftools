@@ -96,12 +96,12 @@ class TestImageLoader(unittest.TestCase):
         for edge, i in model.edge_index.items():
             from_index = model.var_index[edge[0]]
             to_index = model.var_index[edge[1]]
-            assert model.message_from_index[i, from_index] == 1, "Message sender matrix map is wrong"
-            assert model.message_to_index[i, to_index] == 1, "Message receiver matrix map is wrong"
+            assert model.message_from[i] == from_index, "Message sender index is wrong"
+            assert model.message_to[i] == to_index, "Message receiver index is wrong"
+            assert model.message_to_map[i, to_index] == 1, "Message receiver matrix map is wrong"
 
-        assert np.all(np.sum(model.message_from_index.todense(), axis=1) == 1), \
-            "Message sender map has a row that doesn't sum to 1.0"
-        assert np.all(np.sum(model.message_to_index.todense(), axis=1) == 1), \
+
+        assert np.all(np.sum(model.message_to_map.todense(), axis=1) == 1), \
             "Message sender map has a row that doesn't sum to 1.0"
 
         assert np.allclose(model.edge_pot_tensor[:, :, :model.num_edges],

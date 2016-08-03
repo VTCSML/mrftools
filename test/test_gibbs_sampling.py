@@ -24,7 +24,7 @@ class TestGibbsSampling(unittest.TestCase):
         mn.set_edge_factor((2, 3), edge_potential)
         # mn.set_edge_factor((3, 0), edge_potential) # uncomment this to make loopy
 
-        gb = Gibbs(mn)
+        gb = GibbsSampler(mn)
         gb.init_states()
         itr = 1000
         num = 10000

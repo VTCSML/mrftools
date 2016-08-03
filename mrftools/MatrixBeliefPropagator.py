@@ -48,14 +48,15 @@ class MatrixBeliefPropagator(Inference):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            self.belief_mat = self.mn.unary_mat + self.conditioning_mat + self.mn.message_to_index.T.dot(self.message_mat.T).T
+            self.belief_mat = self.mn.unary_mat + self.conditioning_mat
+            self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
             self.belief_mat -= logsumexp(self.belief_mat, 0)
 
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
-            adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+            adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
                                     - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                                self.message_mat[:, :self.mn.num_edges]))
 
@@ -74,7 +75,7 @@ class MatrixBeliefPropagator(Inference):
 
         adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                                      self.message_mat[:, :self.mn.num_edges]))
-        adjusted_message_prod += self.mn.message_from_index.dot(self.belief_mat.T).T
+        adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1))
         messages = np.nan_to_num(messages - messages.max(0))
@@ -86,7 +87,7 @@ class MatrixBeliefPropagator(Inference):
         return change
 
     def _compute_inconsistency_vector(self):
-        expanded_beliefs = np.exp(self.mn.message_to_index.dot(self.belief_mat.T).T)
+        expanded_beliefs = np.exp(self.belief_mat[:, self.mn.message_to])
 
         pairwise_beliefs = np.hstack((np.sum(np.exp(self.pair_belief_tensor), axis = 0),
                                       np.sum(np.exp(self.pair_belief_tensor), axis = 1)))
@@ -189,3 +190,18 @@ def logsumexp(matrix, dim = None):
     max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
     with np.errstate(divide='ignore', under='ignore'):
         return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+
+def sparse_dot(full_matrix, sparse_matrix):
+    return sparse_matrix.T.dot(full_matrix.T).T
+
+def make_grad_logsumexp(ans, matrix, dim):
+    # TODO make this compatible with new logsumexp
+    def gradient_product(g):
+        return np.full(matrix.shape, g) * np.exp(matrix - np.full(matrix.shape, ans))
+    return gradient_product
+
+def make_grad_sparse_dot(ans, full_matrix, sparse_matrix):
+    def gradient_product(g):
+        #todo make this work
+        return
+    return gradient_product

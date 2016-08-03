@@ -6,7 +6,7 @@ from EM import EM
 from PairedDual import PairedDual
 from ApproxMaxLikelihood import ApproxMaxLikelihood
 from BruteForce import BruteForce
-from GibbsSampling import Gibbs
+from GibbsSampler import GibbsSampler
 from ImageLoader import ImageLoader
 from Inference import Inference
 from LogLinearModel import LogLinearModel
