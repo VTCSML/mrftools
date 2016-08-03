@@ -24,7 +24,7 @@ class Learner(object):
         self.l2_regularization = 1
         self.weight_dim = None
         self.fully_observed = True
-        self.initialization_flag = 'false'
+        self.initialization_flag = False
 
     def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -62,7 +62,7 @@ class Learner(object):
 
     def do_inference(self, belief_propagators):
         for bp in belief_propagators:
-            if self.initialization_flag == 'true':
+            if self.initialization_flag == True:
                 bp.initialize_messages()
             bp.infer(display = 'off')
 

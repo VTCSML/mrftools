@@ -20,10 +20,10 @@ def main():
     num_training_images = 2
     num_testing_images = 2
     max_iter = 5
-    inc = 'true'
+    inc = True
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
-    plot = 'false'
-    initialization_flag = 'true'
+    plot = False
+    initialization_flag = True
 
     # inference_type = MatrixBeliefPropagator
     # inference_type = MatrixTRBeliefPropagator
