@@ -5,9 +5,9 @@ class TestApproxMaxLikelihood(unittest.TestCase):
     def test_sampled_data(self):
         np.random.seed(0)
 
-        model = create_model()
+        model = create_model(0)
         learner = ApproxMaxLikelihood(model)
-        learner.set_regularization(0, 0.001)
+        learner.set_regularization(0, 0.01)
         set_up_learner(learner, model)
 
         print("Loaded sampled data. Starting learning...")
@@ -41,7 +41,8 @@ def set_up_learner(learner, model):
     for example in data:
         learner.add_data(example)
 
-def create_model():
+def create_model(seed):
+    np.random.seed(seed)
     model = MarkovNet()
 
     num_states = [3, 2, 2]
@@ -57,8 +58,8 @@ def create_model():
     return model
 
 def sample_data(model):
-    sampler = Gibbs(model)
-    sampler.init_states()
+    sampler = GibbsSampler(model)
+    sampler.init_states(0)
 
     mix = 5000
     num_samples = 200

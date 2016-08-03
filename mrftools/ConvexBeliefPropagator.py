@@ -1,6 +1,6 @@
 import numpy as np
 
-from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp
+from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
 class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
@@ -57,7 +57,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                                      self.message_mat[:, :self.mn.num_edges]))
         adjusted_message_prod /= self.edge_counting_numbers
-        adjusted_message_prod += self.mn.message_from_index.dot(self.belief_mat.T).T
+        adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1)) * self.edge_counting_numbers
         messages = np.nan_to_num(messages - messages.max(0))
@@ -71,8 +71,9 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            self.belief_mat = self.mn.unary_mat + self.conditioning_mat + \
-                              self.mn.message_to_index.T.dot(self.message_mat.T).T
+            self.belief_mat = self.mn.unary_mat + self.conditioning_mat
+            self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
+
             self.belief_mat /= self.unary_coefficients.T
             log_z = logsumexp(self.belief_mat, 0)
 
@@ -81,7 +82,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
-            adjusted_message_prod = self.mn.message_from_index.dot(self.belief_mat.T).T \
+            adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
                                     - np.nan_to_num(np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                     self.message_mat[:, :self.mn.num_edges])) /
                                                     self.edge_counting_numbers)

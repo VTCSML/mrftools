@@ -1,6 +1,7 @@
 import numpy as np
 from mrftools import *
 import unittest
+import time
 
 
 class TestMatrixBeliefPropagator(unittest.TestCase):
@@ -140,8 +141,6 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
 
         bp.set_max_iter(30000)
         slow_bp.set_max_iter(30000)
-
-        import time
 
         t0 = time.time()
         bp.infer(display='final')
