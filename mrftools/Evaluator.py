@@ -72,9 +72,6 @@ class Evaluator(object):
 
         return average_errors
 
-
-
-
     def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display = 'final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
@@ -100,6 +97,37 @@ class Evaluator(object):
         plt.imshow(beliefs, interpolation="nearest")
         plt.show()
 
+    def evaluate_objective(self, method_list):
+
+        for i in range(0,len(method_list)):
+            m_dic = method_list[i]
+            obj_time = m_dic['time']
+            obj = m_dic['objective']
+            method_name = m_dic['method']
+
+            plt.plot(obj_time, obj, '-', linewidth=2, label=method_name)
+            plt.xlabel('time(seconds)')
+            plt.ylabel('objective')
+            plt.legend(loc='upper right')
+
+        plt.title('objective function trend')
+        plt.show()
+
+    def evaluate_training_accuracy(self, method_list):
+
+        for i in range(0,len(method_list)):
+            m_dic = method_list[i]
+            obj_time = m_dic['time']
+            method_name = m_dic['method']
+            accuracy = m_dic['training_accuracy']
+
+            plt.plot(obj_time, accuracy, '-', linewidth=2, label=method_name)
+            plt.xlabel('time(seconds)')
+            plt.ylabel('training accuracy')
+            plt.legend(loc='upper right')
+
+        plt.title('training accuracy trend')
+        plt.show()
 
 def main():
     """test evaluation"""
