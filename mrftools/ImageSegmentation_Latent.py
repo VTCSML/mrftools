@@ -5,7 +5,7 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator
 from EM import EM
 from PairedDual import PairedDual
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
-from Evaluator_Latent import EvaluatorLatent
+from Evaluator import Evaluator
 import os
 
 
@@ -63,7 +63,7 @@ def main():
     print("Unary weights:\n" + repr(unary_mat))
     print("Pairwise weights:\n" + repr(pair_mat))
 
-    Eval = EvaluatorLatent(max_height, max_width)
+    Eval = Evaluator(max_height, max_width)
     if num_training_images > 0:
         print("Training:")
         if inc == "true":
