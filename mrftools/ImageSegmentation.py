@@ -6,20 +6,24 @@ from ConvexBeliefPropagator import ConvexBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from Evaluator import Evaluator
 import os
+import time
 
 def main():
+
+    start = time.time()
 
     d_unary = 65
     num_states = 2
     d_edge = 11
-    max_height = 30
-    max_width = 30
+    max_height = 60
+    max_width = 60
     num_training_images = 2
-    num_testing_images = 0
+    num_testing_images = 2
     max_iter = 5
     inc = 'true'
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
-    plot = 'true'
+    plot = 'false'
+    initialization_flag = 'true'
 
     # inference_type = MatrixBeliefPropagator
     # inference_type = MatrixTRBeliefPropagator
@@ -30,6 +34,8 @@ def main():
     images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
 
     learner = Learner(inference_type)
+
+    learner._set_initialization_flag(initialization_flag)
 
     learner.set_regularization(0.0, 1.0)
 
@@ -66,6 +72,10 @@ def main():
         else:
             test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
         print ("Average Test Error rate: %f" % test_errors)
+
+        elapsed = time.time() - start
+
+    print ("Time elapsed: %f" % elapsed)
 
 
 if __name__ == "__main__":
