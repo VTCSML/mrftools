@@ -11,8 +11,10 @@ class Evaluator(object):
         self.max_width = max_width
         self.max_height = max_height
 
-
     def plot_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300):
+        
+
+    def evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter = 300, inc = False, plot = True, display='final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
@@ -76,14 +78,14 @@ class Evaluator(object):
                 error_rate = np.true_divide(errors, images[i].width * images[i].height - num_latent)
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
-                if plot == 'true':
+                if plot == True:
                     self.draw_results(images[i], label_img, beliefs)
 
                 if display == 'full':
                     print("Results for the %dth image:" % (i + 1))
                     print("Error rate: %f" % error_rate)
                     print("Baseline from guessing all background: %f" % baseline_rate)
-                if inc == "true":
+                if inc == True:
                     inconsistency = bp.compute_inconsistency()
                     total_inconsistency += inconsistency
                     if display == 'full':
@@ -92,18 +94,18 @@ class Evaluator(object):
                 average_errors += error_rate
 
             average_errors = np.true_divide(average_errors, i + 1)
-        if inc == "true":
+        if inc == True:
             print("Overall inconsistency: %f" % total_inconsistency)
             return average_errors, total_inconsistency
 
         return average_errors
 
-    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display = 'final'):
+    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
         images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
-        if inc == "true":
+        if inc == True:
             average_errors, total_inconsistency = self.evaluate_training_images(images, models, labels, names, weights, num_states, num_images, inference_type,
                                      max_iter, inc, plot)
             return average_errors, total_inconsistency
