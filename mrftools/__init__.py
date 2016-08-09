@@ -15,4 +15,5 @@ from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from GradientInferenceLearner import GradientInferenceLearner
 from opt import *
 from ConvexBeliefPropagator import ConvexBeliefPropagator
-
+from AutogradLearner import AutogradLearner
+from AutogradEvaluator import AutogradEvaluator
