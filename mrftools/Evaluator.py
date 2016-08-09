@@ -12,9 +12,6 @@ class Evaluator(object):
         self.max_height = max_height
 
     def plot_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300):
-        
-
-    def evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter = 300, inc = False, plot = True, display='final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
