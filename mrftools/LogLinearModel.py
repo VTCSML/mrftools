@@ -1,7 +1,10 @@
 """Class to convert from log linear model to MRF"""
 
 from MarkovNet import MarkovNet
-import numpy as np
+try:
+    import autograd.numpy as np
+except ImportError:
+    import numpy as np
 from scipy.sparse import csr_matrix
 
 
@@ -53,12 +56,12 @@ class LogLinearModel(MarkovNet):
 
     def set_all_unary_factors(self):
         for var in self.variables:
-            self.set_unary_factor(var, self.unary_feature_weights[var].dot(self.unary_features[var]))
+            self.set_unary_factor(var, np.dot(self.unary_feature_weights[var], self.unary_features[var]))
  
     def set_feature_matrix(self, feature_mat):
         assert (np.array_equal(self.feature_mat.shape, feature_mat.shape))
 
-        self.feature_mat[:, :] = feature_mat
+        self.feature_mat = feature_mat
 
     def set_weights(self, weight_vector):
         num_vars = len(self.variables)
@@ -76,19 +79,20 @@ class LogLinearModel(MarkovNet):
 
     def set_weight_matrix(self, weight_mat):
         assert (np.array_equal(self.weight_mat.shape, weight_mat.shape))
-        self.weight_mat[:, :] = weight_mat
+        self.weight_mat = weight_mat
 
     def set_edge_weight_matrix(self, edge_weight_mat):
         assert (np.array_equal(self.edge_weight_mat.shape, edge_weight_mat.shape))
-        self.edge_weight_mat[:, :] = edge_weight_mat
+        self.edge_weight_mat = edge_weight_mat
 
     def update_unary_matrix(self):
-        self.set_unary_mat(self.feature_mat.T.dot(self.weight_mat).T)
+        self.set_unary_mat(np.dot(self.feature_mat.T, self.weight_mat).T)
 
     def update_edge_tensor(self):
-        half_edge_tensor = self.edge_feature_mat.T.dot(self.edge_weight_mat).T.reshape(
+        half_edge_tensor = np.dot(self.edge_feature_mat.T, self.edge_weight_mat).T.reshape(
             (self.max_states, self.max_states, self.num_edges))
-        self.edge_pot_tensor[:,:,:] = np.concatenate((half_edge_tensor.transpose(1, 0, 2), half_edge_tensor), axis=2)
+
+        self.edge_pot_tensor = np.concatenate((np.transpose(half_edge_tensor, (1, 0, 2)), half_edge_tensor), axis=2)
 
     def create_matrices(self):
         super(LogLinearModel, self).create_matrices()
@@ -142,8 +146,8 @@ class LogLinearModel(MarkovNet):
 
         self.create_matrices()
 
-        self.feature_mat = csr_matrix(self.feature_mat)
-        self.edge_feature_mat = csr_matrix(self.edge_feature_mat)
+        #self.feature_mat = csr_matrix(self.feature_mat)
+        #self.edge_feature_mat = csr_matrix(self.edge_feature_mat)
 
         for (var, i) in self.var_index.items():
             self.weight_mat[i, :] = -np.inf

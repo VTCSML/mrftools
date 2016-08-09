@@ -1,7 +1,10 @@
 import copy
 import time
 from _hashlib import new
-import numpy as np
+try:
+    import autograd.numpy as np
+except ImportError:
+    import numpy as np
 from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
@@ -130,7 +133,7 @@ class Learner(object):
         objec = 0.0
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * weights.dot(weights)
+        objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
         objec += self.term_q_p
 
         return objec

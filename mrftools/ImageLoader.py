@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import autograd.numpy as np
+except ImportError:
+    import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 import PIL
@@ -165,7 +168,7 @@ class ImageLoader(object):
         coeffs = list(itertools.product([0, 1], repeat=5))
         coeffs = np.column_stack(coeffs)
 
-        prod = base_features.dot(coeffs)
+        prod = np.dot(base_features, coeffs)
         feature_mat = np.hstack((np.sin(prod), np.cos(prod), np.ones((img.width * img.height, 1))))
 
         if img.mode == 'RGB':

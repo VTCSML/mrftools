@@ -1,9 +1,12 @@
-import numpy as np
+try:
+    import autograd.numpy as np
+except ImportError:
+    import numpy as np
 from ImageLoader import ImageLoader
-from Learner import Learner
+from AutogradLearner import AutogradLearner
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
-from Evaluator import Evaluator
+from AutogradEvaluator import AutogradEvaluator
 import os
 
 def main():
@@ -27,7 +30,7 @@ def main():
 
     images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
 
-    learner = Learner(inference_type)
+    learner = AutogradLearner(inference_type)
 
     learner.set_regularization(0.0, 1.0)
 
@@ -48,7 +51,7 @@ def main():
     print("Unary weights:\n" + repr(unary_mat))
     print("Pairwise weights:\n" + repr(pair_mat))
 
-    Eval = Evaluator(max_height, max_width)
+    Eval = AutogradEvaluator(max_height, max_width)
     if num_training_images > 0:
         print("Training:")
         if inc == "true":
