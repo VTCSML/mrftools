@@ -182,7 +182,7 @@ class TestIntegration(unittest.TestCase):
 
         weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
 
-        loader = ImageLoader(20, 20)
+        loader = ImageLoader(10, 10)
 
         images, models, labels, names = loader.load_all_images_and_labels(
             os.path.join(os.path.dirname(__file__), 'train'), 2, 3)
@@ -196,7 +196,8 @@ class TestIntegration(unittest.TestCase):
 
         start = time.time()
         subgrad_weights = learner.learn(weights, None)
-        print "Learner took %f seconds" % (time.time() - start)
+        subgrad_time = time.time() - start
+        print "Learner took %f seconds" % subgrad_time
 
         learner = PairedDual(MatrixBeliefPropagator)
         learner.set_regularization(0.0, 1.0)
@@ -206,7 +207,10 @@ class TestIntegration(unittest.TestCase):
 
         start = time.time()
         paired_weights = learner.learn(weights, None)
-        print "PD took %f seconds" % (time.time() - start)
+        pd_time = time.time() - start
+        print "PD took %f seconds" % pd_time
+
+        assert pd_time < subgrad_time, "Paired dual learning took longer than subgradient"
 
 
 if __name__ == '__main__':
