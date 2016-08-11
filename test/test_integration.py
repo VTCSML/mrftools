@@ -175,6 +175,43 @@ class TestIntegration(unittest.TestCase):
             mat_bp.update_messages()
             mat_bp.load_beliefs()
 
+    def test_speed(self):
+        d_unary = 65
+        num_states = 2
+        d_edge = 11
+
+        weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
+
+        loader = ImageLoader(10, 10)
+
+        images, models, labels, names = loader.load_all_images_and_labels(
+            os.path.join(os.path.dirname(__file__), 'train'), 2, 3)
+
+        learner = Learner(MatrixBeliefPropagator)
+
+        learner.set_regularization(0.0, 1.0)
+
+        for model, states in zip(models, labels):
+            learner.add_data(states, model)
+
+        start = time.time()
+        subgrad_weights = learner.learn(weights, None)
+        subgrad_time = time.time() - start
+        print "Learner took %f seconds" % subgrad_time
+
+        learner = PairedDual(MatrixBeliefPropagator)
+        learner.set_regularization(0.0, 1.0)
+
+        for model, states in zip(models, labels):
+            learner.add_data(states, model)
+
+        start = time.time()
+        paired_weights = learner.learn(weights, None)
+        pd_time = time.time() - start
+        print "PD took %f seconds" % pd_time
+
+        assert pd_time < subgrad_time, "Paired dual learning took longer than subgradient"
+
 
 if __name__ == '__main__':
     unittest.main()

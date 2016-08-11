@@ -1,7 +1,7 @@
-import copy
-import time
-from _hashlib import new
-import numpy as np
+try:
+    import autograd.numpy as np
+except ImportError:
+    import numpy as np
 from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
@@ -12,11 +12,11 @@ from opt import *
 class PairedDual(Learner):
     def __init__(self, inference_type, bp_iter=1):
         super(PairedDual, self).__init__(inference_type)
-
-        for bp in self.belief_propagators + self.belief_propagators_q:
-            bp.set_max_iter(bp_iter)
+        self.bp_iter = bp_iter
 
     def learn(self, weights, callback_f=None):
+        for bp in self.belief_propagators + self.belief_propagators_q:
+            bp.set_max_iter(self.bp_iter)
         res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         new_weights = res.x
         return new_weights
@@ -32,7 +32,7 @@ class PairedDual(Learner):
         objec = 0.0
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * weights.dot(weights)
+        objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
         objec += self.term_q_p
 
         return objec

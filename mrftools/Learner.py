@@ -65,6 +65,8 @@ class Learner(object):
 
     def do_inference(self, belief_propagators):
         for bp in belief_propagators:
+            if self.initialization_flag == True:
+                bp.initialize_messages()
             bp.infer(display = 'off')
 
     def get_feature_expectations(self, belief_propagators):
@@ -90,11 +92,6 @@ class Learner(object):
         if len(self.tau_q) == 0 or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
-
-    def subgrad_obj_dual(self, weights, options=None):
-        if len(self.tau_q) == 0 or not self.fully_observed:
-            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
         if len(self.tau_q) == 0 or not self.fully_observed:
@@ -155,19 +152,3 @@ class Learner(object):
         grad += np.squeeze(self.tau_p)
 
         return grad
-
-    def objective_dual(self, weights, options=None):
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-        self.set_weights(weights, self.belief_propagators_q)
-
-        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        self.term_q_p = term_p - term_q
-
-        objec = 0.0
-        # add regularization penalties
-        objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
-        objec += self.term_q_p
-
-        return objec
