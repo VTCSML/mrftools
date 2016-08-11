@@ -2,11 +2,13 @@
 try:
     import autograd.numpy as np
     from autograd.numpy.numpy_grads import make_grad_dot
+    from autograd.core import primitive
+    from autograd.core import getval
 except ImportError:
     import numpy as np
+    def primitive(func):
+        return func
 
-from autograd.core import primitive
-from autograd.core import getval
 from scipy.misc import logsumexp
 from MarkovNet import MarkovNet
 from Inference import Inference
@@ -207,11 +209,12 @@ def make_grad_logsumexp(ans, matrix, dim = None):
         return np.full(matrix.shape, g) * np.exp(matrix - np.full(matrix.shape, ans))
     return gradient_product
 
-logsumexp.defgrad(make_grad_logsumexp)
-
-
 @primitive
 def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T
 
-sparse_dot.defgrad(lambda ans, full_matrix, sparse_matrix : make_grad_dot(0, ans, full_matrix, sparse_matrix.todense()))
+try:
+    sparse_dot.defgrad(lambda ans, full_matrix, sparse_matrix : make_grad_dot(0, ans, full_matrix, sparse_matrix.todense()))
+    logsumexp.defgrad(make_grad_logsumexp)
+except AttributeError:
+    pass

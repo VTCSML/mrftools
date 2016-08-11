@@ -1,5 +1,6 @@
 try:
     import autograd.numpy as np
+    from autograd import value_and_grad, grad
 except ImportError:
     import numpy as np
 from scipy.optimize import minimize, check_grad
@@ -7,7 +8,6 @@ from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from Learner import Learner
 from opt import *
-from autograd import value_and_grad, grad
 
 
 class AutogradLearner(Learner):
