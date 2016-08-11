@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import autograd.numpy as np
+except ImportError:
+    import numpy as np
 
 from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
@@ -10,8 +13,19 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         self.unary_counting_numbers = np.ones(len(self.mn.variables))
         self.edge_counting_numbers = np.ones(2 * self.mn.num_edges)
 
+        default_counting_numbers = dict()
+
+        for var in markov_net.variables:
+            default_counting_numbers[var] = 1
+            for neighbor in markov_net.neighbors[var]:
+                if var < neighbor:
+                    default_counting_numbers[(var, neighbor)] = 1
+
         if counting_numbers:
             self._set_counting_numbers(counting_numbers)
+        else:
+            self._set_counting_numbers(default_counting_numbers)
+
 
     def _set_counting_numbers(self, counting_numbers):
         self.edge_counting_numbers = np.zeros(2 * self.mn.num_edges)
@@ -35,8 +49,9 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         self.unary_coefficients = self.unary_counting_numbers.copy()
 
         for edge, i in self.mn.edge_index.items():
-            self.unary_coefficients[edge[0]] += self.edge_counting_numbers[i]
-            self.unary_coefficients[edge[1]] += self.edge_counting_numbers[i]
+
+            self.unary_coefficients[self.mn.var_index[edge[0]]] += self.edge_counting_numbers[i]
+            self.unary_coefficients[self.mn.var_index[edge[1]]] += self.edge_counting_numbers[i]
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""

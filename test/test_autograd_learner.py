@@ -1,8 +1,7 @@
 import unittest
 from mrftools import *
 import numpy as np
-from scipy.optimize import check_grad, approx_fprime
-import matplotlib.pyplot as plt
+from scipy.optimize import check_grad
 try:
     from autograd import grad
 
@@ -33,7 +32,6 @@ try:
             self.set_up_learner(learner)
             learner.set_regularization(0.0, 1.0)
             gradient_error = check_grad(learner.subgrad_obj, grad(learner.subgrad_obj), weights)
-
             print("Gradient error: %f" % gradient_error)
             assert gradient_error < 1e-1, "Gradient is wrong"
 
@@ -50,6 +48,24 @@ try:
             old_obj = np.Inf
             for i in range(l):
                 new_obj = learner.subgrad_obj(weight_record[i,:])
+                assert (new_obj <= old_obj + 1e-8), "subgradient objective is not decreasing"
+                old_obj = new_obj
+
+                assert new_obj >= 0, "Learner objective was not non-negative"
+
+        def test_learner_dual(self):
+            weights = np.zeros(8 + 32)
+            learner = AutogradLearner(MatrixBeliefPropagator)
+            self.set_up_learner(learner)
+
+            wr_obj = WeightRecord()
+            learner.learn_dual(weights,wr_obj.callback)
+            weight_record = wr_obj.weight_record
+            time_record = wr_obj.time_record
+            l = (weight_record.shape)[0]
+            old_obj = np.Inf
+            for i in range(l):
+                new_obj = learner.subgrad_obj_dual(weight_record[i,:])
                 assert (new_obj <= old_obj + 1e-8), "subgradient objective is not decreasing"
                 old_obj = new_obj
 

@@ -27,6 +27,7 @@ class Learner(object):
         self.l2_regularization = 1
         self.weight_dim = None
         self.fully_observed = True
+        self.initialization_flag = False
 
     def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -58,6 +59,9 @@ class Learner(object):
         self.belief_propagators_q.append(bp_q)
 
         self.num_examples += 1
+
+    def _set_initialization_flag(self, flag):
+        self.initialization_flag = flag
 
     def do_inference(self, belief_propagators):
         for bp in belief_propagators:
@@ -151,3 +155,19 @@ class Learner(object):
         grad += np.squeeze(self.tau_p)
 
         return grad
+
+    def objective_dual(self, weights, options=None):
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+        self.set_weights(weights, self.belief_propagators_q)
+
+        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
+        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        self.term_q_p = term_p - term_q
+
+        objec = 0.0
+        # add regularization penalties
+        objec += self.l1_regularization * np.sum(np.abs(weights))
+        objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
+        objec += self.term_q_p
+
+        return objec
