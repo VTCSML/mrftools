@@ -61,8 +61,8 @@ def learn_image(learn_method, inference_type, models, labels, num_states, names,
 def main():
     # mode = "latent"
     mode = "observed"
-    # dataset = "horse"
-    dataset = "background"
+    dataset = "horse"
+    # dataset = "background"
 
     d_unary = 65
     d_edge = 11
@@ -71,9 +71,7 @@ def main():
     num_training_images = 1
     num_testing_images = 1
     max_iter = 5
-    inc = 'true'
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
-    plot = 'true'
     data_path = path + '/test/data/' + dataset
     file_path = path + '/saved_files'
 
@@ -84,6 +82,14 @@ def main():
         num_states = 2
     elif dataset == "background":
         num_states = 8
+
+
+    image_segmentation_latent(mode, d_unary, d_edge, num_states, max_height, max_width, num_training_images,
+                              num_testing_images, max_iter, data_path, file_path, inference_type)
+
+
+def image_segmentation_latent(mode, d_unary, d_edge, num_states, max_height, max_width, num_training_images,
+                              num_testing_images, max_iter, data_path, file_path, inference_type):
 
     loader = ImageLoader(max_height, max_width)
 

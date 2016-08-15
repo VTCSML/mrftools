@@ -27,6 +27,7 @@ def main():
     max_iters = [5, 10, 20]
     objective_types = ['primal', 'dual']
     l2_regularizations = [0.001, 0.01, 0.1, 1.0, 10]
+    initialization_flag = True
     inference_types = {'BP': MatrixBeliefPropagator, 'TRBP': MatrixTRBeliefPropagator, 'ConvexBP': ConvexBeliefPropagator}
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
 
@@ -35,19 +36,20 @@ def main():
     images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
 
     # chart frame:
-    wb = Workbook()
     alignment = xlwt.Alignment()
     alignment.horz = xlwt.Alignment.HORZ_RIGHT
     style = xlwt.XFStyle()
     style.alignment = alignment
     style.num_format_str = '#,##0.0000'
 
+    wb = Workbook()
+
     sheet1 = wb.add_sheet('Results')
 
     sheet1.write(0,0,'Max_iter', style)
     sheet1.write(0,1,'TRBP or BP', style)
     sheet1.write(0,2,'Primal or Dual', style)
-    sheet1.write(0, 3, 'L2 regularization', style)
+    sheet1.write(0,3, 'L2 regularization', style)
     sheet1.write(0,4,'training error', style)
     sheet1.write(0,5,'training incon', style)
     sheet1.write(0,6,'testing error', style)
@@ -81,6 +83,8 @@ def main():
                         learner = PairedDual(inference_type, max_iter)
                     else:
                         learner = Learner(inference_type)
+
+                    learner._set_initialization_flag(initialization_flag)
                     learners.append(learner)
                     learner.set_regularization(0.0, l2_regularization)
 

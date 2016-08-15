@@ -1,12 +1,17 @@
 from joblib import Parallel, delayed
 import multiprocessing
 import time
+import xlwt
+from xlwt import Workbook
 
 
 inputs = range(3)
 def processInput(i):
-    time.sleep(5)
-    return i * i
+    wb = Workbook()
+    sheet1 = wb.add_sheet('Results')
+    sheet1.write(0,0,'Max_iter')
+    wb.save(str(i) + 'result.xls')
+    time.sleep(2)
 
 
 
