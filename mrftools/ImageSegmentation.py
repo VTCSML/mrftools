@@ -73,6 +73,7 @@ def image_segmentation(configuration, images, models, labels, names, num_states,
     sheet1.col(7).width = 3000
 
     if len(configuration) == 5:
+        num_states = 2
         max_iter = configuration[0]
         inference_type_name = configuration[1]
         inference_type = configuration[2]
