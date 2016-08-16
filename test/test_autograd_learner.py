@@ -32,7 +32,16 @@ try:
             self.set_up_learner(learner)
             learner.set_regularization(0.0, 1.0)
             gradient_error = check_grad(learner.subgrad_obj, grad(learner.subgrad_obj), weights)
-            print("Gradient error: %f" % gradient_error)
+            print("Gradient error: %x" % gradient_error)
+            assert gradient_error < 1e-1, "Gradient is wrong"
+
+        def test_dual_gradient(self):
+            weights = np.random.randn(8 + 32)
+            learner = AutogradLearner(MatrixBeliefPropagator)
+            self.set_up_learner(learner)
+            learner.set_regularization(0.0, 1.0)
+            gradient_error = check_grad(learner.dual_obj, grad(learner.dual_obj), weights)
+            print("Gradient error: %x" % gradient_error)
             assert gradient_error < 1e-1, "Gradient is wrong"
 
         def test_learner(self):
