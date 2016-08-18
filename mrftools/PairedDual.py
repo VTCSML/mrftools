@@ -15,8 +15,7 @@ class PairedDual(Learner):
         self.bp_iter = bp_iter
 
     def learn(self, weights, callback_f=None):
-        for bp in self.belief_propagators + self.belief_propagators_q:
-            bp.set_max_iter(self.bp_iter)
+        self.set_inference_truncation(self.bp_iter)
         res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         new_weights = res.x
         return new_weights

@@ -69,6 +69,10 @@ class Learner(object):
                 bp.initialize_messages()
             bp.infer(display = 'off')
 
+    def set_inference_truncation(self, bp_iter):
+        for bp in self.belief_propagators + self.belief_propagators_q:
+            bp.set_max_iter(bp_iter)
+
     def get_feature_expectations(self, belief_propagators):
         """Run inference and return the marginal in vector form using the order of self.potentials.
         """
