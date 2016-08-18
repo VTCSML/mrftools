@@ -13,10 +13,10 @@ try:
 
             np.random.seed(0)
 
-            labels = [{0: 2,       2: 1},
-                      {      1: 2, 2: 0},
-                      {0: 2, 1: 3,     },
-                      {0: 0, 1: 2, 2: 3}]
+            labels = [{0: 2,       2: 1, 3: 3},
+                      {      1: 2, 2: 0, 3: 2},
+                      {0: 2, 1: 3,       3: 1},
+                      {0: 0, 1: 2, 2: 3, 3: 0}]
 
             models = []
             for i in range(len(labels)):
@@ -86,24 +86,31 @@ try:
             model.declare_variable(0, num_states)
             model.declare_variable(1, num_states)
             model.declare_variable(2, num_states)
+            model.declare_variable(3, num_states)
 
             model.set_unary_weights(0, np.random.randn(num_states, d))
             model.set_unary_weights(1, np.random.randn(num_states, d))
             model.set_unary_weights(2, np.random.randn(num_states, d))
+            model.set_unary_weights(3, np.random.randn(num_states, d))
 
             model.set_unary_features(0, np.random.randn(d))
             model.set_unary_features(1, np.random.randn(d))
             model.set_unary_features(2, np.random.randn(d))
+            model.set_unary_features(3, np.random.randn(d))
 
             model.set_all_unary_factors()
 
             model.set_edge_factor((0, 1), np.zeros((num_states, num_states)))
             model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
+            model.set_edge_factor((2, 3), np.zeros((num_states, num_states)))
+            model.set_edge_factor((0, 3), np.zeros((num_states, num_states)))
 
             model.set_edge_features((0, 1), np.random.randn(d))
             model.set_edge_features((1, 2), np.random.randn(d))
+            model.set_edge_features((2, 3), np.random.randn(d))
+            model.set_edge_features((0, 3), np.random.randn(d))
 
             return model
 
 except ImportError:
-    pass
+    print "Autograd could not be imported. Skipping tests for AutogradLearner"

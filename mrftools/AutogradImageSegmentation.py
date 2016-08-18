@@ -38,8 +38,6 @@ def main():
 
     learner = AutogradLearner(inference_type)
 
-    learner._set_initialization_flag(initialization_flag)
-
     learner.set_regularization(0.0, 1.0)
 
     for model, states in zip(models, labels):

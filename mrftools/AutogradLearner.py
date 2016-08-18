@@ -12,6 +12,12 @@ from opt import *
 
 
 class AutogradLearner(PairedDual):
+
+    def __init__(self, inference_type):
+        super(AutogradLearner, self).__init__(inference_type)
+
+        self.initialization_flag = True
+
     def learn(self, weights, callback_f=None):
 
         gradient = grad(self.subgrad_obj)
