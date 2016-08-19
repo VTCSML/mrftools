@@ -2,52 +2,42 @@ import unittest
 from mrftools import *
 import numpy as np
 from scipy.optimize import check_grad
+import time
 try:
     from autograd import grad
 
     class TestAutogradLearner(unittest.TestCase):
-
-        def set_up_learner(self, learner):
-            d = 2
-            num_states = 4
-
-            np.random.seed(0)
-
-            labels = [{0: 2,       2: 1, 3: 3},
-                      {      1: 2, 2: 0, 3: 2},
-                      {0: 2, 1: 3,       3: 1},
-                      {0: 0, 1: 2, 2: 3, 3: 0}]
-
-            models = []
-            for i in range(len(labels)):
-                m = self.create_random_model(num_states, d)
-                models.append(m)
-
-            for model, states in zip(models, labels):
-                learner.add_data(states, model)
-
         def test_gradient(self):
-            weights = np.zeros(8 + 32)
-            learner = AutogradLearner(MatrixBeliefPropagator)
-            self.set_up_learner(learner)
-            learner.set_regularization(0.0, 1.0)
+            n = 8
+            k = 2
+            d = 4
+            learner = self.set_up_grid_learner(n, k, d)
+            learner.set_inference_truncation(5)
+            weights = np.random.randn(d * k + k * k * d)
+
             gradient_error = check_grad(learner.subgrad_obj, grad(learner.subgrad_obj), weights)
             print("Gradient error: %x" % gradient_error)
             assert gradient_error < 1e-1, "Gradient is wrong"
 
         def test_dual_gradient(self):
-            weights = np.random.randn(8 + 32)
-            learner = AutogradLearner(MatrixBeliefPropagator)
-            self.set_up_learner(learner)
-            learner.set_regularization(0.0, 1.0)
+            n = 8
+            k = 2
+            d = 4
+            learner = self.set_up_grid_learner(n, k, d)
+            learner.set_inference_truncation(5)
+            weights = np.random.randn(d * k + k * k * d)
+
             gradient_error = check_grad(learner.dual_obj, grad(learner.dual_obj), weights)
             print("Gradient error: %x" % gradient_error)
             assert gradient_error < 1e-1, "Gradient is wrong"
 
         def test_learner(self):
-            weights = np.zeros(8 + 32)
-            learner = AutogradLearner(MatrixBeliefPropagator)
-            self.set_up_learner(learner)
+            n = 8
+            k = 2
+            d = 4
+            learner = self.set_up_grid_learner(n, k, d)
+            learner.set_inference_truncation(5)
+            weights = np.random.randn(d * k + k * k * d)
 
             wr_obj = WeightRecord()
             learner.learn(weights,wr_obj.callback)
@@ -63,9 +53,12 @@ try:
                 assert new_obj >= 0, "Learner objective was not non-negative"
 
         def test_learner_dual(self):
-            weights = np.zeros(8 + 32)
-            learner = AutogradLearner(MatrixBeliefPropagator)
-            self.set_up_learner(learner)
+            n = 8
+            k = 2
+            d = 4
+            learner = self.set_up_grid_learner(n, k, d)
+            learner.set_inference_truncation(5)
+            weights = np.random.randn(d * k + k * k * d)
 
             wr_obj = WeightRecord()
             learner.learn_dual(weights,wr_obj.callback)
@@ -80,37 +73,79 @@ try:
 
                 assert new_obj >= 0, "Learner objective was not non-negative"
 
-        def create_random_model(self, num_states, d):
+        def test_learner_speed(self):
+            n = 20
+            d = 64
+            k = 8
+
+            learner = self.set_up_grid_learner(n, k, d)
+            weights = np.random.randn(d * k + k * k * d)
+
+            learner.set_inference_truncation(10)
+
+            start = time.time()
+            obj = learner.subgrad_grad(weights)
+            obj_time = time.time() - start
+            print("Computing the objective took %f seconds" % obj_time)
+
+            start = time.time()
+            gradient = learner.subgrad_grad(weights)
+            grad_time = time.time() - start
+            print("Computing the standard gradient took %f seconds" % grad_time)
+
+            grad_fun = grad(learner.subgrad_obj)
+
+            start = time.time()
+            gradient = grad_fun(weights)
+            backprop_time = time.time() - start
+            print("Computing the back-propagated gradient took %f seconds" % backprop_time)
+
+        def set_up_grid_learner(self, n, k, d):
+            model, labels = self.create_grid_model(n, k, d)
+
+            learner = AutogradLearner(ConvexBeliefPropagator)
+            learner.add_data(labels, model)
+            return learner
+
+        def create_grid_model(self, length, num_states, feature_dim):
             model = LogLinearModel()
 
-            model.declare_variable(0, num_states)
-            model.declare_variable(1, num_states)
-            model.declare_variable(2, num_states)
-            model.declare_variable(3, num_states)
+            for x in range(length):
+                for y in range(length):
+                    model.declare_variable((x, y), np.random.randn(num_states))
+                    model.set_unary_features((x, y), np.random.randn(feature_dim))
+                    model.set_unary_factor((x, y), np.zeros(num_states))
 
-            model.set_unary_weights(0, np.random.randn(num_states, d))
-            model.set_unary_weights(1, np.random.randn(num_states, d))
-            model.set_unary_weights(2, np.random.randn(num_states, d))
-            model.set_unary_weights(3, np.random.randn(num_states, d))
+            for x in range(length - 1):
+                for y in range(length):
+                    model.set_edge_factor(((x, y), (x + 1, y)), np.random.randn(num_states, num_states))
+                    model.set_edge_factor(((y, x), (y, x + 1)), np.random.randn(num_states, num_states))
 
-            model.set_unary_features(0, np.random.randn(d))
-            model.set_unary_features(1, np.random.randn(d))
-            model.set_unary_features(2, np.random.randn(d))
-            model.set_unary_features(3, np.random.randn(d))
+                    model.set_edge_features(((x, y), (x + 1, y)), np.random.randn(feature_dim))
+                    model.set_edge_features(((y, x), (y, x + 1)), np.random.randn(feature_dim))
 
-            model.set_all_unary_factors()
+            model.create_matrices()
 
-            model.set_edge_factor((0, 1), np.zeros((num_states, num_states)))
-            model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
-            model.set_edge_factor((2, 3), np.zeros((num_states, num_states)))
-            model.set_edge_factor((0, 3), np.zeros((num_states, num_states)))
+            unary_weights = np.random.randn(feature_dim, num_states)
+            pairwise_weights = np.random.randn(feature_dim, num_states, num_states)
+            pairwise_weights = 0.5 * (pairwise_weights + np.transpose(pairwise_weights, [0, 2, 1]))
+            weights = np.concatenate((unary_weights.ravel(), pairwise_weights.ravel()))
 
-            model.set_edge_features((0, 1), np.random.randn(d))
-            model.set_edge_features((1, 2), np.random.randn(d))
-            model.set_edge_features((2, 3), np.random.randn(d))
-            model.set_edge_features((0, 3), np.random.randn(d))
+            model.set_weights(weights)
 
-            return model
+            bp = ConvexBeliefPropagator(model)
+            bp.set_max_iter(50)
+            bp.infer(display='off')
+            bp.load_beliefs()
+
+            labels = dict()
+            for (var, beliefs) in bp.var_beliefs.items():
+                if np.random.rand(1) < 0.9:
+                    labels[var] = np.argmax(beliefs)
+                # else:
+                #     print("Leaving %s latent" % repr(var))
+
+            return model, labels
 
 except ImportError:
     print "Autograd could not be imported. Skipping tests for AutogradLearner"
