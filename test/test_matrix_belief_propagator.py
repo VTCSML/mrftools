@@ -80,9 +80,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
     def test_exactness(self):
         mn = self.create_chain_model()
         bp = MatrixBeliefPropagator(mn)
-
         bp.infer(display='full')
-
         bp.load_beliefs()
 
         bf = BruteForce(mn)
