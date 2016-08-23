@@ -7,7 +7,6 @@ class MaxProductBeliefPropagator(MatrixBeliefPropagator):
     def __init__(self, markov_net):
         super(MaxProductBeliefPropagator, self).__init__(markov_net)
 
-
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
@@ -15,8 +14,6 @@ class MaxProductBeliefPropagator(MatrixBeliefPropagator):
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
             self.belief_mat -= self.belief_mat.max(0)
-
-
 
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
@@ -33,7 +30,6 @@ class MaxProductBeliefPropagator(MatrixBeliefPropagator):
             beliefs -= beliefs.max((0,1))
 
             self.pair_belief_tensor = beliefs
-
 
     def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
