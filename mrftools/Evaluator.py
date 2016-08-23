@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from Learner import Learner
 from ImageLoader import ImageLoader
 from MatrixBeliefPropagator import MatrixBeliefPropagator
+plt.switch_backend('agg')
 
 
 class Evaluator(object):
@@ -55,7 +56,7 @@ class Evaluator(object):
                 bp.infer(display='off')
                 bp.load_beliefs()
 
-                beliefs = np.zeros((images[i].height, images[i].width))
+                beliefs = np.zeros((images[i].height, images[i].width, num_states))
                 label_img = np.zeros((images[i].height, images[i].width))
                 errors = 0
                 baseline = 0
@@ -63,10 +64,14 @@ class Evaluator(object):
 
                 for x in range(images[i].width):
                     for y in range(images[i].height):
-                        beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
+                        beliefs[y, x,:] = np.exp(bp.var_beliefs[(x, y)])
                         if (x, y) in labels[i]:
                             label_img[y, x] = labels[i][(x, y)]
-                            errors += np.abs(labels[i][(x, y)] - np.round(beliefs[y, x]))
+                            # print '*********'
+                            # print  np.argmax( beliefs[y, x] )
+                            # print labels[i][(x, y)]
+                            if np.argmax ( beliefs[y, x,:] ) != labels[i][(x, y)]:
+                                errors += 1
                             baseline += labels[i][(x, y)]
                         else:
                             num_latent += 1
@@ -76,7 +81,7 @@ class Evaluator(object):
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
                 if plot == True:
-                    self.draw_results(images[i], label_img, beliefs)
+                    self.draw_results(images[i], label_img, beliefs[:,:,1])
 
                 if display == 'full':
                     print("Results for the %dth image:" % (i + 1))
@@ -108,7 +113,7 @@ class Evaluator(object):
             return average_errors, total_inconsistency
 
 
-        average_errors = self.evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type,
+        average_errors = self.evaluate_training_images( images, models, labels, names, weights, num_states, num_images, inference_type,
                                  max_iter, inc, plot)
 
         return average_errors
@@ -122,16 +127,20 @@ class Evaluator(object):
             plt.imshow(image, interpolation="nearest")
             plt.subplot(1, p, 2)
             plt.title('true label')
-            plt.imshow(label, interpolation="nearest")
+            seg_label = self.create_img(label)
+            plt.imshow(seg_label)
+            # plt.imshow(label, interpolation="nearest")
             c = 0
             for key in beliefs.keys():
                 plt.subplot(1, p, c + 3)
                 kk = str(key).split('.')
                 ttl =  kk[len(kk)-1][:-2]
                 plt.title(ttl)
-                plt.imshow(beliefs[key], interpolation="nearest")
+                seg_label = self.create_img ( label )
+                plt.imshow(seg_label)
                 c += 1
-            plt.show()
+            # plt.show()
+            plt.savefig('resulting_image')
         else:
             plt.subplot(131)
             plt.imshow(image, interpolation="nearest")
@@ -139,8 +148,21 @@ class Evaluator(object):
             plt.imshow(label, interpolation="nearest")
             plt.subplot(133)
             plt.imshow(beliefs, interpolation="nearest")
-            plt.show()
+            # plt.show()
+            plt.savefig('resulting image')
 
+    def create_img(self, label):
+        color_dic = {0: [[160, 160, 160], 'gray'], 1: [[153, 153, 0], 'dark green'], 2: [[102, 0, 204], 'purple'],
+                     3: [[0, 153, 76], 'green'], 4: [[0, 51, 102], 'blue'], 5: [[102, 0, 0], 'dark red'],
+                     6: [[153, 76, 0], 'brown'], 7: [[255, 153, 51], 'orange']}
+
+        h = label.shape[0]
+        w = label.shape[1]
+        new_seg = np.empty ( (h, w, 3) )
+        for i in range ( 0, h ):
+            for j in range ( 0, w ):
+                new_seg[i, j, :] = color_dic[label[i, j]][0]
+        return new_seg
 
     def evaluate_objective(self, method_list, path):
 

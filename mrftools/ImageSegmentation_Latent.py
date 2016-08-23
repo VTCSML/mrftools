@@ -9,6 +9,8 @@ from Evaluator import Evaluator
 import os
 from opt import WeightRecord
 import pickle
+import copy
+from MaxProductBeliefPropagator import MaxProductBeliefPropagator
 
 
 def learn_image(learn_method, inference_type, models, labels, num_states, names, images, num_training_images, max_iter, max_height,
@@ -21,10 +23,11 @@ def learn_image(learn_method, inference_type, models, labels, num_states, names,
     for model, states in zip(models, labels):
         learner.add_data(states, model)
 
-    for bp in learner.belief_propagators_q:
-        bp.set_max_iter(max_iter)
-    for bp in learner.belief_propagators:
-        bp.set_max_iter(max_iter)
+    if max_iter > 0:
+        for bp in learner.belief_propagators_q:
+            bp.set_max_iter(max_iter)
+        for bp in learner.belief_propagators:
+            bp.set_max_iter(max_iter)
 
     wr_obj = WeightRecord()
     new_weight = learner.learn(weights, wr_obj.callback)
@@ -59,26 +62,27 @@ def learn_image(learn_method, inference_type, models, labels, num_states, names,
 
 
 def main():
-    # mode = "latent"
-    mode = "observed"
+    mode = "latent"
+    # mode = "observed"
     # dataset = "horse"
     dataset = "background"
 
     d_unary = 65
     d_edge = 11
-    max_height = 30
-    max_width = 30
+    max_height = 10
+    max_width = 10
     num_training_images = 1
     num_testing_images = 1
-    max_iter = 5
+    max_iter = 0
     inc = 'true'
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
     plot = 'true'
-    data_path = path + '/test/data/' + dataset
+    data_path = path + '/data/' + dataset
     file_path = path + '/saved_files'
 
     # inference_type = MatrixBeliefPropagator
-    inference_type = MatrixTRBeliefPropagator
+    # inference_type = MatrixTRBeliefPropagator
+    inference_type = MaxProductBeliefPropagator
 
     if dataset == "horse":
         num_states = 2
@@ -88,6 +92,10 @@ def main():
     loader = ImageLoader(max_height, max_width)
 
     images, models, labels, names = loader.load_all_images_and_labels(data_path + '/train', num_states, num_training_images)
+
+    true_label = []
+    true_label = copy.deepcopy(labels)
+
 
     weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
     Eval = Evaluator ( max_height, max_width )
@@ -113,10 +121,10 @@ def main():
 
         method_list = []
         # ########################## subgradient Objective ###########################
-        sub_dic = learn_image ( Learner, inference_type, models, labels, num_states , names, images, num_training_images, max_iter,
-                                max_height, max_width, weights )
+        sub_dic = learn_image(Learner, inference_type, models, labels, num_states , names, images, num_training_images, max_iter,
+                                max_height, max_width, weights)
         method_list.append ( sub_dic )
-        f = open ( file_path + '/subgrad_time.txt', 'w' )
+        f = open ( file_path + '/subgrad_time.txt', 'w')
         pickle.dump ( sub_dic['time'], f )
         f.close ( )
 
@@ -163,17 +171,35 @@ def main():
     ########################## plot images ###########################
     weights_dic = {}
     for i in range ( 0, len ( method_list ) ):
+        print '-------------------'
         new_weight = method_list[i]['final_weight']
         weights_dic[method_list[i]['method']] = new_weight
+        print new_weight
 
-    Eval.plot_images( images, models, labels, names, weights_dic, num_states, num_training_images,
-                       inference_type, max_iter )
+        if num_training_images > 0:
+            if inc == True:
+                train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels, names, new_weight, num_states, num_training_images, inference_type, max_iter, inc, plot = 'false')
+            else:
+                train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weight, num_states, num_training_images, inference_type, max_iter, inc, plot = 'false')
+            print ("Average Train Error rate: %f" % train_errors + " for method " +  str(method_list[i]['method']))
 
-    if num_testing_images > 0:
-        images, models, labels, names = loader.load_all_images_and_labels ( data_path + '/test', num_states,
-                                                                            num_testing_images )
-        Eval.plot_images( images, models, labels, names, weights_dic, num_states, num_testing_images,
+
+        if num_testing_images > 0:
+            if inc == True:
+                test_errors, test_total_inconsistency = Eval.evaluate_testing_images(data_path + '/test', new_weight, num_states, num_testing_images, inference_type, max_iter, inc, plot = 'false')
+            else:
+                test_errors = Eval.evaluate_testing_images(data_path + '/test', new_weight, num_states, num_testing_images, inference_type, max_iter, inc, plot = 'false')
+            print ("Average Test Error rate: %f" % test_errors + " for method " + str(method_list[i]['method']))
+
+
+
+    Eval.plot_images( images, models, true_label, names, weights_dic, num_states, num_training_images,
                            inference_type, max_iter )
+
+    images, models, labels, names = loader.load_all_images_and_labels ( data_path + '/test', num_states,
+                                                                        num_testing_images )
+    Eval.plot_images( images, models, labels, names, weights_dic, num_states, num_testing_images,
+                               inference_type, max_iter )
 
 
 
