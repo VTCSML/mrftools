@@ -213,8 +213,15 @@ def make_grad_logsumexp(ans, matrix, dim = None):
 def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T
 
+def make_grad_sparse_dot(ans, full_matrix, sparse_matrix):
+    def gradient_product(g):
+        return sparse_matrix.dot(g.T).T
+    return gradient_product
+
+
 try:
-    sparse_dot.defgrad(lambda ans, full_matrix, sparse_matrix : make_grad_dot(0, ans, full_matrix, sparse_matrix.todense()))
+    # sparse_dot.defgrad(lambda ans, full_matrix, sparse_matrix : make_grad_dot(0, ans, full_matrix, sparse_matrix.todense()))
+    sparse_dot.defgrad(make_grad_sparse_dot)
     logsumexp.defgrad(make_grad_logsumexp)
 except AttributeError:
     pass
