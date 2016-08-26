@@ -88,5 +88,15 @@ class TestMaxProductBeliefPropagator(unittest.TestCase):
             unary_belief = np.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                print np.argmax(pair_belief), np.argmax(unary_belief)
-                assert (np.argmax(pair_belief) == np.argmax(unary_belief)), "unary and pairwise beliefs are inconsistent"
+                print pair_belief, unary_belief
+                assert np.allclose ( pair_belief, unary_belief ), "unary and pairwise beliefs are inconsistent"
+
+    def test_exactness(self):
+        mn = self.create_chain_model()
+        bp = MaxProductBeliefPropagator(mn)
+        bp.infer(display='full')
+        bp.load_beliefs()
+
+        bf = BruteForce(mn)
+        assert (np.array_equal(bp.belief_mat,bf.map_inference())), "beliefs are not exact"
+
