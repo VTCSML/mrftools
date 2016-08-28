@@ -11,24 +11,19 @@ class MaxProductLinearProgramming(MaxProductBeliefPropagator):
 
     def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
-        belief_mat = self.mn.unary_mat + self.conditioning_mat
-        belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
+        message_sum = sparse_dot(self.message_mat, self.mn.message_to_map)
 
-        belief_mat -= logsumexp(belief_mat, 0)
+        belief_mat = self.mn.unary_mat + self.conditioning_mat
+        belief_mat += message_sum
 
         adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
                                                                      self.message_mat[:, :self.mn.num_edges]))
         adjusted_message_prod += belief_mat[:, self.mn.message_from]
 
-        messages = np.squeeze(adjusted_message_prod.max(1))
+        incoming_messages = np.squeeze(adjusted_message_prod.max(1))
 
-        messages = 0.5 * messages
-        term_2 = -0.5 * (belief_mat[:, self.mn.message_to] - self.message_mat)
-        messages = messages + term_2
-
-        messages = np.nan_to_num(messages - messages.max(0))
-
-        # print messages
+        outgoing_messages = message_sum[:, self.mn.message_to] - self.message_mat
+        messages = 0.5 * np.nan_to_num(incoming_messages - outgoing_messages)
 
         change = np.sum(np.abs(messages - self.message_mat))
 
