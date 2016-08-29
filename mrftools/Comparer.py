@@ -118,12 +118,12 @@ def main():
                         print("Training:")
                         if inc == True:
                             train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels,
-                                                                                                    names, new_weights, 2,
+                                                                                                    names, new_weights,
                                                                                                     num_training_images,
                                                                                                     inference_type,
                                                                                                     max_iter, inc, plot)
                         else:
-                            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2,
+                            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights,
                                                                          num_training_images,
                                                                          inference_type, max_iter, inc, plot)
 

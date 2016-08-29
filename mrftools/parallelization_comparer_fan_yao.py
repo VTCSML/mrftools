@@ -25,18 +25,14 @@ for max_iter in max_iters:
                 configuration = (max_iter, inference_type_name, inference_type, objective_type, l2_regularization)
                 comparing_set.append(configuration)
 
-
-
-print len(comparing_set)
-
 num_states = 2
 d_unary = 65
 d_edge = 11
 path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
-max_height = 10
-max_width = 10
-num_training_images = 2
-num_testing_images = 2
+max_height = 5
+max_width = 5
+num_training_images = 1
+num_testing_images = 0
 inc = True
 plot = False
 initialization_flag = True
@@ -48,10 +44,12 @@ style.alignment = alignment
 style.num_format_str = '#,##0.0000'
 
 loader = ImageLoader(max_height, max_width)
-images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
+images, models, labels, names = loader.load_all_images_and_labels(path+'/test/data/horse/train', 2, num_training_images)
 
 start = time.time()
 num_cores = multiprocessing.cpu_count()
+
+
 results = Parallel(n_jobs=num_cores)(
     delayed(ImageSegmentation.image_segmentation)(configuration, images, models, labels,
                                                   names, num_states, d_unary, d_edge, path, max_height, max_width,

@@ -42,20 +42,27 @@ class Learner(object):
         else:
             assert self.weight_dim == model.weight_dim, "Parameter dimensionality did not match"
 
-        model_q = copy.deepcopy(model)
-        self.models_q.append(model_q)
+        # model_q = copy.deepcopy(model)
+        #
+        # self.models_q.append(model_q)
+        #
+        #
+        # bp_q = self.inference_type(model_q)
 
-        bp_q = self.inference_type(model_q)
+        self.models_q.append(model)
+
+        bp_q = self.inference_type(model)
         for (var, state) in labels.items():
             bp_q.condition(var, state)
 
-        for var in model_q.variables:
+        for var in model.variables:
             if var not in labels.keys():
                 self.fully_observed = False
 
         self.belief_propagators_q.append(bp_q)
 
         self.num_examples += 1
+        print ("Number of images added: %d" % self.num_examples)
 
     def _set_initialization_flag(self, flag):
         self.initialization_flag = flag

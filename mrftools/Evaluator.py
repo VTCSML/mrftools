@@ -39,7 +39,7 @@ class Evaluator(object):
 
                 self.draw_results(images[i], label_img, beliefs_dic)
 
-    def evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
+    def evaluate_training_images(self, images, models, labels, names, weights, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
         # images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
@@ -103,15 +103,15 @@ class Evaluator(object):
 
         images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
         if inc == True:
-            average_errors, total_inconsistency = self.evaluate_training_images(images, models, labels, names, weights, num_states, num_images, inference_type,
+            average_errors, total_inconsistency = self.evaluate_training_images(images, models, labels, names, weights, num_images, inference_type,
                                      max_iter, inc, plot)
             return average_errors, total_inconsistency
 
+        else:
 
-        average_errors = self.evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type,
-                                 max_iter, inc, plot)
-
-        return average_errors
+            average_errors = self.evaluate_training_images(images, models, labels, names, weights, num_images, inference_type,
+                                     max_iter, inc, plot)
+            return average_errors
 
     def draw_results(self, image, label, beliefs):
         if isinstance(beliefs, dict):
