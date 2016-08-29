@@ -94,7 +94,6 @@ class BruteForce(object):
 
         return p / np.sum(p)
 
-
     def map_inference(self):
         """Compute the best states configurations for MAP inference."""
         variables = list(self.mn.variables)
@@ -122,6 +121,5 @@ class BruteForce(object):
 
         # print belief_mat
         return belief_mat
-
 
 
