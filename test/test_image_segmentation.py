@@ -274,7 +274,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
         paired_weights = learner.learn(subgrad_weights, None)
-        assert (np.allclose(paired_weights, subgrad_weights)), "Model learned by subgrad is different from paired dual"
+        assert (np.allclose(paired_weights, subgrad_weights, atol=0.01)), "Model learned by subgrad is different from paired dual"
 
         # =====================================
         # first train by EM

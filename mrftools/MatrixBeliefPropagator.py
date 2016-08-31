@@ -183,13 +183,12 @@ class MatrixBeliefPropagator(Inference):
 
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
-
-    if matrix.size <= 1:
-        return matrix
-
-    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
-    with np.errstate(divide='ignore', under='ignore'):
-        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+    try:
+        return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+    except FloatingPointError:
+        max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+        with np.errstate(under='ignore', divide='ignore'):
+            return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T
