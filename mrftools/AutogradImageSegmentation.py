@@ -18,11 +18,11 @@ def main():
     d_unary = 65
     num_states = 2
     d_edge = 11
-    max_height = 10
-    max_width = 10
+    max_height = 20
+    max_width = 20
     num_training_images = 2
     num_testing_images = 1
-    max_iter = 5
+    max_iter = 10
     inc = True
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
     plot = False

@@ -195,16 +195,17 @@ class MatrixBeliefPropagator(Inference):
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
 
-    if matrix.size <= 1:
-        return matrix
+#    if matrix.size <= 1:
+#        return matrix
 
-    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
-    with np.errstate(divide='ignore', under='ignore'):
-        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+#    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+#    with np.errstate(divide='ignore', under='ignore'):
+#        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+    max_val = matrix.max(axis=dim, keepdims=True)
+    return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 
 def make_grad_logsumexp(ans, matrix, dim = None):
-    # TODO make this compatible with new logsumexp
     def gradient_product(g):
         return np.full(matrix.shape, g) * np.exp(matrix - np.full(matrix.shape, ans))
     return gradient_product
