@@ -158,3 +158,19 @@ class Learner(object):
         grad += np.squeeze(self.tau_p)
 
         return grad
+
+    def dual_obj(self, weights, options=None):
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+
+        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
+        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        self.term_q_p = term_p - term_q
+
+        objec = 0.0
+        # add regularization penalties
+        objec += self.l1_regularization * np.sum(np.abs(weights))
+        objec += 0.5 * self.l2_regularization * weights.dot(weights)
+        objec += self.term_q_p
+
+        return objec
