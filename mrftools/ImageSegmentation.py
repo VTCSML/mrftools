@@ -13,8 +13,10 @@ from xlwt import Workbook
 from opt import WeightRecord
 import pickle
 import resource
+from memory_profiler import profile
 
 
+@profile
 def main():
     memory_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print 'Initial Memory usage: %s (kb)' % memory_start
@@ -23,17 +25,17 @@ def main():
     d_unary = 65
     d_edge = 11
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
-    max_height = 10
-    max_width = 10
-    num_training_images = 4
-    num_testing_images = 4
+    max_height = 30
+    max_width = 30
+    num_training_images = 1
+    num_testing_images = 1
     # inference_type = MatrixBeliefPropagator
     # inference_type = MatrixTRBeliefPropagator
     inference_type = ConvexBeliefPropagator
     inference_type_name = 'ConvexBP'
     max_iter = 5
     inc = True
-    plot = False
+    plot = True
     initialization_flag = True
     objective_type = 'primal'
     l2_regularization = 1.0
@@ -44,18 +46,22 @@ def main():
     style.alignment = alignment
     style.num_format_str = '#,##0.0000'
 
-    loader = ImageLoader(max_height, max_width)
-    images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
+    loader = ImageLoader(max_width, max_height)
+    images, models, labels, names = loader.load_all_images_and_labels(path+'/data/horse/train', 2, num_training_images)
     memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print 'Memory usage after loading the data: %s (kb)' % (memory_new - memory_start)
 
     configuration = (max_iter, inference_type_name, inference_type, objective_type, l2_regularization)
 
-    image_segmentation(memory_start, configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images,
+    image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images,
                        inc, plot, initialization_flag, style)
 
 
-def image_segmentation(memory_start, configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images,
+    memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    print 'Memory usage: %s (kb)' % (memory_new - memory_start)
+
+
+def image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images,
                        inc, plot, initialization_flag, style):
 
     wb = Workbook()
@@ -106,8 +112,8 @@ def image_segmentation(memory_start, configuration, images, models, labels, name
     for model, states in zip(models, labels):
      learner.add_data(states, model)
 
-    memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print 'Memory usage after adding data to learner: %s (kb)' % (memory_new - memory_start)
+    # memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # print 'Memory usage after adding data to learner: %s (kb)' % (memory_new - memory_start)
 
     for bp in learner.belief_propagators_q:
      bp.set_max_iter(max_iter)
@@ -140,47 +146,46 @@ def image_segmentation(memory_start, configuration, images, models, labels, name
     learner_dic['weights'] = weight_record
 
 
-    memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print 'Memory usage after calculating the weights: %s (kb)' % (memory_new - memory_start)
+    # memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # print 'Memory usage after calculating the weights: %s (kb)' % (memory_new - memory_start)
 
 
 
     # save weights:
-    saved_path_time = path + '/saved_files_time/'
-    saved_path_weights = path + '/saved_files_weights/'
+    saved_path= path + '/saved/'
 
-    saved_file_name = str(max_iter) + inference_type_name + str(objective_type) + str(l2_regularization)
+    saved_file_name = str(num_training_images) + '_' + str(num_testing_images) + '_' + str(max_iter) + inference_type_name + str(objective_type) + str(l2_regularization)
 
 
-    f = open(saved_path_time + saved_file_name + 'time.txt', 'w')
+    f = open(saved_path + saved_file_name + 'time.txt', 'w')
     pickle.dump(learner_dic['time'], f)
     f.close()
 
-    f = open(saved_path_weights + saved_file_name + 'weights.txt', 'w')
+    f = open(saved_path + saved_file_name + 'weights.txt', 'w')
     pickle.dump(learner_dic['weights'], f)
     f.close()
 
-    memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print 'Memory usage after storing the weights: %s (kb)' % (memory_new - memory_start)
+    # memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # print 'Memory usage after storing the weights: %s (kb)' % (memory_new - memory_start)
 
     # Evaluating new weights
+
+    print "New weights learned, start evaluating:"
 
 
     unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
     pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states ** 2))
-    print("Unary weights:\n" + repr(unary_mat))
-    print("Pairwise weights:\n" + repr(pair_mat))
+    # print("Unary weights:\n" + repr(unary_mat))
+    # print("Pairwise weights:\n" + repr(pair_mat))
+    print new_weights
 
-    print("Image size:\n" + repr(max_width))
-    print("Num of Iterations:\n" + repr(max_iter))
-
-    Eval = Evaluator(max_height, max_width)
+    Eval = Evaluator(max_width, max_height)
     if num_training_images > 0:
         print("Training:")
         if inc == True:
-            train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels, names, new_weights, num_training_images, inference_type, max_iter, inc, plot)
+            train_errors, train_total_inconsistency = Eval.evaluate_training_images(saved_path, saved_file_name, images, models, labels, names, new_weights, num_training_images, inference_type, max_iter, inc, plot)
         else:
-            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, num_training_images, inference_type, max_iter, inc, plot)
+            train_errors = Eval.evaluate_training_images(saved_path, saved_file_name, images, models, labels, names, new_weights, num_training_images, inference_type, max_iter, inc, plot)
         print ("Average Train Error rate: %f" % train_errors)
 
     sheet1.write(1, 4, train_errors, style)
@@ -192,11 +197,11 @@ def image_segmentation(memory_start, configuration, images, models, labels, name
     if num_testing_images > 0:
         print("Test:")
         if inc == True:
-            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(path+'/test/test', new_weights, num_states,
+            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(saved_path, saved_file_name, path+'/data/horse/test', new_weights, num_states,
                                                                                  num_testing_images, inference_type,
                                                                                  max_iter, inc, plot)
         else:
-            test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, num_states, num_testing_images,
+            test_errors = Eval.evaluate_testing_images(saved_path, saved_file_name, path+'/data/horse/test', new_weights, num_states, num_testing_images,
                                                        inference_type, max_iter, inc, plot)
         print ("Average Test Error rate: %f" % test_errors)
 
@@ -215,10 +220,9 @@ def image_segmentation(memory_start, configuration, images, models, labels, name
     print ("Time elapsed: %f" % elapsed)
 
     sheet1.write(1, 8, elapsed, style)
-    saved_file_name = str(max_iter) + inference_type_name + str(objective_type) + str(l2_regularization)
+    # saved_file_name = str(max_iter) + inference_type_name + str(objective_type) + str(l2_regularization)
 
-    saved_path_results = path + '/saved_files_results/'
-    wb.save(saved_path_results + saved_file_name + 'Results.xls')
+    wb.save(saved_path + saved_file_name + 'Results.xls')
 
 
 if __name__ == "__main__":
