@@ -35,23 +35,14 @@ class Learner(object):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
         # self.models.append(model)
-        self.belief_propagators.append(self.inference_type(model))
+        self.belief_propagators.append(self.inference_type(copy.copy(model)))
 
         if self.weight_dim == None:
             self.weight_dim = model.weight_dim
         else:
             assert self.weight_dim == model.weight_dim, "Parameter dimensionality did not match"
 
-        # model_q = copy.deepcopy(model)
-        #
-        # self.models_q.append(model_q)
-        #
-        #
-        # bp_q = self.inference_type(model_q)
-
-        # self.models_q.append(model)
-
-        bp_q = self.inference_type(model)
+        bp_q = self.inference_type(copy.copy(model))
         for (var, state) in labels.items():
             bp_q.condition(var, state)
 
