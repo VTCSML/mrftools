@@ -6,6 +6,7 @@ import os
 import itertools
 from LogLinearModel import LogLinearModel
 import time
+import PIL.ImageChops
 
 
 class ImageLoader(object):
@@ -16,8 +17,31 @@ class ImageLoader(object):
 
     def load_image(self, path):
         img = Image.open(path)
+        img1 = img
+        #
+        # img1.save('test_image1.gif')
+        # print img1.width
+        # print img1.height
         if self.max_width > 0 and self.max_height > 0:
             img = img.resize((self.max_width, self.max_height), resample=PIL.Image.BICUBIC)
+
+        # img2 = img
+        # img2.save('test_image2.gif')
+        # c = 0
+        # print 'image----------'
+        # print img1.width
+        # print img1.height
+        # print '------------'
+        # print img2.width
+        # print img2.height
+        # for x in range(img1.width):
+        #     for y in range(img1.height):
+        #         # print x,y
+        #         if (img1.load()[x, y] != img2.load()[x, y]):
+        #             c += 1
+        #
+        # print c
+
         return img
 
     def load_label_img(self, image_name):
@@ -26,8 +50,40 @@ class ImageLoader(object):
 
         label_img = Image.fromarray(label_mat.astype(np.uint8))
 
+        lbl1 = label_img
+
+
+
+
         if self.max_width > 0 and self.max_height > 0:
             label_img = label_img.resize((self.max_width, self.max_height), resample=PIL.Image.NEAREST)
+
+        # lbl2 = label_img
+        # lbl2.save("lbl2.gif")
+        # diffbox =  PIL.ImageChops.difference ( ll1, ll2 ).getbbox()
+        # print diffbox
+        # diffImage = ll1.crop ( diffbox )
+        # print 'git it.......'
+        # diffImage.save ( "diffOut_label.gif" )
+
+        # ll1 = lbl1.load()
+        # ll2 = lbl2.load()
+        # c = 0
+        # print 'label------------'
+        # print lbl1.width
+        # print lbl1.height
+        # print '------------'
+        # print lbl2.width
+        # print lbl2.height
+        # for x in range(lbl1.width):
+        #     for y in range(lbl1.height):
+        #         # print x,y
+        #         if (ll1[x, y] != ll2[x, y]):
+        #             c += 1
+        #
+        # print c
+
+
 
         return label_img
 

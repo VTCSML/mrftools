@@ -11,7 +11,7 @@ class MaxProductBeliefPropagator(MatrixBeliefPropagator):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            self.belief_mat = self.mn.unary_mat + self.conditioning_mat
+            self.belief_mat = self.mn.unary_mat + self.augmented_mat
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
             self.belief_mat -= self.belief_mat.max(0)

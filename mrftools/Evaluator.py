@@ -32,13 +32,15 @@ class Evaluator(object):
                     label_img = np.zeros((images[i].height, images[i].width))
                     for x in range(images[i].width):
                         for y in range(images[i].height):
-                            beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
+                            beliefs[y, x] = np.argmax(np.exp(bp.var_beliefs[(x, y)]))
+                            # beliefs[y, x, :] = np.argmax ( beliefs[y, x, :] )
+
                             if (x, y) in labels[i]:
                                 label_img[y, x] = labels[i][(x, y)]
 
                     beliefs_dic[key] = beliefs
 
-                self.draw_results(images[i], label_img, beliefs_dic)
+                self.draw_results(images[i], label_img, beliefs_dic, names[i])
 
     def evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
         np.set_printoptions(precision=10)
@@ -81,7 +83,7 @@ class Evaluator(object):
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
                 if plot == True:
-                    self.draw_results(images[i], label_img, beliefs[:,:,1])
+                    self.draw_results(images[i], label_img, beliefs[:,:,1],names[i])
 
                 if display == 'full':
                     print("Results for the %dth image:" % (i + 1))
@@ -118,7 +120,7 @@ class Evaluator(object):
 
         return average_errors
 
-    def draw_results(self, image, label, beliefs):
+    def draw_results(self, image, label, beliefs, name):
         if isinstance(beliefs, dict):
             num_methods = len(beliefs)
             p = num_methods + 2
@@ -136,11 +138,12 @@ class Evaluator(object):
                 kk = str(key).split('.')
                 ttl =  kk[len(kk)-1][:-2]
                 plt.title(ttl)
-                seg_label = self.create_img ( label )
-                plt.imshow(seg_label)
+                seg_label = self.create_img ( np.round(beliefs[key] ))
+                # print seg_label
+                res = plt.imshow(seg_label)
                 c += 1
             # plt.show()
-            plt.savefig('resulting_image')
+            plt.savefig('../saved_files/' + name)
         else:
             plt.subplot(131)
             plt.imshow(image, interpolation="nearest")
@@ -149,7 +152,7 @@ class Evaluator(object):
             plt.subplot(133)
             plt.imshow(beliefs, interpolation="nearest")
             # plt.show()
-            plt.savefig('resulting image')
+            plt.savefig('../saved_files/' + name)
 
     def create_img(self, label):
         color_dic = {0: [[160, 160, 160], 'gray'], 1: [[153, 153, 0], 'dark green'], 2: [[102, 0, 204], 'purple'],

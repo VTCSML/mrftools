@@ -25,6 +25,7 @@ class Learner(object):
         self.weight_dim = None
         self.fully_observed = True
         self.initialization_flag = False
+        self.loss_augmented = False
 
     def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -35,7 +36,12 @@ class Learner(object):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
         self.models.append(model)
-        self.belief_propagators.append(self.inference_type(model))
+        bp = self.inference_type(model)
+        if self.loss_augmented == True:
+            for (var, state) in labels.items ( ):
+                bp.augment_loss(var, state)
+
+        self.belief_propagators.append(bp)
 
         if self.weight_dim == None:
             self.weight_dim = model.weight_dim
@@ -158,3 +164,19 @@ class Learner(object):
         grad += np.squeeze(self.tau_p)
 
         return grad
+
+    def dual_obj(self, weights, options=None):
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+
+        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
+        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        self.term_q_p = term_p - term_q
+
+        objec = 0.0
+        # add regularization penalties
+        objec += self.l1_regularization * np.sum(np.abs(weights))
+        objec += 0.5 * self.l2_regularization * weights.dot(weights)
+        objec += self.term_q_p
+
+        return objec

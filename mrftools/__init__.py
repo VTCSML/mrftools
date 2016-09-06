@@ -4,6 +4,7 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator
 from Learner import Learner
 from EM import EM
 from PairedDual import PairedDual
+from PrimalDual import PrimalDual
 from ApproxMaxLikelihood import ApproxMaxLikelihood
 from BruteForce import BruteForce
 from GibbsSampler import GibbsSampler
@@ -15,5 +16,5 @@ from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from GradientInferenceLearner import GradientInferenceLearner
 from opt import *
 from ConvexBeliefPropagator import ConvexBeliefPropagator
-from MaxProductBeliefPropagator import *
+from MaxProductBeliefPropagator import MaxProductBeliefPropagator
 

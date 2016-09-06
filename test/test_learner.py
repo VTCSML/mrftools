@@ -115,6 +115,25 @@ class TestLearner(unittest.TestCase):
             new_obj = learner.subgrad_obj(weight_record[i, :])
             assert new_obj >= 0, "Paired dual objective was not non-negative"
 
+    def test_primal_dual(self):
+        weights = np.zeros(8 + 32)
+        learner = PrimalDual(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+
+        wr_obj = WeightRecord()
+        learner.learn(weights,wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
+
+        old_obj = learner.subgrad_obj(weight_record[0,:])
+        new_obj = learner.subgrad_obj(weight_record[-1,:])
+        assert (new_obj <= old_obj), "Primal dual objective did not decrease"
+
+        for i in range(l):
+            new_obj = learner.subgrad_obj(weight_record[i, :])
+            assert new_obj >= 0, "Primal dual objective was not non-negative"
+
     def create_random_model(self, num_states, d):
         model = LogLinearModel()
 

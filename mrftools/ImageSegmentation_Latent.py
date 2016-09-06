@@ -4,6 +4,7 @@ from Learner import Learner
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from EM import EM
 from PairedDual import PairedDual
+from PrimalDual import PrimalDual
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from Evaluator import Evaluator
 import os
@@ -69,6 +70,8 @@ def main():
 
     d_unary = 65
     d_edge = 11
+    # max_height = 240
+    # max_width = 320
     max_height = 10
     max_width = 10
     num_training_images = 1
@@ -89,16 +92,19 @@ def main():
     elif dataset == "background":
         num_states = 8
 
-    loader = ImageLoader(max_height, max_width)
+    loader = ImageLoader(max_width, max_height)
 
     images, models, labels, names = loader.load_all_images_and_labels(data_path + '/train', num_states, num_training_images)
+
+    # print images[0].width
+    # print images[0].height
 
     true_label = []
     true_label = copy.deepcopy(labels)
 
 
     weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
-    Eval = Evaluator ( max_height, max_width )
+    Eval = Evaluator ( max_width, max_height )
 
     if mode == "latent":
         # # every four pixel is unknown
@@ -107,9 +113,10 @@ def main():
         #         labels[0][(k[0],k[1])] = -100
 
         # a block in the middle of image is unknown
-        block_size = [8, 8]
+        block_size = [2, 2]
         x_position = max_width / 2
         y_position = max_height / 2
+
 
         for i in range ( (x_position - block_size[0] / 2), (x_position + block_size[0] / 2) ):
             for j in range ( (y_position - block_size[1] / 2), (y_position + block_size[1] / 2) ):
@@ -120,6 +127,19 @@ def main():
                 del labels[0][k]
 
         method_list = []
+
+        # ########################## PrimalDual Objective ###########################
+        pd_dic = learn_image(PrimalDual, inference_type, models, labels, num_states , names, images, num_training_images, max_iter,
+                                max_height, max_width, weights)
+        method_list.append ( pd_dic )
+        f = open ( file_path + '/primalDual_time.txt', 'w')
+        pickle.dump ( pd_dic['time'], f )
+        f.close ( )
+
+        f = open ( file_path + '/primalDual_step_weight.txt', 'w' )
+        pickle.dump ( pd_dic['weights'], f )
+        f.close ( )
+
         # ########################## subgradient Objective ###########################
         sub_dic = learn_image(Learner, inference_type, models, labels, num_states , names, images, num_training_images, max_iter,
                                 max_height, max_width, weights)
@@ -174,7 +194,7 @@ def main():
         print '-------------------'
         new_weight = method_list[i]['final_weight']
         weights_dic[method_list[i]['method']] = new_weight
-        print new_weight
+        # print new_weight
 
         if num_training_images > 0:
             if inc == True:
@@ -193,8 +213,12 @@ def main():
 
 
 
+    # print weights_dic
+    # ###################### plot training image
     Eval.plot_images( images, models, true_label, names, weights_dic, num_states, num_training_images,
                            inference_type, max_iter )
+
+    # ###################### plot testing image
 
     images, models, labels, names = loader.load_all_images_and_labels ( data_path + '/test', num_states,
                                                                         num_testing_images )

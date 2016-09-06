@@ -22,7 +22,7 @@ class MatrixBeliefPropagator(Inference):
 
         self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
-        self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
+        self.augmented_mat = np.zeros( (self.mn.max_states, len( self.mn.variables )) )
         self.max_iter = 300
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
@@ -33,10 +33,15 @@ class MatrixBeliefPropagator(Inference):
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
 
+    def augment_loss(self, var, state):
+        i = self.mn.var_index[var]
+        self.augmented_mat[:, i] = 1
+        self.augmented_mat[state, i] = -1
+
     def condition(self, var, state):
         i = self.mn.var_index[var]
-        self.conditioning_mat[:, i] = -np.inf
-        self.conditioning_mat[state, i] = 0
+        self.augmented_mat[:, i] = -np.inf
+        self.augmented_mat[state, i] = 0
         self.conditioned[i] = True
 
         if np.all(self.conditioned):
@@ -48,7 +53,7 @@ class MatrixBeliefPropagator(Inference):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            self.belief_mat = self.mn.unary_mat + self.conditioning_mat
+            self.belief_mat = self.mn.unary_mat + self.augmented_mat
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
             self.belief_mat -= logsumexp(self.belief_mat, 0)
@@ -183,13 +188,12 @@ class MatrixBeliefPropagator(Inference):
 
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
-
-    if matrix.size <= 1:
-        return matrix
-
-    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
-    with np.errstate(divide='ignore', under='ignore'):
-        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+    try:
+        return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+    except FloatingPointError:
+        max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+        with np.errstate(under='ignore', divide='ignore'):
+            return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T
