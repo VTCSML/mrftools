@@ -1,8 +1,11 @@
 import numpy as np
+# import matplotlib
 import matplotlib.pyplot as plt
+import pylab
 from Learner import Learner
 from ImageLoader import ImageLoader
 from MatrixBeliefPropagator import MatrixBeliefPropagator
+from memory_profiler import profile
 
 
 class Evaluator(object):
@@ -39,7 +42,8 @@ class Evaluator(object):
 
                 self.draw_results(images[i], label_img, beliefs_dic)
 
-    def evaluate_training_images(self, images, models, labels, names, weights, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
+    # @profile
+    def evaluate_training_images(self, saved_path, saved_file_name, images, models, labels, names, weights, num_images, inference_type, max_iter= 300, training = True, inc= False, plot = True, display='final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
         # images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
@@ -76,7 +80,8 @@ class Evaluator(object):
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
                 if plot == True:
-                    self.draw_results(images[i], label_img, beliefs)
+                    self.draw_results(i, images[i], label_img, beliefs, saved_path, saved_file_name, training)
+
 
                 if display == 'full':
                     print("Results for the %dth image:" % (i + 1))
@@ -89,31 +94,34 @@ class Evaluator(object):
                         print("inconsistency of %s: %f" % (names[i], inconsistency))
 
                 average_errors += error_rate
+                # print ("average errors: %f" % average_errors)
 
-            average_errors = np.true_divide(average_errors, i + 1)
+
+        average_errors = np.true_divide(average_errors, i + 1)
         if inc == True:
             print("Overall inconsistency: %f" % total_inconsistency)
             return average_errors, total_inconsistency
 
         return average_errors
 
-    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final'):
+    def evaluate_testing_images(self, saved_path, saved_file_name, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final'):
         np.set_printoptions(precision=10)
+        training = 'false'
         loader = ImageLoader(self.max_width, self.max_height)
 
         images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
         if inc == True:
-            average_errors, total_inconsistency = self.evaluate_training_images(images, models, labels, names, weights, num_images, inference_type,
-                                     max_iter, inc, plot)
+            average_errors, total_inconsistency = self.evaluate_training_images(saved_path, saved_file_name, images, models, labels, names, weights, num_images, inference_type,
+                                     max_iter, training, inc, plot)
             return average_errors, total_inconsistency
 
         else:
 
-            average_errors = self.evaluate_training_images(images, models, labels, names, weights, num_images, inference_type,
-                                     max_iter, inc, plot)
+            average_errors = self.evaluate_training_images(saved_path, saved_file_name, images, models, labels, names, weights, num_images, inference_type,
+                                     max_iter, training, inc, plot)
             return average_errors
 
-    def draw_results(self, image, label, beliefs):
+    def draw_results(self, i, image, label, beliefs, saved_path, saved_file_name, training):
         if isinstance(beliefs, dict):
             num_methods = len(beliefs)
             p = num_methods + 2
@@ -131,7 +139,11 @@ class Evaluator(object):
                 plt.title(ttl)
                 plt.imshow(beliefs[key], interpolation="nearest")
                 c += 1
-            plt.show()
+            # plt.show()
+            if training == True:
+                pylab.savefig(saved_path + saved_file_name + 'plot_' + str(i) + '.png', bbox_inches='tight')
+            else:
+                pylab.savefig(saved_path + saved_file_name + 'plot_' + str(i+200) + '.png', bbox_inches='tight')
         else:
             plt.subplot(131)
             plt.imshow(image, interpolation="nearest")
@@ -139,8 +151,11 @@ class Evaluator(object):
             plt.imshow(label, interpolation="nearest")
             plt.subplot(133)
             plt.imshow(beliefs, interpolation="nearest")
-            plt.show()
-
+            # plt.show()
+            if training == True:
+                pylab.savefig(saved_path + saved_file_name + 'plot_' + str(i) + '.png', bbox_inches='tight')
+            else:
+                pylab.savefig(saved_path + saved_file_name + 'plot_' + str(i+200) + '.png', bbox_inches='tight')
 
     def evaluate_objective(self, method_list, path):
 
@@ -158,7 +173,7 @@ class Evaluator(object):
         plt.legend(loc='upper right')
 
         plt.title('objective function trend')
-        plt.savefig(path + '/objective')
+        plt.savefig(path +  '/objective')
 
         # plt.show()
 

@@ -34,7 +34,7 @@ class Learner(object):
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
-        self.models.append(model)
+        # self.models.append(model)
         self.belief_propagators.append(self.inference_type(model))
 
         if self.weight_dim == None:
@@ -49,7 +49,7 @@ class Learner(object):
         #
         # bp_q = self.inference_type(model_q)
 
-        self.models_q.append(model)
+        # self.models_q.append(model)
 
         bp_q = self.inference_type(model)
         for (var, state) in labels.items():
