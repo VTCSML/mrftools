@@ -82,3 +82,5 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
             beliefs -= logsumexp(beliefs, (0, 1))
 
             self.pair_belief_tensor = beliefs
+
+
