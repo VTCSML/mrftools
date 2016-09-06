@@ -67,17 +67,17 @@ class MarkovNet(object):
 
     def set_unary_mat(self, unary_mat):
         assert np.array_equal(self.unary_mat.shape, unary_mat.shape)
-        self.unary_mat[:, :] = unary_mat
+        self.unary_mat = unary_mat
 
 
     def set_edge_tensor(self, edge_tensor):
         if np.array_equal(self.edge_pot_tensor.shape, edge_tensor.shape):
-            self.edge_pot_tensor[:,:,:] = edge_tensor
+            self.edge_pot_tensor = edge_tensor
         else:
             mirrored_edge_tensor = np.concatenate((edge_tensor, edge_tensor.transpose((1, 0, 2))), 2)
             assert np.array_equal(self.edge_pot_tensor.shape, mirrored_edge_tensor.shape)
 
-            self.edge_pot_tensor[:, :, :] = mirrored_edge_tensor
+            self.edge_pot_tensor = mirrored_edge_tensor
 
 
     def create_matrices(self):

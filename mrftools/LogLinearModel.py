@@ -76,11 +76,11 @@ class LogLinearModel(MarkovNet):
 
     def set_weight_matrix(self, weight_mat):
         assert (np.array_equal(self.weight_mat.shape, weight_mat.shape))
-        self.weight_mat[:, :] = weight_mat
+        self.weight_mat = weight_mat
 
     def set_edge_weight_matrix(self, edge_weight_mat):
         assert (np.array_equal(self.edge_weight_mat.shape, edge_weight_mat.shape))
-        self.edge_weight_mat[:, :] = edge_weight_mat
+        self.edge_weight_mat = edge_weight_mat
 
     def update_unary_matrix(self):
         self.set_unary_mat(self.feature_mat.T.dot(self.weight_mat).T)
@@ -88,7 +88,7 @@ class LogLinearModel(MarkovNet):
     def update_edge_tensor(self):
         half_edge_tensor = self.edge_feature_mat.T.dot(self.edge_weight_mat).T.reshape(
             (self.max_states, self.max_states, self.num_edges))
-        self.edge_pot_tensor[:,:,:] = np.concatenate((half_edge_tensor.transpose(1, 0, 2), half_edge_tensor), axis=2)
+        self.edge_pot_tensor = np.concatenate((half_edge_tensor.transpose(1, 0, 2), half_edge_tensor), axis=2)
 
     def create_matrices(self):
         super(LogLinearModel, self).create_matrices()
