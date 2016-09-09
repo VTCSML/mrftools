@@ -9,9 +9,8 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator
 
 class Learner(object):
     def __init__(self, inference_type):
-        self.tau_q = []
-        self.tau_p = []
-        self.models_q = []
+        self.tau_q = None
+        self.tau_p = None
         self.weight_record = np.array([])
         self.time_record = np.array([])
         self.inference_type = inference_type
@@ -90,17 +89,17 @@ class Learner(object):
         return bethe
 
     def subgrad_obj(self, weights, options=None):
-        if len(self.tau_q) == 0 or not self.fully_observed:
+        if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
     def subgrad_obj_dual(self, weights, options=None):
-        if len(self.tau_q) == 0 or not self.fully_observed:
+        if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
-        if len(self.tau_q) == 0 or not self.fully_observed:
+        if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
@@ -130,10 +129,15 @@ class Learner(object):
 
     def objective(self, weights, options=None):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-        self.set_weights(weights, self.belief_propagators_q)
 
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+
+        if not self.fully_observed:
+            # recompute energy functional for label distributions only in latent variable case
+            self.set_weights(weights, self.belief_propagators_q)
+            term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        else:
+            term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
 
@@ -160,11 +164,13 @@ class Learner(object):
         return grad
 
     def dual_obj(self, weights, options=None):
-        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        if self.tau_q == None or not self.fully_observed:
+            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        term_q = np.dot(self.tau_q, weights)
+
         self.term_q_p = term_p - term_q
 
         objec = 0.0
