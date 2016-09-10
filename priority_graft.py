@@ -22,7 +22,6 @@ def priority_graft( variables, num_states, data, l1_coeff, prune_threshold, prun
     mn = MarkovNet()
     for var in variables:
         mn.set_unary_factor(var, np.zeros(num_states[var]))
-        num_weights_opt += num_states[var]
         if max_num_states < num_states[var]:
             max_num_states = num_states[var]
         map_weights_to_variables.append(var)
