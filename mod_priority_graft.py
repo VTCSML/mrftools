@@ -121,5 +121,8 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, prune_threshold, 
             j += size
             weights_dict[var] = current_weight
 
-    return aml_optimize.belief_propagators[0].mn, weights_opt, weights_dict, active_set
+    learned_mn = aml_optimize.belief_propagators[0].mn
+    learned_mn.load_factors_from_matrices()
+
+    return learned_mn, weights_opt, weights_dict, active_set
     

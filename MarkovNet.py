@@ -87,7 +87,6 @@ class MarkovNet(object):
 
             self.edge_pot_tensor[:, :, :] = mirrored_edge_tensor
 
-
     def create_matrices(self):
         self.matrix_mode = True
 

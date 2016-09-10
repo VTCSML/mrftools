@@ -156,10 +156,10 @@ def compute_likelihood(mn, num_nodes, data):
             curr_node_potential = copy.deepcopy(unary_potentials_copy[curr_node])
             likelihood_instance_node = curr_node_potential[instance[curr_node]]
             curr_neighbors = list(mn.get_neighbors(curr_node))
-            for t in range(len(curr_neighbors)):
-                pair_pots = copy.deepcopy(mn.get_potential((curr_node, curr_neighbors[t])))
-                likelihood_instance_node += pair_pots[instance[curr_node], instance[curr_neighbors[t]]]
-                inner_exp += pair_pots[:, instance[curr_neighbors[t]]]
+            for neighbor in curr_neighbors:
+                pair_pots = copy.deepcopy(mn.get_potential((curr_node, neighbor)))
+                likelihood_instance_node += pair_pots[instance[curr_node], instance[neighbor]]
+                inner_exp += pair_pots[:, instance[neighbor]]
             logZ = logsumexp(inner_exp)
             likelihood_instance += likelihood_instance_node - logZ
         likelihood += likelihood_instance
