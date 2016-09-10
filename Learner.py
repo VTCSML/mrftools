@@ -86,7 +86,6 @@ class Learner(object):
         return bethe
 
     def subgrad_obj(self, weights, options=None):
-        t = time.time()
         if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
@@ -97,7 +96,6 @@ class Learner(object):
         return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
-        t = time.time()
         if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)

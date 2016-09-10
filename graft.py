@@ -14,8 +14,6 @@ def graft(variables, num_states, data, l1_coeff):
     """
     max_num_states, num_edges = 0, 0
     map_weights_to_variables, map_weights_to_edges, active_set = [], [], []
-    vector_length_per_var = max_num_states
-    vector_length_per_edge = max_num_states ** 2
     np.random.seed(0)
     mn = MarkovNet()
     for var in variables:
@@ -23,6 +21,8 @@ def graft(variables, num_states, data, l1_coeff):
         if max_num_states < num_states[var]:
             max_num_states = num_states[var]
         map_weights_to_variables.append(var)
+    vector_length_per_var = max_num_states
+    vector_length_per_edge = max_num_states ** 2
     aml_optimize = ApproxMaxLikelihood(mn)
     aml_optimize.set_regularization(l1_coeff, 0)
     mn.init_search_space()
@@ -63,18 +63,13 @@ def graft(variables, num_states, data, l1_coeff):
 
         selected_var, max_grad = get_max_gradient(aml_optimize.belief_propagators, len(data), search_space, edges_data_sum)
 
-    print('WEIGHTS')
-    print(weights_opt)
 
     # REMOVE NON RELEVANT EDGES
-    j = 0
     active_set = []
     num_weights = 0
     k = 0
     for var in map_weights_to_edges:
         curr_weights = weights_opt[k : k + vector_length_per_edge]
-        print('curr_weights')
-        print(curr_weights)
         if not all(abs(i) < .0001 for i in curr_weights):
             active_set.append(var)
         k += vector_length_per_edge
@@ -111,5 +106,5 @@ def graft(variables, num_states, data, l1_coeff):
             j += size
             weights_dict[var] = current_weight
 
-    return mn, weights_opt, weights_dict, active_set
+    return aml_optimize.belief_propagators[0].mn, weights_opt, weights_dict, active_set
 

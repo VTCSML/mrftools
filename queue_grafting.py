@@ -22,7 +22,6 @@ def queue_graft( variables, num_states, data, l1_coeff):
     mn = MarkovNet()
     for var in variables:
         mn.set_unary_factor(var, np.zeros(num_states[var]))
-        num_weights_opt += num_states[var]
         if max_num_states < num_states[var]:
             max_num_states = num_states[var]
         map_weights_to_variables.append(var)
@@ -70,11 +69,8 @@ def queue_graft( variables, num_states, data, l1_coeff):
     
     # OPTIMIZE UNTILL CONVERGENCE TO GET OPTIMAL WEIGHTS
     weights_opt = aml_optimize.learn(weights_opt, 1500)
-    print('WEIGHTS')
-    print(weights_opt)
 
     # REMOVE NON RELEVANT EDGES
-    j = 0
     active_set = []
     num_weights = 0
     k = 0
@@ -100,7 +96,7 @@ def queue_graft( variables, num_states, data, l1_coeff):
         aml_optimize.add_data(instance)
     weights_opt = aml_optimize.learn(np.random.randn(aml_optimize.weight_dim), 1500)
 
-    #MAKE WEIGHTS DICT
+    # MAKE WEIGHTS DICT
     weights_dict = dict()
     j = 0
     for var in map_weights_to_variables:
@@ -115,5 +111,5 @@ def queue_graft( variables, num_states, data, l1_coeff):
             j += size
             weights_dict[var] = current_weight
 
-    return aml_optimize.models[0], weights_opt, weights_dict, active_set
+    return aml_optimize.belief_propagators[0].mn, weights_opt, weights_dict, active_set
     

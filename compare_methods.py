@@ -46,7 +46,7 @@ def main():
 
     print('Priority Graft Start...')
     t = time.time()
-    mn_priority_graft, weights_priority_graft, Weights_dict_priority_graft, active_space_priority_graft= priority_graft(variables, num_states, train_data, .7, 3, .1, False)
+    mn_priority_graft, weights_priority_graft, Weights_dict_priority_graft, active_space_priority_graft= priority_graft(variables, num_states, train_data, .9, 3, .1, False)
     elapsed_priority_graft = time.time() - t
     print('Priority Graft ENDED After')
     print(elapsed_priority_graft)
@@ -56,7 +56,7 @@ def main():
 
     print('Queue Grafting Start...')
     t = time.time()
-    mn_queuey_graft, weights_queue_graft, weights_dict_queue_graft, active_space_queue_graft = queue_graft(variables, num_states, train_data, .7)
+    mn_queuey_graft, weights_queue_graft, weights_dict_queue_graft, active_space_queue_graft = queue_graft(variables, num_states, train_data, .9)
     elapsed_queue_graft = time.time() - t
     print('Queue Grafting ENDED AFTER')
     print(elapsed_queue_graft)
@@ -66,7 +66,7 @@ def main():
 
     print('Naive Priority Grafting Start...')
     t = time.time()
-    mn_naive_priority_graft, weights_naive_priority_graft, weights_dict_naive_priority_praft, active_space_naive_priority_graft = naive_priority_graft(variables, num_states, train_data, .7)
+    mn_naive_priority_graft, weights_naive_priority_graft, weights_dict_naive_priority_praft, active_space_naive_priority_graft = naive_priority_graft(variables, num_states, train_data, .9)
     elapsed_naive_priority_graft = time.time() - t
     print('Naive Priority Grafting END AFTER')
     print(elapsed_naive_priority_graft)
@@ -76,7 +76,7 @@ def main():
 
     print('Modified Priority Graft Start...')
     t = time.time()
-    mn_mod_priority_graft, weights_mod_priority_graft, weights_dict_mod_priority_graft, active_space_mod_priority_graft = mod_priority_graft(variables, num_states, train_data, .7, 3, .1, False)
+    mn_mod_priority_graft, weights_mod_priority_graft, weights_dict_mod_priority_graft, active_space_mod_priority_graft = mod_priority_graft(variables, num_states, train_data, .9, 3, .1, False)
     elapsed_mod_priority_graft = time.time() - t
     print('Modified Priority Graft END')
     print(elapsed_mod_priority_graft)
@@ -86,7 +86,7 @@ def main():
 
     print('Grafting Start...')
     t = time.time()
-    mn_graft, weights_graft, weights_dict_graft, active_space_Graft = graft(variables, num_states, train_data, .7)
+    mn_graft, weights_graft, weights_dict_graft, active_space_Graft = graft(variables, num_states, train_data, .9)
     elapsed_graft = time.time() - t
     print('Grafting ENDED AFTER')
     print(elapsed_graft)

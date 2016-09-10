@@ -4,6 +4,12 @@ import copy
 from graph_mining_util import *
 
 def priority_reassignment(variables, activeSet, aml_optimize , pruneThreshold, data, searchSpace, pq, l1coeff, edgesDataSum):
+    """
+    Functionality :
+    1 - Select edge to be tested. 
+    2 - Activate edge if if it passes the pruning test.
+    3 - Decrease the priority of the edge and resulting edges if it does not pass the pruning test. 
+    """
     currGraph = make_graph(variables, activeSet)
     injection = False
     success = False
