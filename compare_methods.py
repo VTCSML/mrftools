@@ -54,7 +54,6 @@ def main():
     print('Likelihood Priority Graft')
     print(likelihood_priority_graft)
 
-
     print('Queue Grafting Start...')
     t = time.time()
     mn_queuey_graft, weights_queue_graft, weights_dict_queue_graft, active_space_queue_graft = queue_graft(variables, num_states, train_data, .7)

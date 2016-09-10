@@ -49,10 +49,6 @@ class MarkovNet(object):
         self.neighbors[edge[1]].add(edge[0])
 
 
-        # self.update_marix(edge)
-        # if self.matrix_mode:
-        #     self.create_matrices()
-
     def get_potential(self, pair):
         """Return the potential between pair[0] and pair[1]. If (pair[1], pair[0]) is in our dictionary instead, return the transposed potential."""
         if pair in self.edge_potentials:
@@ -173,10 +169,8 @@ class MarkovNet(object):
                     self.space[(var1, var2)] = np.zeros(
                         shape=(len(self.unaryPotentials[var1]), len(self.unaryPotentials[var2])))
                     self.search_space.append((var1, var2))
-                    # self.numWeights += len(self.unaryPotentials[var1]) * len(self.unaryPotentials[var2])
                 if var1 != var2:
                     self.neighbors[var1].add(var2)
-                    # print(self.edgePotentials)
 
     def init_search_space(self):
         """Initialize the set of all possible Edges"""

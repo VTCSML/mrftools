@@ -32,18 +32,6 @@ def priority_reassignment(variables, activeSet, aml_optimize , pruneThreshold, d
             pq = reduce_priority(pq, resultingEdges)
     return pq, activeSet, searchSpace, injection, success, resultingEdges
 
-# def gradient_test(bp, searchSpace, dataSum, data, l1Coeff):
-#     """Compute the gradient w.r.t. the current weight"""
-#     for e in range(len(searchSpace)):
-#         edge = searchSpace[e]
-#         belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-#                  bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-#         gradient = (np.exp(belief.reshape((-1, 1)).tolist()) - np.asarray(dataSum[edge]) / len(data)).squeeze()
-#         test = all(i < l1Coeff for i in np.abs(gradient))
-#         if not test:
-#             return True, edge
-#     return False, (0,0)
-
 def edge_gradient_test(bps, edge, data_sum, data, l1_coeff):
     """
     Functionality :

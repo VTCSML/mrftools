@@ -16,8 +16,8 @@ def queue_graft( variables, num_states, data, l1_coeff):
     Main Script for priority graft algorithm.
     Reference: To be added.
     """
-    priority_reassignements, num_injection, num_success, num_edges_reassigned, num_weights_opt, max_num_states, num_edges = 0, 0, 0, 0, 0, 0, 0
-    edges_reassigned, map_weights_to_variables, map_weights_to_edges, active_set, sel_time_vec = [], [], [], [], []
+    priority_reassignements, num_injection, num_success, num_edges_reassigned, max_num_states, num_edges = 0, 0, 0, 0, 0, 0
+    edges_reassigned, map_weights_to_variables, map_weights_to_edges, active_set = [], [], [], []
     np.random.seed(0)
     mn = MarkovNet()
     for var in variables:

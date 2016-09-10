@@ -1,5 +1,4 @@
 import copy
-import time
 from _hashlib import new
 import numpy as np
 from scipy.optimize import minimize, check_grad
@@ -89,10 +88,7 @@ class Learner(object):
     def subgrad_obj(self, weights, options=None):
         t = time.time()
         if self.tau_q == None or not self.fully_observed:
-            # print('HERE')
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        # print('Learning Obj')
-        # print(time.time() - t)
         return self.objective(weights)
 
     def subgrad_obj_dual(self, weights, options=None):
@@ -104,17 +100,11 @@ class Learner(object):
         t = time.time()
         if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
-        # print('Learning Grad')
-        # print(time.time() - t)
         return self.gradient(weights)
 
     def learn(self, weights, max_iter, callback_f=None):
-        t = time.time()
         res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
-        # res = minimize(self.objective, weights, method='L-BFGS-B', jac=self.gradient, callback=callback_f)
         new_weights = res.x
-        # print('Learning Time')
-        # print(time.time() - t)
         return new_weights
 
     def reset(self):
@@ -137,37 +127,19 @@ class Learner(object):
 
     def objective(self, weights, options=None):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-        # print('TMP')
-        t = time.time()
-        ####################################################################
-        # self.set_weights(weights, [self.belief_propagators_q[0]])
-        ####################################################################
-        # print(time.time() - t)
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
-        ####################################################################
-        # term_q = self.belief_propagators_q[0].compute_energy_functional()
-        t = time.time()
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
             self.set_weights(weights, self.belief_propagators_q)
             term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
         else:
             term_q = np.dot(self.tau_q, weights)
-        # print('self.tau_q')
-        # print(self.tau_q)
-        # print('term_q')
-        # print(term_q)
-        ####################################################################
-        # print('inside objective')
-        # print(time.time() - t)
-        # print(term_p)
         self.term_q_p = term_p - term_q
         objec = 0.0
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * weights.dot(weights)
         objec += self.term_q_p
-        # objec += term_p
         return objec
 
     def gradient(self, weights, options=None):
