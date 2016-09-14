@@ -10,7 +10,7 @@ class MaxProductBeliefPropagator(MatrixBeliefPropagator):
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            max_marginals = self.mn.unary_mat + self.conditioning_mat
+            max_marginals = self.mn.unary_mat + self.augmented_mat
             max_marginals += sparse_dot(self.message_mat, self.mn.message_to_map)
 
             states = max_marginals.argmax(0)
@@ -34,7 +34,7 @@ class MaxProductBeliefPropagator(MatrixBeliefPropagator):
 
     def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
-        belief_mat = self.mn.unary_mat + self.conditioning_mat
+        belief_mat = self.mn.unary_mat + self.augmented_mat
         belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
         belief_mat -= logsumexp(belief_mat, 0)

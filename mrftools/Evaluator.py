@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from Learner import Learner
 from ImageLoader import ImageLoader
 from MatrixBeliefPropagator import MatrixBeliefPropagator
+import pylab
 plt.switch_backend('agg')
 
 
@@ -12,7 +13,7 @@ class Evaluator(object):
         self.max_width = max_width
         self.max_height = max_height
 
-    def plot_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300):
+    def plot_images(self, saved_path, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
@@ -40,9 +41,9 @@ class Evaluator(object):
 
                     beliefs_dic[key] = beliefs
 
-                self.draw_results(images[i], label_img, beliefs_dic, names[i])
+                self.draw_results(images[i], label_img, beliefs_dic, names[i], saved_path)
 
-    def evaluate_training_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
+    def evaluate_training_images(self, saved_path, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
         # images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
@@ -83,7 +84,7 @@ class Evaluator(object):
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
                 if plot == True:
-                    self.draw_results(images[i], label_img, beliefs[:,:,1],names[i])
+                    self.draw_results(images[i], label_img, beliefs[:,:,1], saved_path, names)
 
                 if display == 'full':
                     print("Results for the %dth image:" % (i + 1))
@@ -97,53 +98,55 @@ class Evaluator(object):
 
                 average_errors += error_rate
 
-            average_errors = np.true_divide(average_errors, i + 1)
+        average_errors = np.true_divide(average_errors, i + 1)
         if inc == True:
             print("Overall inconsistency: %f" % total_inconsistency)
             return average_errors, total_inconsistency
 
         return average_errors
 
-    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final'):
+    def evaluate_testing_images(self, saved_path, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
         images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
         if inc == True:
-            average_errors, total_inconsistency = self.evaluate_training_images(images, models, labels, names, weights, num_states, num_images, inference_type,
+            average_errors, total_inconsistency = self.evaluate_training_images(saved_path, images, models, labels, names, weights, num_states, num_images, inference_type,
                                      max_iter, inc, plot)
             return average_errors, total_inconsistency
 
 
-        average_errors = self.evaluate_training_images( images, models, labels, names, weights, num_states, num_images, inference_type,
+        average_errors = self.evaluate_training_images( saved_path, images, models, labels, names, weights, num_states, num_images, inference_type,
                                  max_iter, inc, plot)
 
         return average_errors
 
-    def draw_results(self, image, label, beliefs, name):
+    def draw_results(self, image, label, beliefs, name ,saved_path):
+        plt.clf()
         if isinstance(beliefs, dict):
             num_methods = len(beliefs)
             p = num_methods + 2
-            plt.subplot(1, p, 1)
+            col = 3
+            row = p/col
+            if  p % 3 > 0 :
+                row = row + 1
+
+            plt.subplot(row, col, 1)
             plt.title('true image')
             plt.imshow(image, interpolation="nearest")
-            plt.subplot(1, p, 2)
+            plt.subplot(row, col, 2)
             plt.title('true label')
-            seg_label = self.create_img(label)
-            plt.imshow(seg_label)
-            # plt.imshow(label, interpolation="nearest")
-            c = 0
+            seg_label = self.create_img ( label )
+            plt.imshow ( seg_label )
+            c = 1
             for key in beliefs.keys():
-                plt.subplot(1, p, c + 3)
-                kk = str(key).split('.')
-                ttl =  kk[len(kk)-1][:-2]
-                plt.title(ttl)
+                plt.subplot(row, col, c+2)
+                plt.title(str(key))
                 seg_label = self.create_img ( np.round(beliefs[key] ))
-                # print seg_label
                 res = plt.imshow(seg_label)
                 c += 1
-            # plt.show()
-            plt.savefig('../saved_files/' + name)
+            plt.savefig ( saved_path + name )
+
         else:
             plt.subplot(131)
             plt.imshow(image, interpolation="nearest")
@@ -152,7 +155,7 @@ class Evaluator(object):
             plt.subplot(133)
             plt.imshow(beliefs, interpolation="nearest")
             # plt.show()
-            plt.savefig('../saved_files/' + name)
+            plt.savefig(saved_path + name)
 
     def create_img(self, label):
         color_dic = {0: [[160, 160, 160], 'gray'], 1: [[153, 153, 0], 'dark green'], 2: [[102, 0, 204], 'purple'],
@@ -168,16 +171,15 @@ class Evaluator(object):
         return new_seg
 
     def evaluate_objective(self, method_list, path):
-
+        plt.clf ( )
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
             obj_time = m_dic['time']
             obj = m_dic['objective']
-            method_name = m_dic['method']
-            kk = str(method_name).split('.')
-            ttl = kk[len(kk) - 1][:-2]
+            ttl = m_dic['learner_name']
 
             plt.plot(obj_time, obj, '-', linewidth=2, label=ttl)
+
         plt.xlabel('time(seconds)')
         plt.ylabel('objective')
         plt.legend(loc='upper right')
@@ -192,11 +194,9 @@ class Evaluator(object):
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
             obj_time = m_dic['time']
-            method_name = m_dic['method']
             accuracy = m_dic['training_error']
 
-            kk = str(method_name).split('.')
-            ttl = kk[len(kk) - 1][:-2]
+            ttl = m_dic['learner_name']
             plt.plot(obj_time, accuracy, '-', linewidth=2, label=ttl)
 
         plt.xlabel('time(seconds)')

@@ -134,6 +134,24 @@ class TestLearner(unittest.TestCase):
             new_obj = learner.subgrad_obj(weight_record[i, :])
             assert new_obj >= 0, "Primal dual objective was not non-negative"
 
+    def test_loss_augmented(self):
+        weights = np.zeros(8 + 32)
+        learner = EM(MatrixBeliefPropagator)
+        learner.loss_augmented = True
+        self.set_up_learner(learner)
+
+        wr_obj = WeightRecord()
+        learner.learn(weights,wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        l = (weight_record.shape)[0]
+        old_obj = np.Inf
+        for i in range(l):
+            new_obj = learner.subgrad_obj(weight_record[i,:])
+            assert (new_obj <= old_obj + 1e-8), "loass augmented subgradient objective is not decreasing"
+            old_obj = new_obj
+
+            assert new_obj >= 0, "loass augmented Learner objective was not non-negative"
     def create_random_model(self, num_states, d):
         model = LogLinearModel()
 
