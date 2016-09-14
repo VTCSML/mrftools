@@ -15,8 +15,6 @@ import pickle
 import resource
 from memory_profiler import profile
 
-
-@profile
 def main():
     memory_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print 'Initial Memory usage: %s (kb)' % memory_start
@@ -25,19 +23,19 @@ def main():
     d_unary = 65
     d_edge = 11
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
-    max_height = 30
-    max_width = 30
+    max_height = 10
+    max_width = 10
     num_training_images = 1
     num_testing_images = 1
     # inference_type = MatrixBeliefPropagator
     # inference_type = MatrixTRBeliefPropagator
     inference_type = ConvexBeliefPropagator
     inference_type_name = 'ConvexBP'
-    max_iter = 5
+    max_iter = 20
     inc = True
-    plot = True
+    plot = False
     initialization_flag = True
-    objective_type = 'primal'
+    objective_type = 'dual'
     l2_regularization = 1.0
 
     alignment = xlwt.Alignment()
@@ -53,17 +51,17 @@ def main():
 
     configuration = (max_iter, inference_type_name, inference_type, objective_type, l2_regularization)
 
-    image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images,
-                       inc, plot, initialization_flag, style)
+    image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images, inc, plot, initialization_flag, style)
 
 
-    memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print 'Memory usage: %s (kb)' % (memory_new - memory_start)
+    # memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # print 'Memory usage: %s (kb)' % (memory_new - memory_start)
 
 
-def image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images,
-                       inc, plot, initialization_flag, style):
+def image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge, path, max_height, max_width, num_training_images, num_testing_images, inc, plot, initialization_flag, style):
 
+    # time.sleep(3)
+    # print "3 seconds past"
     wb = Workbook()
     sheet1 = wb.add_sheet('Results')
 
@@ -92,7 +90,6 @@ def image_segmentation(configuration, images, models, labels, names, num_states,
     inference_type = configuration[2]
     objective_type = configuration[3]
     l2_regularization = configuration[4]
-
     start = time.time()
 
     sheet1.write(1, 0, max_iter)
@@ -122,62 +119,21 @@ def image_segmentation(configuration, images, models, labels, names, num_states,
 
     weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
 
-    wr_obj = WeightRecord()
-
-    new_weights = learner.learn(weights, wr_obj.callback)
-
-    weight_record = wr_obj.weight_record
-    time_record = wr_obj.time_record
-    obj_list = []
-    my_list = []
-
-    l = (weight_record.shape)[0]
-    t = time_record[0][0]
-    for i in range(l):
-        my_list.append(time_record[i] - t)
-        obj_list.append(learner.subgrad_obj(weight_record[i, :]))
-
-
-
-    learner_dic = {}
-    learner_dic['time'] = my_list
-    learner_dic['objective'] = obj_list
-    learner_dic['final_weight'] = new_weights
-    learner_dic['weights'] = weight_record
-
-
-    # memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    # print 'Memory usage after calculating the weights: %s (kb)' % (memory_new - memory_start)
-
-
+    new_weights = learner.learn(weights)
 
     # save weights:
     saved_path= path + '/saved/'
+    saved_file_name = str(max_height) + '_' + str(num_training_images) + '_' + str(num_testing_images) + '_' + str(max_iter) + '_' + inference_type_name + '_' + str(objective_type) + '_' + str(l2_regularization)
 
-    saved_file_name = str(num_training_images) + '_' + str(num_testing_images) + '_' + str(max_iter) + inference_type_name + str(objective_type) + str(l2_regularization)
-
-
-    f = open(saved_path + saved_file_name + 'time.txt', 'w')
-    pickle.dump(learner_dic['time'], f)
-    f.close()
-
-    f = open(saved_path + saved_file_name + 'weights.txt', 'w')
-    pickle.dump(learner_dic['weights'], f)
-    f.close()
-
-    # memory_new = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    # print 'Memory usage after storing the weights: %s (kb)' % (memory_new - memory_start)
-
-    # Evaluating new weights
+    # np.savetxt(saved_path + saved_file_name + '_weights.txt', new_weights)
 
     print "New weights learned, start evaluating:"
 
-
-    unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
-    pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states ** 2))
+    # unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
+    # pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states ** 2))
     # print("Unary weights:\n" + repr(unary_mat))
     # print("Pairwise weights:\n" + repr(pair_mat))
-    print new_weights
+    # print new_weights
 
     Eval = Evaluator(max_width, max_height)
     if num_training_images > 0:
@@ -218,11 +174,16 @@ def image_segmentation(configuration, images, models, labels, names, num_states,
     elapsed = time.time() - start
 
     print ("Time elapsed: %f" % elapsed)
+    print "\n"
 
     sheet1.write(1, 8, elapsed, style)
     # saved_file_name = str(max_iter) + inference_type_name + str(objective_type) + str(l2_regularization)
 
     wb.save(saved_path + saved_file_name + 'Results.xls')
+
+    results = [train_errors, train_total_inconsistency, test_errors, test_total_inconsistency]
+
+    return results
 
 
 if __name__ == "__main__":

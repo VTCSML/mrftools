@@ -1,24 +1,38 @@
 import unittest
 from joblib import Parallel, delayed
 import multiprocessing
-import time
 from mrftools import *
-# from MatrixBeliefPropagator import MatrixBeliefPropagator
-# from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
-# from ConvexBeliefPropagator import ConvexBeliefPropagator
-# import ImageSegmentation
+import time
 import xlwt
 import os
-# from ImageLoader import ImageLoader
 
 
 class TestParallelization(unittest.TestCase):
+    def f(self):
+        time.sleep(2)
+        print "2 seconds past"
 
     def test_parallelization(self):
-        max_iters = [10]
-        objective_types = ['primal']
-        l2_regularizations = [0.001, 0.01, 0.1, 1.0]
+        max_iters = [3]
+        objective_types = ['primal', 'dual']
+        l2_regularizations = [1.0]
         inference_types = {'BP': MatrixBeliefPropagator}
+
+
+        num_states = 2
+        d_unary = 65
+        d_edge = 11
+        path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
+        max_height = 0
+        max_width = 0
+        num_training_images = 2
+        num_testing_images = 1
+        inc = True
+        plot = False
+        initialization_flag = True
+
+        loader = ImageLoader(max_height, max_width)
+        images, models, labels, names = loader.load_all_images_and_labels(path + '/data/horse/train', 2, num_training_images)
 
         comparing_set = []
         for max_iter in max_iters:
@@ -26,25 +40,8 @@ class TestParallelization(unittest.TestCase):
                 inference_type = inference_types[inference_type_name]
                 for objective_type in objective_types:
                     for l2_regularization in l2_regularizations:
-                        configuration = (
-                        max_iter, inference_type_name, inference_type, objective_type, l2_regularization)
+                        configuration = (max_iter, inference_type_name, inference_type, objective_type, l2_regularization)
                         comparing_set.append(configuration)
-
-        num_states = 2
-        d_unary = 65
-        d_edge = 11
-        path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
-        max_height = 5
-        max_width = 5
-        num_training_images = 2
-        num_testing_images = 0
-        inc = True
-        plot = False
-        initialization_flag = True
-
-        loader = ImageLoader(max_height, max_width)
-        images, models, labels, names = loader.load_all_images_and_labels(path + '/test/data/horse/train', 2,
-                                                                          num_training_images)
 
         alignment = xlwt.Alignment()
         alignment.horz = xlwt.Alignment.HORZ_RIGHT
@@ -54,11 +51,13 @@ class TestParallelization(unittest.TestCase):
 
         # Unparallelized
         start = time.time()
+        results_unp = []
         for configuration in comparing_set:
-            ImageSegmentation.image_segmentation(configuration, images, models, labels, names, num_states, d_unary, d_edge,
-                               path, max_height, max_width, num_training_images, num_testing_images,
-                               inc, plot, initialization_flag, style)
-
+            # self.f()
+            result = ImageSegmentation.image_segmentation(configuration, images, models, labels, names, num_states, d_unary,
+                                                          d_edge, path, max_height, max_width, num_training_images,
+                                                          num_testing_images, inc, plot, initialization_flag, style)
+            results_unp.append(result)
         elapsed_unp = time.time() - start
 
 
@@ -66,21 +65,35 @@ class TestParallelization(unittest.TestCase):
         # Parallelized
         start = time.time()
         num_cores = multiprocessing.cpu_count()
-        results = Parallel(n_jobs=num_cores)(
-        delayed(ImageSegmentation.image_segmentation)(configuration, images, models, labels,
-                                                      names, num_states, d_unary, d_edge, path, max_height,
-                                                      max_width,
-                                                      num_training_images, num_testing_images,
-                                                      inc, plot, initialization_flag,
-                                                      style) for configuration in comparing_set)
+        results_par = Parallel(n_jobs=num_cores, backend='threading')(
+        delayed(ImageSegmentation.image_segmentation)(configuration, images, models, labels, names, num_states, d_unary,
+                                                          d_edge, path, max_height, max_width, num_training_images,
+                                                          num_testing_images, inc, plot, initialization_flag, style) for configuration in comparing_set)
+
+
+        # Parallel(n_jobs=num_cores, backend='threading')(
+        #     delayed(self.f)() for configuration in comparing_set)
+
 
         elapsed_par = time.time() - start
+
+        print("Number of Cores: %d" % num_cores)
         print("Time elaplsed for unparallelized: %f" % elapsed_unp)
         print("Time elaplsed for parallelized: %f" % elapsed_par)
 
-        print("Number of Corse: %d" % num_cores)
+        print "results unparallelized:"
+        print results_unp
+        print "results parallelized:"
+        print results_par
 
-        np.testing.assert_allclose(elapsed_unp, elapsed_par * num_cores, rtol=1e-1, atol=0)
+
+        n = len(results_par)
+        for i in range(n):
+            assert results_par[i] in results_unp, "Parallelized result different from unparallelized"
+
+
+if __name__ == '__main__':
+    unittest.main()
 
 
 

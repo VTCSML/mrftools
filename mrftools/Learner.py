@@ -34,7 +34,6 @@ class Learner(object):
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
-        # self.models.append(model)
         self.belief_propagators.append(self.inference_type(copy.copy(model)))
 
         if self.weight_dim == None:
@@ -42,17 +41,22 @@ class Learner(object):
         else:
             assert self.weight_dim == model.weight_dim, "Parameter dimensionality did not match"
 
-        bp_q = self.inference_type(copy.copy(model))
+        model_q = copy.copy(model)
+        self.models_q.append(model_q)
+
+        bp_q = self.inference_type(model_q)
         for (var, state) in labels.items():
             bp_q.condition(var, state)
 
-        for var in model.variables:
+        for var in model_q.variables:
             if var not in labels.keys():
                 self.fully_observed = False
 
         self.belief_propagators_q.append(bp_q)
 
         self.num_examples += 1
+
+
         print ("Number of images added: %d" % self.num_examples)
 
     def _set_initialization_flag(self, flag):

@@ -10,30 +10,46 @@ import time
 import os
 from xlwt import Workbook
 import xlwt
+import ImageSegmentation
 
 
 
 def main():
-    learners = []
+
+    max_iters = [5]
+    objective_types = ['primal', 'dual']
+    l2_regularizations = [1.0]
+    initialization_flag = True
+    inference_types = {'BP': MatrixBeliefPropagator}
+    # inference_types = {'BP': MatrixBeliefPropagator, 'TRBP': MatrixTRBeliefPropagator, 'ConvexBP': ConvexBeliefPropagator}
+
+    max_height = 10
+    max_width = 10
+    num_training_images = 1
+    num_testing_images = 1
+
     d_unary = 65
     num_states = 2
     d_edge = 11
-    max_height = 10
-    max_width = 10
-    num_training_images = 2
-    num_testing_images = 0
     inc = True
     plot = False
-    max_iters = [5, 10, 20]
-    objective_types = ['primal', 'dual']
-    l2_regularizations = [0.001, 0.01, 0.1, 1.0, 10]
-    initialization_flag = True
-    inference_types = {'BP': MatrixBeliefPropagator, 'TRBP': MatrixTRBeliefPropagator, 'ConvexBP': ConvexBeliefPropagator}
+
     path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
 
     loader = ImageLoader(max_height, max_width)
 
-    images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
+    images, models, labels, names = loader.load_all_images_and_labels(path+'/data/horse/train', 2, num_training_images)
+
+
+    comparing_set = []
+    for max_iter in max_iters:
+        for inference_type_name in inference_types:
+            inference_type = inference_types[inference_type_name]
+            for objective_type in objective_types:
+                for l2_regularization in l2_regularizations:
+                    configuration = (max_iter, inference_type_name, inference_type, objective_type, l2_regularization)
+                    comparing_set.append(configuration)
+
 
     # chart frame:
     alignment = xlwt.Alignment()
@@ -42,129 +58,17 @@ def main():
     style.alignment = alignment
     style.num_format_str = '#,##0.0000'
 
-    wb = Workbook()
 
-    sheet1 = wb.add_sheet('Results')
+    start = time.time()
+    results_unp = []
+    for configuration in comparing_set:
+        result = ImageSegmentation.image_segmentation(configuration, images, models, labels, names, num_states, d_unary,
+                                                      d_edge, path, max_height, max_width, num_training_images,
+                                                      num_testing_images, inc, plot, initialization_flag, style)
+        results_unp.append(result)
 
-    sheet1.write(0,0,'Max_iter', style)
-    sheet1.write(0,1,'TRBP or BP', style)
-    sheet1.write(0,2,'Primal or Dual', style)
-    sheet1.write(0,3, 'L2 regularization', style)
-    sheet1.write(0,4,'training error', style)
-    sheet1.write(0,5,'training incon', style)
-    sheet1.write(0,6,'testing error', style)
-    sheet1.write(0,7,'testing incon', style)
-    sheet1.write(0,8,'training time', style)
-
-    sheet1.col(0).width = 3000
-    sheet1.col(1).width = 3000
-    sheet1.col(2).width = 3000
-    sheet1.col(3).width = 3000
-    sheet1.col(4).width = 3000
-    sheet1.col(5).width = 3000
-    sheet1.col(6).width = 3000
-    sheet1.col(7).width = 3000
-    sheet1.col(7).width = 3000
-
-    n = 1
-    start_all = time.time()
-    for max_iter in max_iters:
-        for inference_type_name in inference_types:
-            inference_type = inference_types[inference_type_name]
-            for objective_type in objective_types:
-                for l2_regularization in l2_regularizations:
-                    start = time.time()
-                    sheet1.write(n,0,max_iter)
-                    sheet1.write(n,1,inference_type_name, style)
-                    sheet1.write(n,2,objective_type, style)
-                    sheet1.write(n,3,l2_regularization, style)
-
-                    if objective_type is 'dual':
-                        learner = PairedDual(inference_type, max_iter)
-                    else:
-                        learner = Learner(inference_type)
-
-                    learner._set_initialization_flag(initialization_flag)
-                    learners.append(learner)
-                    learner.set_regularization(0.0, l2_regularization)
-
-
-                    for model, states in zip(models, labels):
-                        learner.add_data(states, model)
-
-                    for bp in learner.belief_propagators_q:
-                     bp.set_max_iter(max_iter)
-                    for bp in learner.belief_propagators:
-                     bp.set_max_iter(max_iter)
-
-                    weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
-
-                    new_weights = learner.learn(weights)
-
-                    unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
-                    pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states ** 2))
-                    # print("Unary weights:\n" + repr(unary_mat))
-                    # print("Pairwise weights:\n" + repr(pair_mat))
-
-                    elapsed = time.time() - start
-                    print(
-                    "Time to train the weights: %f. configuration: max_iter: %d, inference type: %s, objective type: %s, L2 regularization: %f" % (
-                    elapsed, max_iter, inference_type_name, objective_type, l2_regularization))
-
-                # Evaluations
-
-                    Eval = Evaluator(max_height, max_width)
-                    if num_training_images > 0:
-                        print("Training:")
-                        if inc == True:
-                            train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels,
-                                                                                                    names, new_weights,
-                                                                                                    num_training_images,
-                                                                                                    inference_type,
-                                                                                                    max_iter, inc, plot)
-                        else:
-                            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights,
-                                                                         num_training_images,
-                                                                         inference_type, max_iter, inc, plot)
-
-                        print train_errors
-                        print ("Average Train Error rate: %f" % train_errors)
-                        print "\n"
-
-                    sheet1.write(n,4,train_errors, style)
-                    if inc == True:
-                        sheet1.write(n,5,train_total_inconsistency, style)
-                    else:
-                        sheet1.write(n, 5, 'Not calculated', style)
-
-
-                    if num_testing_images > 0:
-                        print("Test:")
-                        if inc == True:
-                            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
-                        else:
-                            test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
-                        print ("Average Test Error rate: %f" % test_errors)
-
-                        sheet1.write(n,6, test_errors, style)
-                        if inc == True:
-                            sheet1.write(n,7, test_total_inconsistency, style)
-                        else:
-                            sheet1.write(n, 7, 'Not calculated', style)
-
-                    else:
-                        sheet1.write(n, 6, 'Not calculated', style)
-                        sheet1.write(n, 7, 'Not calculated', style)
-
-                    sheet1.write(n, 8, elapsed, style)
-
-
-                    n += 1
-
-    wb.save('Results.xls')
-
-    elapsed_all = time.time() - start_all
-    print ("Total running time: %f" % elapsed_all)
+    elapsed_unp = time.time() - start
+    print("Time elaplsed: %f" % elapsed_unp)
 
 
 if __name__ == "__main__":
