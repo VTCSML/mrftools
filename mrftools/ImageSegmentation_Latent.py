@@ -16,11 +16,11 @@ from MaxProductLinearProgramming import MaxProductLinearProgramming
 
 
 def learn_image(saved_path, learn_method, inference_type, models, labels, num_states, names, images, num_training_images, max_iter, max_height,
-                max_width, weights,loss_augmented = False):
+                max_width, weights,loss_augmented = False, regularizer = [0, 1]):
 
     learner = learn_method(inference_type )
 
-    learner.set_regularization(0.0, 1.0)
+    learner.set_regularization(regularizer[0], regularizer[1])
     if loss_augmented == True:
         learner.loss_augmented = True
         kk = str ( learn_method ).split ( '.' )
@@ -50,8 +50,6 @@ def learn_image(saved_path, learn_method, inference_type, models, labels, num_st
     obj_list = []
     my_list = []
     train_accuracy_list = []
-
-
 
     l = (weight_record.shape)[0]
     t = time_record[0][0]
@@ -104,9 +102,12 @@ def main():
     if not os.path.exists ( path + '/saved/' ):
         os.makedirs ( path + '/saved/' )
     saved_path = path + '/saved/'
+
     inferences = [MatrixBeliefPropagator, MatrixTRBeliefPropagator, MaxProductLinearProgramming, MaxProductBeliefPropagator]
     # inferences= [MaxProductBeliefPropagator]
     learners = [Learner, EM, PairedDual, PrimalDual]
+    regularizers = [[0.0, 1.0], [1.0, 0.0], [0.1, 0.1], [0.01, 0.9], [0.9, 0.01]]
+
     loss_augmented = [True, False]
     if dataset == "horse":
         num_states = 2
@@ -144,74 +145,74 @@ def main():
     # </editor-fold>
 
     # <editor-fold desc="train with different learners and inferences and plot the results">
-    for inference_type in inferences:
-        kk = str ( inference_type ).split ( '.' )
-        inference_name = kk[len ( kk ) - 1][:-2]
-        if not os.path.exists ( saved_path + inference_name ):
-            os.makedirs ( saved_path + inference_name )
-        saved_path_inference = saved_path + inference_name
-        method_list = list ( [] )
-        result_file = open ( saved_path_inference + '/' +'result.txt', 'w' )
-        result_file.write('******************TRAINING*************************')
-        result_file.write ( "\n" )
-        for loss_aug in loss_augmented:
-            for learner_type in learners:
-                if inference_type == MaxProductBeliefPropagator:
-                    if learner_type in [Learner, EM]:
-                        continue;
-                print loss_aug, inference_type
-                lnr_dic = learn_image ( saved_path_inference , learner_type, inference_type, models, labels, num_states, names, images, num_training_images,
-                              max_iter,
-                              max_height, max_width, weights, loss_aug )
+    for reg in regularizers:
+        for inference_type in inferences:
+            kk = str ( inference_type ).split ( '.' )
+            inference_name = kk[len ( kk ) - 1][:-2]
+            if not os.path.exists ( saved_path + inference_name ):
+                os.makedirs ( saved_path + inference_name )
+            saved_path_inference = saved_path + inference_name
+            method_list = list ( [] )
+            result_file = open ( saved_path_inference + '/' +'result.txt', 'w' )
+            result_file.write('******************TRAINING*************************')
+            result_file.write ( "\n" )
+            for loss_aug in loss_augmented:
+                for learner_type in learners:
+                    if inference_type == MaxProductBeliefPropagator:
+                        if learner_type in [Learner, EM]:
+                            continue;
+                    print loss_aug, inference_type
+                    lnr_dic = learn_image ( saved_path_inference , learner_type, inference_type, models, labels, num_states, names, images, num_training_images,
+                                  max_iter, max_height, max_width, weights, loss_aug, reg )
 
-                method_list.append ( lnr_dic )
+                    method_list.append ( lnr_dic )
 
-                f = open ( saved_path_inference + '/ '+  lnr_dic['learner_name'] +'_time.txt', 'w' )
-                pickle.dump ( lnr_dic['time'], f )
-                f.close ( )
+                    f = open ( saved_path_inference + '/ '+  lnr_dic['learner_name'] +'_time.txt', 'w' )
+                    pickle.dump ( lnr_dic['time'], f )
+                    f.close ( )
 
-                f = open ( saved_path_inference + '/ '+ lnr_dic['learner_name'] + '_step_weight.txt', 'w' )
-                pickle.dump ( lnr_dic['weights'], f )
-                f.close ( )
+                    f = open ( saved_path_inference + '/ '+ lnr_dic['learner_name'] + '_step_weight.txt', 'w' )
+                    pickle.dump ( lnr_dic['weights'], f )
+                    f.close ( )
 
-                result_file.write (
-                    "For learner " + str(lnr_dic['learner_name']) + "Average Train Error rate: " + str(lnr_dic["ave_error"]  ))
-                result_file.write ( "\n" )
+                    result_file.write (
+                        "For learner " + str(lnr_dic['learner_name']) + "Average Train Error rate: " + str(lnr_dic["ave_error"]  ))
+                    result_file.write ( "\n" )
 
-        Eval.evaluate_training_accuracy ( method_list, saved_path_inference )
-        Eval.evaluate_objective ( method_list, saved_path_inference )
-        if num_testing_images > 0:
-            result_file.write ( '******************TESTING*************************' )
-            result_file.write("\n")
+            Eval.evaluate_training_accuracy ( method_list, saved_path_inference )
+            Eval.evaluate_objective ( method_list, saved_path_inference )
+            if num_testing_images > 0:
+                result_file.write ( '******************TESTING*************************' )
+                result_file.write("\n")
 
-        weights_dic = {}
-        for i in range(0,len(method_list)):
-            new_weight = method_list[i]['final_weight']
-            weights_dic[method_list[i]['learner_name']] = new_weight
-            if num_testing_images > 0 :
-                test_errors = Eval.evaluate_testing_images('', data_path + '/test', new_weight, num_states, num_testing_images, inference_type, max_iter, inc, plot = 'false')
-                result_file.write (
-                "For learner " + str ( method_list[i]['learner_name'] ) + "Average Test Error rate: " + str (
-                    test_errors ))
-                result_file.write ( "\n" )
+            weights_dic = {}
+            for i in range(0,len(method_list)):
+                new_weight = method_list[i]['final_weight']
+                weights_dic[method_list[i]['learner_name']] = new_weight
+                if num_testing_images > 0 :
+                    test_errors = Eval.evaluate_testing_images('', data_path + '/test', new_weight, num_states, num_testing_images, inference_type, max_iter, inc, plot = 'false')
+                    result_file.write (
+                    "For learner " + str ( method_list[i]['learner_name'] ) + "Average Test Error rate: " + str (
+                        test_errors ))
+                    result_file.write ( "\n" )
 
-        # ##### plot training images #########
-        training_names = []
-        for nm in names:
-            training_names.append('training_' + nm)
-        Eval.plot_images ( saved_path_inference + '/ ' , images, models, true_label, training_names, weights_dic, num_states, num_training_images,
-                                        inference_type, max_iter )
+            # ##### plot training images #########
+            training_names = []
+            for nm in names:
+                training_names.append('training_' + nm)
+            Eval.plot_images ( saved_path_inference + '/ ' , images, models, true_label, training_names, weights_dic, num_states, num_training_images,
+                                            inference_type, max_iter )
 
-        images, models, labels, names = loader.load_all_images_and_labels ( data_path + '/test', num_states,
-                                                                            num_testing_images )
-        test_names = []
-        for nm in names:
-            test_names.append('test_' + nm)
-        Eval.plot_images ( saved_path_inference + '/ ', images, models, true_label, test_names, weights_dic,
-                           num_states, num_training_images,
-                           inference_type, max_iter )
+            images, models, labels, names = loader.load_all_images_and_labels ( data_path + '/test', num_states,
+                                                                                num_testing_images )
+            test_names = []
+            for nm in names:
+                test_names.append('test_' + nm)
+            Eval.plot_images ( saved_path_inference + '/ ', images, models, true_label, test_names, weights_dic,
+                               num_states, num_training_images,
+                               inference_type, max_iter )
 
-    # </editor-fold>
+        # </editor-fold>
 
 
 

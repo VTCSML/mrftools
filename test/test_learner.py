@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from mrftools import *
 
 
+
 class TestLearner(unittest.TestCase):
 
     def set_up_learner(self, learner):
@@ -25,6 +26,31 @@ class TestLearner(unittest.TestCase):
 
         for model, states in zip(models, labels):
             learner.add_data(states, model)
+
+    def create_random_model(self, num_states, d):
+        model = LogLinearModel()
+
+        model.declare_variable(0, num_states)
+        model.declare_variable(1, num_states)
+        model.declare_variable(2, num_states)
+
+        model.set_unary_weights(0, np.random.randn(num_states, d))
+        model.set_unary_weights(1, np.random.randn(num_states, d))
+        model.set_unary_weights(2, np.random.randn(num_states, d))
+
+        model.set_unary_features(0, np.random.randn(d))
+        model.set_unary_features(1, np.random.randn(d))
+        model.set_unary_features(2, np.random.randn(d))
+
+        model.set_all_unary_factors()
+
+        model.set_edge_factor((0, 1), np.zeros((num_states, num_states)))
+        model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
+
+        model.set_edge_features((0, 1), np.random.randn(d))
+        model.set_edge_features((1, 2), np.random.randn(d))
+
+        return model
 
     def test_gradient(self):
         weights = np.zeros(8 + 32)
@@ -152,28 +178,26 @@ class TestLearner(unittest.TestCase):
             old_obj = new_obj
 
             assert new_obj >= 0, "loass augmented Learner objective was not non-negative"
-    def create_random_model(self, num_states, d):
-        model = LogLinearModel()
 
-        model.declare_variable(0, num_states)
-        model.declare_variable(1, num_states)
-        model.declare_variable(2, num_states)
+    def test_different_initializiation(self):
 
-        model.set_unary_weights(0, np.random.randn(num_states, d))
-        model.set_unary_weights(1, np.random.randn(num_states, d))
-        model.set_unary_weights(2, np.random.randn(num_states, d))
+        learners = [Learner, EM, PairedDual, PrimalDual]
+        inferences = [MatrixBeliefPropagator, MaxProductBeliefPropagator, MaxProductLinearProgramming]
 
-        model.set_unary_features(0, np.random.randn(d))
-        model.set_unary_features(1, np.random.randn(d))
-        model.set_unary_features(2, np.random.randn(d))
+        for learner_type in learners:
+            for inferece_type in inferences:
+                initial_weights_1 = np.squeeze ( np.random.rand ( 1, 8 + 32 ) )
+                # initial_weights_1 = np.zeros(8 + 32)
+                learner_1 = learner_type(inferece_type)
+                self.set_up_learner(learner_1)
+                w_1 = learner_1.learn(initial_weights_1)
 
-        model.set_all_unary_factors()
+                initial_weights_2 = np.squeeze ( np.random.rand ( 1, 8 + 32 ) )
+                learner_2 = learner_type ( inferece_type )
+                self.set_up_learner ( learner_2 )
+                w_2 = learner_2.learn ( initial_weights_2 )
 
-        model.set_edge_factor((0, 1), np.zeros((num_states, num_states)))
-        model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
-
-        model.set_edge_features((0, 1), np.random.randn(d))
-        model.set_edge_features((1, 2), np.random.randn(d))
-
-        return model
-
+                learner_name = str(learner_type).split('.')[-1][:-2]
+                inference_name = str ( inferece_type ).split ( '.' )[-1][:-2]
+                print w_1,w_2
+                assert np.allclose(w_1, w_2, atol = 1e-04), learner_name + " does not have the same solution for different initialization with " + inference_name

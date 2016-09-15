@@ -256,64 +256,67 @@ class TestImageSegmentation(unittest.TestCase):
 
     def test_fixed_points(self):
         np.random.seed(0)
-        # # =====================================
-        # # first train by subgradient
-        # # =====================================
-        initial_weights = np.zeros(9 + 9)
-        learner = Learner(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        subgrad_weights = learner.learn(initial_weights, None)
+        inferences = [MatrixBeliefPropagator, MatrixTRBeliefPropagator, MaxProductBeliefPropagator, MaxProductLinearProgramming]
 
-        learner.reset()
-        learner = EM(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        em_weights = learner.learn(subgrad_weights, None)
-        # assert (np.allclose(em_weights, subgrad_weights)), "Model learned by subgrad is different from EM"
+        for inference_type in inferences:
+            # # =====================================
+            # # first train by subgradient
+            # # =====================================
+            initial_weights = np.zeros(9 + 9)
+            learner = Learner(inference_type)
+            self.set_up_learner(learner)
+            subgrad_weights = learner.learn(initial_weights, None)
 
-        learner.reset()
-        learner = PairedDual(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        paired_weights = learner.learn(subgrad_weights, None)
-        assert (np.allclose(paired_weights, subgrad_weights, atol=0.01)), "Model learned by subgrad is different from paired dual"
+            learner.reset()
+            learner = EM(inference_type)
+            self.set_up_learner(learner)
+            em_weights = learner.learn(subgrad_weights, None)
+            assert (np.allclose(em_weights, subgrad_weights)), str(inference_type).split('.')[-1][:-2] + " Model learned by subgrad is different from EM"
 
-        # =====================================
-        # first train by EM
-        # =====================================
-        learner.reset()
-        learner = EM(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        em_weights = learner.learn(initial_weights, None)
+            learner.reset()
+            learner = PairedDual(inference_type)
+            self.set_up_learner(learner)
+            paired_weights = learner.learn(subgrad_weights, None)
+            assert (np.allclose(paired_weights, subgrad_weights, atol=0.01)), str(inference_type).split('.')[-1][:-2] + " Model learned by subgrad is different from paired dual"
 
-        learner.reset()
-        learner = Learner(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        subgrad_weights = learner.learn(em_weights, None)
-        assert (np.allclose(em_weights, subgrad_weights, atol=0.1)), "Model learned by EM is different from subgrad"
+            # =====================================
+            # first train by EM
+            # =====================================
+            learner.reset()
+            learner = EM(inference_type)
+            self.set_up_learner(learner)
+            em_weights = learner.learn(initial_weights, None)
 
-        learner.reset()
-        learner = PairedDual( MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        paired_weights = learner.learn(em_weights, None)
-        assert (np.allclose(em_weights, paired_weights, atol=0.1)), "Model learned by EM is different from paired dual"
-        # =====================================
-        # first train by paired dual
-        # =====================================
-        learner.reset()
-        learner = PairedDual(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        paired_weights = learner.learn(initial_weights, None)
+            learner.reset()
+            learner = Learner(inference_type)
+            self.set_up_learner(learner)
+            subgrad_weights = learner.learn(em_weights, None)
+            assert (np.allclose(em_weights, subgrad_weights, atol=0.1)), str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from subgrad"
 
-        learner.reset()
-        learner = EM(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        em_weights = learner.learn(paired_weights, None)
-        assert (np.allclose(em_weights, paired_weights, atol=0.1)), "Model learned by paired dual is different from EM"
+            learner.reset()
+            learner = PairedDual( inference_type)
+            self.set_up_learner(learner)
+            paired_weights = learner.learn(em_weights, None)
+            assert (np.allclose(em_weights, paired_weights, atol=0.1)), str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from paired dual"
+            # =====================================
+            # first train by paired dual
+            # =====================================
+            learner.reset()
+            learner = PairedDual(inference_type)
+            self.set_up_learner(learner)
+            paired_weights = learner.learn(initial_weights, None)
 
-        learner.reset()
-        learner = Learner(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
-        subgrad_weights = learner.learn(paired_weights)
-        assert (np.allclose(subgrad_weights, paired_weights, atol=0.1)), "Model learned by paired dual is different from subgrad"
+            learner.reset()
+            learner = EM(inference_type)
+            self.set_up_learner(learner)
+            em_weights = learner.learn(paired_weights, None)
+            assert (np.allclose(em_weights, paired_weights, atol=0.1)), str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from EM"
+
+            learner.reset()
+            learner = Learner(inference_type)
+            self.set_up_learner(learner)
+            subgrad_weights = learner.learn(paired_weights)
+            assert (np.allclose(subgrad_weights, paired_weights, atol=0.1)), str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from subgrad"
 
 
 if __name__ == '__main__':
