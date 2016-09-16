@@ -8,7 +8,6 @@ class MaxProductLinearProgramming(MaxProductBeliefPropagator):
     def __init__(self, markov_net):
         super(MaxProductLinearProgramming, self).__init__(markov_net)
 
-
     def update_messages(self):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
         message_sum = sparse_dot(self.message_mat, self.mn.message_to_map)

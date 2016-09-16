@@ -27,6 +27,8 @@ class MatrixBeliefPropagator(Inference):
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
+        self.disallow_impossible_states()
+
     def set_max_iter(self, max_iter):
         self.max_iter = max_iter
 
@@ -40,15 +42,21 @@ class MatrixBeliefPropagator(Inference):
 
     def condition(self, var, state):
         i = self.mn.var_index[var]
-        self.augmented_mat[:, i] = -np.inf
-        self.augmented_mat[state, i] = 0
-        self.conditioned[i] = True
+        self.conditioning_mat[:, i] = -np.inf
+        self.conditioning_mat[state, i] = 0
+        if isinstance(state, int):
+            self.conditioned[i] = True
 
         if np.all(self.conditioned):
             # compute beliefs and set flag to never recompute them
             self.compute_beliefs()
             self.compute_pairwise_beliefs()
             self.fully_conditioned = True
+
+    def disallow_impossible_states(self):
+        """ force variables to only allow nonzero probability on their possible states """
+        for var, num_states in self.mn.num_states.items():
+            self.condition(var, range(num_states))
 
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
@@ -199,7 +207,6 @@ def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T
 
 def make_grad_logsumexp(ans, matrix, dim):
-    # TODO make this compatible with new logsumexp
     def gradient_product(g):
         return np.full(matrix.shape, g) * np.exp(matrix - np.full(matrix.shape, ans))
     return gradient_product
