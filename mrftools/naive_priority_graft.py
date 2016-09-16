@@ -9,9 +9,7 @@ from graph_mining_util import make_graph, select_edge_to_inject
 from pqdict import pqdict
 import copy
 
-MAX_ITER_GRAFT = 1
-
-def naive_priority_graft( variables, num_states, data, l1_coeff):
+def naive_priority_graft( variables, num_states, data, l1_coeff, MAX_ITER_GRAFT):
     """
     Main Script for naive priority graft algorithm.
     Reference: To be added.
@@ -45,15 +43,16 @@ def naive_priority_graft( variables, num_states, data, l1_coeff):
     # START GRAFTING
     num_possible_edges = len(search_space)
     weights_opt = aml_optimize.learn(np.random.randn(aml_optimize.weight_dim), MAX_ITER_GRAFT)
-    added_edge, selected_var, pq, search_space = naive_priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff, 1)
+    added_edge, selected_var, pq, search_space, curr_edges_reassigned = naive_priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff, 1)
+    edges_reassigned.extend(curr_edges_reassigned)
+
     while ((len(pq) > 0) and added_edge): # Stop if all edges are added or no edge is added at the previous iteration
         num_edges += 1
         active_set.append(selected_var)
-        print('ACTIVATED EDGE')
-        print(selected_var)
-        print('CURRENT ACTIVE SPACE')
-        print(active_set)
-        new_weights_num = vector_length_per_edge
+        # print('ACTIVATED EDGE')
+        # print(selected_var)
+        # print('CURRENT ACTIVE SPACE')
+        # print(active_set)
         map_weights_to_variables.append(selected_var)
         map_weights_to_edges.append(selected_var)
         mn.set_edge_factor(selected_var, np.zeros((len(mn.unary_potentials[selected_var[0]]), len(mn.unary_potentials[selected_var[1]]))))
@@ -65,7 +64,8 @@ def naive_priority_graft( variables, num_states, data, l1_coeff):
         tmp_weights_opt = .3 * np.ones(aml_optimize.weight_dim)
         weights_opt = aml_optimize.learn(tmp_weights_opt, MAX_ITER_GRAFT)
 
-        added_edge, selected_var, pq, search_space = naive_priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff, 1)
+        added_edge, selected_var, pq, search_space, curr_edges_reassigned = naive_priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff, 1)
+        edges_reassigned.extend(curr_edges_reassigned)
 
     # OPTIMIZE UNTILL CONVERGENCE TO GET OPTIMAL WEIGHTS
     weights_opt = aml_optimize.learn(weights_opt, 1500)
@@ -113,6 +113,10 @@ def naive_priority_graft( variables, num_states, data, l1_coeff):
 
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
+
+    reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
+    print('reassignment_success_rate')
+    print(reassignment_success_rate)
 
     return learned_mn, weights_opt, weights_dict, active_set
 

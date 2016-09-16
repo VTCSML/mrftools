@@ -24,15 +24,15 @@ def priority_reassignment(variables, activeSet, aml_optimize , pruneThreshold, d
             pq.pop(selectedEdge)
             searchSpace.remove(selectedEdge)
             activeSet.append(selectedEdge)
-            print('ACTIVATED EDGE')
-            print(selectedEdge)
-            print('ACTIVE SPACE')
-            print(activeSet)
+            # print('ACTIVATED EDGE')
+            # print(selectedEdge)
+            # print('ACTIVE SPACE')
+            # print(activeSet)
         else:
             success = True
             print('priority Reassignment Authorized')
-            print('priority Reassigned Edges:')
-            print(resultingEdges)
+            # print('priority Reassigned Edges:')
+            # print(resultingEdges)
             pq.pop(selectedEdge)
             searchSpace.remove(selectedEdge)
             pq = reduce_priority(pq, resultingEdges)
@@ -112,10 +112,10 @@ def naive_priority_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff
             search_space.remove(item[0])
             for item in tmp_list:
                 pq.additem(item[0], item[1]+reassignmet)# If an edge is activated, return the previously poped edges with reduced priority
-            return True, edge, pq, search_space
+            return True, edge, pq, search_space, tmp_list
         else:
             tmp_list.append(item)# Store not activated edges in a temporary list
-    return False, (0, 0), pq, search_space
+    return False, (0, 0), pq, search_space, tmp_list
 
 def get_max_gradient(bps, data_length, curr_search_space, edges_data_sum):
     """
@@ -133,14 +133,15 @@ def get_max_gradient(bps, data_length, curr_search_space, edges_data_sum):
             bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
             n += 1
         belief = belief / n
-    gradient = (np.exp(belief.reshape((-1, 1)).tolist()) - np.asarray(edges_data_sum[edge]) / data_length).squeeze()
-    gradient_vec.extend(gradient)
-    for i in range(len(gradient)):
-        map_vec.append(edge)
+        gradient = (np.exp(belief.reshape((-1, 1)).tolist()) - np.asarray(edges_data_sum[edge]) / data_length).squeeze()
+        gradient_vec.extend(gradient)
+        for i in range(len(gradient)):
+            map_vec.append(edge)
     selected_feature = np.abs(gradient_vec).argmax(axis=0)
     activated_edge = map_vec[selected_feature]
     max_grad = np.abs(gradient_vec).max(axis=0)
-    return activated_edge, max_grad
+    curr_search_space.remove(activated_edge)
+    return activated_edge, max_grad, curr_search_space
 
 def compute_likelihood(mn, num_nodes, data):
     """

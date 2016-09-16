@@ -4,16 +4,14 @@ from ApproxMaxLikelihood import ApproxMaxLikelihood
 from scipy.optimize import minimize, check_grad
 import matplotlib.pyplot as plt
 import time
-from grafting_util import priority_reassignment, naive_priority_gradient_test
+from grafting_util import priority_reassignment, priority_gradient_test
 from graph_mining_util import make_graph, select_edge_to_inject
 from pqdict import pqdict
 import copy
 
-MAX_ITER_GRAFT = 1
-
-def mod_priority_graft( variables, num_states, data, l1_coeff, prune_threshold, prune_firing_threshold, add_zero_edge):
+def priority_graft( variables, num_states, data, l1_coeff, prune_threshold, prune_firing_threshold, add_zero_edge, MAX_ITER_GRAFT):
     """
-    Main Script for modified priority graft algorithm.
+    Main Script for priority graft algorithm.
     Reference: To be added.
     """
     priority_reassignements, num_injection, num_success, num_edges_reassigned, max_num_states, num_edges = 0, 0, 0, 0, 0, 0
@@ -39,20 +37,20 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, prune_threshold, 
     edges_data_sum = mn.get_edges_data_sum(data)
 
     # ADD DATA
-    for instance in data:
-        aml_optimize.add_data(instance)
+    for i in range(len(data)):
+        aml_optimize.add_data(data[i])
 
     # START GRAFTING
     num_possible_edges = len(search_space)
     weights_opt = aml_optimize.learn(np.random.randn(aml_optimize.weight_dim), MAX_ITER_GRAFT)
-    added_edge, selected_var, pq, search_space = naive_priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff, 1)
+    added_edge, selected_var, pq, search_space = priority_gradient_test(aml_optimize.belief_propagators,search_space, pq, edges_data_sum, data, l1_coeff)
     while ((len(pq) > 0) and added_edge): # Stop if all edges are added or no edge is added at the previous iteration
         num_edges += 1
         active_set.append(selected_var)
-        print('ACTIVATED EDGE')
-        print(selected_var)
-        print('CURRENT ACTIVE SPACE')
-        print(active_set)
+        # print('ACTIVATED EDGE')
+        # print(selected_var)
+        # print('CURRENT ACTIVE SPACE')
+        # print(active_set)
         new_weights_num = vector_length_per_edge
         map_weights_to_variables.append(selected_var)
         map_weights_to_edges.append(selected_var)
@@ -74,8 +72,7 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, prune_threshold, 
                     new_edges_reassigned = [x for x in resulting_edges if x not in edges_reassigned]
                     num_edges_reassigned += len(new_edges_reassigned)
                     edges_reassigned.extend(new_edges_reassigned)
-        
-        added_edge, selected_var, pq, search_space = naive_priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff, 1)
+        added_edge, selected_var, pq, search_space = priority_gradient_test(aml_optimize.belief_propagators, search_space, pq, edges_data_sum, data, l1_coeff)
     
     # OPTIMIZE UNTILL CONVERGENCE TO GET OPTIMAL WEIGHTS
     weights_opt = aml_optimize.learn(weights_opt, 1500)
@@ -85,7 +82,7 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, prune_threshold, 
     num_weights = 0
     k = 0
     for var in map_weights_to_edges:
-        curr_weights = weights_opt[k : k + vector_length_per_edge]
+        curr_weights = weights_opt[k: k + vector_length_per_edge]
         if not all(i < .0001 for i in curr_weights):
             active_set.append(var)
         k += vector_length_per_edge
@@ -124,5 +121,10 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, prune_threshold, 
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
 
+    reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
+    print('reassignment_success_rate')
+    print(reassignment_success_rate)
+
     return learned_mn, weights_opt, weights_dict, active_set
-    
+
+
