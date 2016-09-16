@@ -86,14 +86,14 @@ def main():
     dataset = "background"
     d_unary = 65
     d_edge = 11
-    max_height = 240
-    max_width = 320
-    # max_height = 6
-    # max_width = 6
-    num_training_images = 31
-    num_testing_images = 11
-    # num_training_images = 10
-    # num_testing_images = 2
+    # max_height = 240
+    # max_width = 320
+    max_height = 6
+    max_width = 6
+    # num_training_images = 31
+    # num_testing_images = 11
+    num_training_images = 2
+    num_testing_images = 2
     max_iter = 0
     inc = 'true'
     path = os.path.abspath ( os.path.join ( os.path.dirname ( 'settings.py' ), os.path.pardir ) )
@@ -103,10 +103,12 @@ def main():
         os.makedirs ( path + '/saved/' )
     saved_path = path + '/saved/'
 
-    inferences = [MatrixBeliefPropagator, MatrixTRBeliefPropagator, MaxProductLinearProgramming, MaxProductBeliefPropagator]
-    # inferences= [MaxProductBeliefPropagator]
-    learners = [Learner, EM, PairedDual, PrimalDual]
-    regularizers = [[0.0, 1.0], [1.0, 0.0], [0.1, 0.1], [0.01, 0.9], [0.9, 0.01]]
+    # inferences = [MatrixBeliefPropagator, MatrixTRBeliefPropagator, MaxProductLinearProgramming, MaxProductBeliefPropagator]
+    inferences= [MatrixTRBeliefPropagator]
+    learners = [Learner]
+    # learners = [Learner, EM, PairedDual, PrimalDual]
+    # regularizers = [[0.0, 1.0], [1.0, 0.0], [0.1, 0.1], [0.01, 0.9], [0.9, 0.01]]
+    regularizers = [[0 , 1]]
 
     loss_augmented = [True, False]
     if dataset == "horse":

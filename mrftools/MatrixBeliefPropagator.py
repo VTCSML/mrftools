@@ -42,8 +42,8 @@ class MatrixBeliefPropagator(Inference):
 
     def condition(self, var, state):
         i = self.mn.var_index[var]
-        self.conditioning_mat[:, i] = -np.inf
-        self.conditioning_mat[state, i] = 0
+        self.augmented_mat[:, i] = -np.inf
+        self.augmented_mat[state, i] = 0
         if isinstance(state, int):
             self.conditioned[i] = True
 
