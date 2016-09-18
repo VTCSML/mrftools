@@ -8,21 +8,24 @@ from naive_priority_graft import naive_priority_graft
 from mod_priority_graft import mod_priority_graft
 from graft import graft
 
-L1COEFF = .1
+L1COEFF = .7
 MAX_ITER_GRAFTING = 10
 
 def main():
-    raw_data = load_instances('../../Mushroom_data/agaricus-lepiota.data', True, '?')
-    att = load_attribute_values('../../Mushroom_data/agaricus-lepiota.attributes')
+    raw_data = load_instances('../../../Mushroom_data/agaricus-lepiota.data', True, '?')
+    att = load_attribute_values('../../../Mushroom_data/agaricus-lepiota.attributes')
     m_a_p = []
     num_states = {}
     variables = []
     k = 0
+    max_num_states = 0
     for a in att:
         tmp = {}
         tmp_list = a.values()
         variables.append(k)
         num_states[k] = len(tmp_list)
+        if num_states[k] > max_num_states:
+            max_num_states = num_states[k]
         k += 1
         for i in range(len(tmp_list)):
             tmp[tmp_list[i]] = i
@@ -49,7 +52,7 @@ def main():
 
     print('Priority Graft Start...')
     t = time.time()
-    mn_priority_graft, weights_priority_graft, Weights_dict_priority_graft, active_space_priority_graft= priority_graft(variables, num_states, train_data, L1COEFF, 3, .1, False, MAX_ITER_GRAFTING)
+    mn_priority_graft, weights_priority_graft, Weights_dict_priority_graft, active_space_priority_graft= priority_graft(variables, num_states, train_data, L1COEFF, 3, .1, False, MAX_ITER_GRAFTING, max_num_states, True)
     elapsed_priority_graft = time.time() - t
     print('Priority Graft ENDED After')
     print(elapsed_priority_graft)
@@ -57,45 +60,45 @@ def main():
     print('Likelihood Priority Graft')
     print(likelihood_priority_graft)
 
-    print('Queue Grafting Start...')
-    t = time.time()
-    mn_queuey_graft, weights_queue_graft, weights_dict_queue_graft, active_space_queue_graft = queue_graft(variables, num_states, train_data, L1COEFF, MAX_ITER_GRAFTING)
-    elapsed_queue_graft = time.time() - t
-    print('Queue Grafting ENDED AFTER')
-    print(elapsed_queue_graft)
-    likelihood_queue_graft = compute_likelihood(mn_queuey_graft, len(num_states), test_data)
-    print('Likelihood Queue Graft')
-    print(likelihood_queue_graft)
+    # print('Queue Grafting Start...')
+    # t = time.time()
+    # mn_queuey_graft, weights_queue_graft, weights_dict_queue_graft, active_space_queue_graft = queue_graft(variables, num_states, train_data, L1COEFF, MAX_ITER_GRAFTING, max_num_states, True)
+    # elapsed_queue_graft = time.time() - t
+    # print('Queue Grafting ENDED AFTER')
+    # print(elapsed_queue_graft)
+    # likelihood_queue_graft = compute_likelihood(mn_queuey_graft, len(num_states), test_data)
+    # print('Likelihood Queue Graft')
+    # print(likelihood_queue_graft)
 
-    print('Naive Priority Grafting Start...')
-    t = time.time()
-    mn_naive_priority_graft, weights_naive_priority_graft, weights_dict_naive_priority_praft, active_space_naive_priority_graft = naive_priority_graft(variables, num_states, train_data, L1COEFF, MAX_ITER_GRAFTING)
-    elapsed_naive_priority_graft = time.time() - t
-    print('Naive Priority Grafting END AFTER')
-    print(elapsed_naive_priority_graft)
-    likelihood_naive_priority_graft = compute_likelihood(mn_naive_priority_graft, len(num_states), test_data)
-    print('Likelihood Naive Priority Graft')
-    print(likelihood_naive_priority_graft)
+    # print('Naive Priority Grafting Start...')
+    # t = time.time()
+    # mn_naive_priority_graft, weights_naive_priority_graft, weights_dict_naive_priority_praft, active_space_naive_priority_graft = naive_priority_graft(variables, num_states, train_data, L1COEFF, MAX_ITER_GRAFTING, max_num_states, True)
+    # elapsed_naive_priority_graft = time.time() - t
+    # print('Naive Priority Grafting END AFTER')
+    # print(elapsed_naive_priority_graft)
+    # likelihood_naive_priority_graft = compute_likelihood(mn_naive_priority_graft, len(num_states), test_data)
+    # print('Likelihood Naive Priority Graft')
+    # print(likelihood_naive_priority_graft)
 
-    print('Modified Priority Graft Start...')
-    t = time.time()
-    mn_mod_priority_graft, weights_mod_priority_graft, weights_dict_mod_priority_graft, active_space_mod_priority_graft = mod_priority_graft(variables, num_states, train_data, L1COEFF, 3, .1, False, MAX_ITER_GRAFTING)
-    elapsed_mod_priority_graft = time.time() - t
-    print('Modified Priority Graft END')
-    print(elapsed_mod_priority_graft)
-    likelihood_mod_priority_graft = compute_likelihood(mn_mod_priority_graft, len(num_states), test_data)
-    print('Likelihood Modified Priority Graft')
-    print(likelihood_mod_priority_graft)
+    # print('Modified Priority Graft Start...')
+    # t = time.time()
+    # mn_mod_priority_graft, weights_mod_priority_graft, weights_dict_mod_priority_graft, active_space_mod_priority_graft = mod_priority_graft(variables, num_states, train_data, L1COEFF, 3, .1, False, MAX_ITER_GRAFTING, max_num_states, True)
+    # elapsed_mod_priority_graft = time.time() - t
+    # print('Modified Priority Graft END')
+    # print(elapsed_mod_priority_graft)
+    # likelihood_mod_priority_graft = compute_likelihood(mn_mod_priority_graft, len(num_states), test_data)
+    # print('Likelihood Modified Priority Graft')
+    # print(likelihood_mod_priority_graft)
 
-    print('Grafting Start...')
-    t = time.time()
-    mn_graft, weights_graft, weights_dict_graft, active_space_Graft = graft(variables, num_states, train_data, L1COEFF, MAX_ITER_GRAFTING)
-    elapsed_graft = time.time() - t
-    print('Grafting ENDED AFTER')
-    print(elapsed_graft)
-    likelihood_graft = compute_likelihood(mn_graft, len(num_states), test_data)
-    print('Likelihood Graft')
-    print(likelihood_graft)
+    # print('Grafting Start...')
+    # t = time.time()
+    # mn_graft, weights_graft, weights_dict_graft, active_space_Graft = graft(variables, num_states, train_data, L1COEFF, MAX_ITER_GRAFTING, max_num_states, True)
+    # elapsed_graft = time.time() - t
+    # print('Grafting ENDED AFTER')
+    # print(elapsed_graft)
+    # likelihood_graft = compute_likelihood(mn_graft, len(num_states), test_data)
+    # print('Likelihood Graft')
+    # print(likelihood_graft)
 
 if  __name__ =='__main__':
     main()

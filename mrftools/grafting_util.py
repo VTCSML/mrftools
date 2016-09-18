@@ -2,41 +2,42 @@ import numpy as np
 from scipy.misc import logsumexp
 import copy
 from graph_mining_util import *
+from pqdict import pqdict
 
-def priority_reassignment(variables, activeSet, aml_optimize , pruneThreshold, data, searchSpace, pq, l1coeff, edgesDataSum):
+def priority_reassignment(variables, active_set, aml_optimize , prune_threshold, data, search_space, pq, l1_coeff, edges_data_sum):
     """
     Functionality :
     1 - Select edge to be tested. 
     2 - Activate edge if if it passes the pruning test.
     3 - Decrease the priority of the edge and resulting edges if it does not pass the pruning test. 
     """
-    currGraph = make_graph(variables, activeSet)
+    curr_graph = make_graph(variables, active_set)
     injection = False
     success = False
-    found, selectedEdge, resultingEdges = select_edge_to_inject(currGraph, searchSpace, pruneThreshold)
+    found, selected_edge, resulting_edges = select_edge_to_inject(curr_graph, search_space, prune_threshold)
     if found:
         injection = True
         print('Testing priority Reassignment possibility using edge:')
-        print(selectedEdge)
-        addedEdge = edge_gradient_test(aml_optimize.belief_propagators, selectedEdge, edgesDataSum, data, l1coeff)
+        print(selected_edge)
+        added_edge = edge_gradient_test(aml_optimize.belief_propagators, selected_edge, edges_data_sum, data, l1_coeff)
         if addedEdge:
             print('priority Reassignment NOT Authorized')
-            pq.pop(selectedEdge)
-            searchSpace.remove(selectedEdge)
-            activeSet.append(selectedEdge)
+            pq.pop(selected_edge)
+            search_Space.remove(selected_edge)
+            active_set.append(selected_edge)
             # print('ACTIVATED EDGE')
-            # print(selectedEdge)
+            # print(selected_edge)
             # print('ACTIVE SPACE')
-            # print(activeSet)
+            # print(active_Set)
         else:
             success = True
             print('priority Reassignment Authorized')
             # print('priority Reassigned Edges:')
-            # print(resultingEdges)
-            pq.pop(selectedEdge)
-            searchSpace.remove(selectedEdge)
-            pq = reduce_priority(pq, resultingEdges)
-    return pq, activeSet, searchSpace, injection, success, resultingEdges
+            # print(resulting_edges)
+            pq.pop(selected_edge)
+            search_space.remove(selected_edge)
+            pq = reduce_priority(pq, resulting_edges)
+    return pq, active_set, search_space, injection, success, resulting_edges
 
 def edge_gradient_test(bps, edge, data_sum, data, l1_coeff):
     """
@@ -59,7 +60,7 @@ def edge_gradient_test(bps, edge, data_sum, data, l1_coeff):
         return False
     return True
 
-def priority_gradient_test(bps, searchSpace, pq, dataSum, data, l1Coeff):
+def priority_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff):
     """
     Functionality :
     1 - Parse the priority queue 'pq' and compute the gradient of the current edge. 
@@ -77,15 +78,15 @@ def priority_gradient_test(bps, searchSpace, pq, dataSum, data, l1Coeff):
             bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
             n += 1
         belief = belief / n
-        gradient = (np.exp(belief.reshape((-1, 1)).tolist()) - np.asarray(dataSum[edge]) / len(data)).squeeze()
-        activate = not all(i < l1Coeff for i in np.abs(gradient))
+        gradient = (np.exp(belief.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
+        activate = not all(i < l1_coeff for i in np.abs(gradient))
         if activate:
-            searchSpace.remove(item[0])
+            search_space.remove(item[0])
             for item in tmp_list:# If an edge is activated, return the previously poped edges
                 pq.additem(item[0],item[1])
-            return True, edge, pq, searchSpace
+            return True, edge
         else: tmp_list.append(item)# Store not activated edges in a temporary list
-    return False, (0, 0), pq, searchSpace
+    return False, (0, 0)
 
 def naive_priority_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff, reassignmet):
     """
@@ -112,10 +113,10 @@ def naive_priority_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff
             search_space.remove(item[0])
             for item in tmp_list:
                 pq.additem(item[0], item[1]+reassignmet)# If an edge is activated, return the previously poped edges with reduced priority
-            return True, edge, pq, search_space, tmp_list
+            return True, edge, tmp_list
         else:
             tmp_list.append(item)# Store not activated edges in a temporary list
-    return False, (0, 0), pq, search_space, tmp_list
+    return False, (0, 0), tmp_list
 
 def get_max_gradient(bps, data_length, curr_search_space, edges_data_sum):
     """
@@ -165,6 +166,44 @@ def compute_likelihood(mn, num_nodes, data):
             likelihood_instance += likelihood_instance_node - logZ
         likelihood += likelihood_instance
     return - (float(likelihood) / float(len(data)))
+
+
+def initialize_priority_queue(mn):
+    """
+    Initialize priority queue for grafting
+    """
+    pq = pqdict()
+    for edge in mn.search_space:
+        pq.additem(edge, 0)
+    return pq
+
+def setup_learner(aml_optimize, data):
+    for instance in data:
+        aml_optimize.add_data(instance)
+
+def update_grafting_metrics(injection, success, resulting_edges, edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements):
+    if injection:
+        num_injection += 1
+        if success:
+            num_success += 1
+            priority_reassignements += len(resulting_edges)
+            new_edges_reassigned = [x for x in resulting_edges if x not in edges_reassigned]
+            num_edges_reassigned += len(new_edges_reassigned)
+            edges_reassigned.extend(new_edges_reassigned)
+    return num_success, num_injection, priority_reassignements, num_edges_reassigned
+
+
+def update_mod_grafting_metrics(injection, success, resulting_edges, edges_reassigned, graph_edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements):
+    if injection:
+        num_injection += 1
+        if success:
+            num_success += 1
+            priority_reassignements += len(resulting_edges)
+            new_edges_reassigned = [x for x in resulting_edges if x not in edges_reassigned]
+            num_edges_reassigned += len(new_edges_reassigned)
+            edges_reassigned.extend(new_edges_reassigned)
+            graph_edges_reassigned.extend(new_edges_reassigned)
+    return num_success, num_injection, priority_reassignements, num_edges_reassigned
 
 def move_to_tail(search_space, edges):
     """

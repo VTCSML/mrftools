@@ -22,6 +22,23 @@ class MarkovNet(object):
         self.num_weights_search_space = 0
         self.has_edges = False
 
+
+    def initialize_edge_factors(self, active_set, map_weights_to_variables):
+        """Initialize the potential function for all the unary factors. Implicitly declare variables. Must be called before setting edge factors."""
+        for edge in active_set:
+            map_weights_to_variables.append(edge)
+            self.set_edge_factor(edge, np.zeros(
+                (len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]]))))
+
+    def initialize_unary_factors(self, variables, num_states):
+        """Initialize the potential function for all the unary factors. Implicitly declare variables. Must be called before setting edge factors."""
+        map_weights_to_variables = []
+        for var in variables:
+            self.set_unary_factor(var, np.zeros(num_states[var]))
+            map_weights_to_variables.append(var)
+        self.init_search_space()
+        return map_weights_to_variables
+
     def set_unary_factor(self, variable, potential):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
         self.unary_potentials[variable] = potential
@@ -157,20 +174,6 @@ class MarkovNet(object):
         self.message_from = np.zeros(2 * self.num_edges, dtype=np.intp)
         self.message_from[from_rows] = from_cols
 
-    def init_candidate_edges(self):
-        """Initialize the set of all possible Edges"""
-        for var1 in self.variables:
-            self.space[var1] = copy.deepcopy(self.unaryPotentials[var1])
-            for var2 in self.variables:
-                if var1 < var2:
-                    self.edgePotentials[(var1, var2)] = np.zeros(
-                        shape=(len(self.unaryPotentials[var1]), len(self.unaryPotentials[var2])))
-                    self.space[(var1, var2)] = np.zeros(
-                        shape=(len(self.unaryPotentials[var1]), len(self.unaryPotentials[var2])))
-                    self.search_space.append((var1, var2))
-                if var1 != var2:
-                    self.neighbors[var1].add(var2)
-
     def init_search_space(self):
         """Initialize the set of all possible Edges"""
         for var1 in self.variables:
@@ -179,22 +182,6 @@ class MarkovNet(object):
                     self.search_space.append((var1, var2))
                     self.num_weights_search_space += len(self.unary_potentials[var1]) * len(self.unary_potentials[var2])
 
-    def update_search_space(self, edge):
-        self.search_space.remove(edge)
-        self.num_weights_search_space -= len(self.unary_potentials[edge[0]]) * len(self.unary_potentials[edge[1]])
-
-    def init_weights(self):
-        """Initialize the set of all possible Weights"""
-        for x in self.space:
-            pot = self.space[x]
-            if isinstance(x, tuple):
-                curr_num_weights = np.prod(pot.shape)
-            else:
-                curr_num_weights = len(pot)
-            self.num_weights += curr_num_weights
-            for t in range(curr_num_weights):
-                self.map_features_to_space.append(x)
-        return (np.zeros(self.num_weights))
 
     def get_edges_data_sum(self, data):
         """Compute joint states reoccurrences in the data"""

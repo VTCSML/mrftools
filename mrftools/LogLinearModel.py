@@ -112,7 +112,6 @@ class LogLinearModel(MarkovNet):
 
         for edge, i in self.edge_index.items():
             self.edge_feature_mat[:, i] = self.edge_features[edge]
-
         self.weight_dim = self.max_states * self.max_features + self.max_edge_features * self.max_states ** 2
 
     def create_indicator_model(self, markov_net):
