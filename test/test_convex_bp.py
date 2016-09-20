@@ -118,6 +118,52 @@ class TestConvexBP(unittest.TestCase):
             "Energy functional is not exact. Convex: %f, BP: %f" % (cbp.compute_energy_functional(),
                                                                              bp.compute_energy_functional())
 
+    def test_bounds(self):
+        mn = self.create_q_model()
+
+        edge_count = 1
+        node_count = 1
+
+        counting_numbers = {(0, 1): edge_count,
+                            (1, 2): edge_count,
+                            (2, 3): edge_count,
+                            (0, 3): edge_count,
+                            (0, 4): edge_count,
+                            0: node_count,
+                            1: node_count,
+                            2: node_count,
+                            3: node_count,
+                            4: node_count}
+
+        bp = ConvexBeliefPropagator(mn, counting_numbers)
+
+        max_iter = 30
+
+        primal = np.zeros(max_iter)
+        dual = np.zeros(max_iter)
+        inconsistency = np.zeros(max_iter)
+
+        print "t\tprimal\t\t\tdual obj\t\tinconsistency\tdiff"
+
+        for t in range(max_iter):
+            primal[t] = bp.compute_energy_functional()
+            dual[t] = bp.compute_dual_objective()
+            inconsistency[t] = bp.compute_inconsistency()
+
+            print "%d\t%e\t%e\t%e" % (t, primal[t], dual[t], inconsistency[t])
+
+            bp.update_messages()
+
+        assert np.allclose(primal[-1], dual[-1]), "Primal and dual are not close after %d iters" % max_iter
+
+        opt = primal[-1]
+
+        print "t\tdual obj\t\tdiff"
+        for t in range(max_iter):
+            print "%d\t%e\t%e" % (t, dual[t], dual[t] - opt)
+            assert dual[t] >= opt, "dual objective was lower than optimum"
+
+
     def test_convexity(self):
         mn = self.create_q_model()
 
@@ -166,19 +212,19 @@ class TestConvexBP(unittest.TestCase):
         print ("Minimum dual objective: %f" % np.min(y))
         print ("Inconsistency at argmin: %f" % z[np.argmin(y)])
 
-        plt.subplot(411)
-        plt.plot(x, y)
-        plt.ylabel('dual objective')
-        plt.subplot(412)
-        plt.plot(x, z)
-        plt.ylabel('inconsistency')
-        plt.subplot(413)
-        plt.plot(x, dual_penalty)
-        plt.ylabel('dual penalty')
-        plt.subplot(414)
-        plt.plot(x, primal)
-        plt.ylabel('(infeasible) primal objective')
-        plt.show()
+        # plt.subplot(411)
+        # plt.plot(x, y)
+        # plt.ylabel('dual objective')
+        # plt.subplot(412)
+        # plt.plot(x, z)
+        # plt.ylabel('inconsistency')
+        # plt.subplot(413)
+        # plt.plot(x, dual_penalty)
+        # plt.ylabel('dual penalty')
+        # plt.subplot(414)
+        # plt.plot(x, primal)
+        # plt.ylabel('(infeasible) primal objective')
+        # plt.show()
 
         assert np.allclose(y.min(), y[10]), "Minimum was not at converged messages"
 
