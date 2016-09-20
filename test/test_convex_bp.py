@@ -121,8 +121,8 @@ class TestConvexBP(unittest.TestCase):
     def test_convexity(self):
         mn = self.create_q_model()
 
-        edge_count = 0.1
-        node_count = 0.1
+        edge_count = 1
+        node_count = 0.5
 
         counting_numbers = {(0, 1): edge_count,
                             (1, 2): edge_count,
@@ -136,7 +136,10 @@ class TestConvexBP(unittest.TestCase):
                             4: node_count}
 
         bp = ConvexBeliefPropagator(mn, counting_numbers)
-        bp.infer(display = "full")
+        bp.set_max_iter(10000)
+        bp.infer(display = "full", tolerance=1e-12)
+
+        # why does the dual objective go below the primal solution? numerical, or bug?
 
         messages = bp.message_mat.copy()
 
@@ -145,12 +148,16 @@ class TestConvexBP(unittest.TestCase):
         x = np.linspace(-1, 1, 21)
         y = np.zeros(21)
         z = np.zeros(21)
+        primal = np.zeros(21)
+        dual_penalty = np.zeros(21)
 
         for i in range(len(x)):
             mod_messages = messages + x[i] * noise
             bp.set_messages(mod_messages)
             y[i] = bp.compute_dual_objective()
             z[i] = bp.compute_inconsistency()
+            primal[i] = bp.compute_energy_functional()
+            dual_penalty[i] = y[i] - primal[i]
 
         bp.load_beliefs()
         print np.exp(bp.var_beliefs[0])
@@ -159,8 +166,19 @@ class TestConvexBP(unittest.TestCase):
         print ("Minimum dual objective: %f" % np.min(y))
         print ("Inconsistency at argmin: %f" % z[np.argmin(y)])
 
-        # plt.plot(x, y)
-        # plt.show()
+        plt.subplot(411)
+        plt.plot(x, y)
+        plt.ylabel('dual objective')
+        plt.subplot(412)
+        plt.plot(x, z)
+        plt.ylabel('inconsistency')
+        plt.subplot(413)
+        plt.plot(x, dual_penalty)
+        plt.ylabel('dual penalty')
+        plt.subplot(414)
+        plt.plot(x, primal)
+        plt.ylabel('(infeasible) primal objective')
+        plt.show()
 
         assert np.allclose(y.min(), y[10]), "Minimum was not at converged messages"
 
