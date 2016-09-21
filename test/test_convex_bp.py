@@ -234,5 +234,61 @@ class TestConvexBP(unittest.TestCase):
         assert np.all(second_deriv >= 0), "Estimated second derivative was not non-negative"
 
 
+    def test_unary_belief_update(self):
+        mn = self.create_q_model()
+
+        edge_count = 1
+        node_count = 1
+
+        counting_numbers = {(0, 1): edge_count,
+                            (1, 2): edge_count,
+                            (2, 3): edge_count,
+                            (0, 3): edge_count,
+                            (0, 4): edge_count,
+                            0: node_count,
+                            1: node_count,
+                            2: node_count,
+                            3: node_count,
+                            4: node_count}
+
+        bp = ConvexBeliefPropagator(mn, counting_numbers)
+
+        bp.update_messages()
+        bp.update_messages()
+
+        bp.compute_beliefs()
+        bp.compute_pairwise_beliefs()
+        beliefs = bp.belief_mat
+
+        res = 21
+        x = np.linspace(-1, 1, res)
+        y = np.zeros(res)
+
+        direction = np.random.randn(beliefs.shape[0], beliefs.shape[1])
+        # direction *= 0
+        # direction[:, 0] = np.random.randn(6)
+
+        for i in range(res):
+            new_beliefs = beliefs + x[i] * direction
+            new_beliefs -= logsumexp(new_beliefs, 0)
+
+            bp.belief_mat = new_beliefs
+
+            y[i] = bp.compute_bethe_entropy() + bp.compute_energy()
+            # print y[i]
+
+        # plt.plot(x, y)
+        # plt.ylabel('energy functional')
+        # plt.xlabel('deviation from solution')
+        # plt.show()
+
+        assert np.allclose(y.min(), y[res / 2]), "Minimum was not at converged messages"
+
+        deriv = y[1:] - y[:-1]
+        second_deriv = deriv[1:] - deriv[:-1]
+        print second_deriv
+        assert np.all(second_deriv <= 0), "Estimated second derivative was not non-positive"
+
+
 if __name__ == '__main__':
     unittest.main()
