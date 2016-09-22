@@ -182,6 +182,7 @@ class TestConvexBP(unittest.TestCase):
                             4: node_count}
 
         bp = ConvexBeliefPropagator(mn, counting_numbers)
+        # bp = MatrixBeliefPropagator(mn)
         bp.set_max_iter(10000)
         bp.infer(display = "full", tolerance=1e-12)
 
@@ -212,19 +213,19 @@ class TestConvexBP(unittest.TestCase):
         print ("Minimum dual objective: %f" % np.min(y))
         print ("Inconsistency at argmin: %f" % z[np.argmin(y)])
 
-        # plt.subplot(411)
-        # plt.plot(x, y)
-        # plt.ylabel('dual objective')
-        # plt.subplot(412)
-        # plt.plot(x, z)
-        # plt.ylabel('inconsistency')
-        # plt.subplot(413)
-        # plt.plot(x, dual_penalty)
-        # plt.ylabel('dual penalty')
-        # plt.subplot(414)
-        # plt.plot(x, primal)
-        # plt.ylabel('(infeasible) primal objective')
-        # plt.show()
+        plt.subplot(411)
+        plt.plot(x, y)
+        plt.ylabel('dual objective')
+        plt.subplot(412)
+        plt.plot(x, z)
+        plt.ylabel('inconsistency')
+        plt.subplot(413)
+        plt.plot(x, dual_penalty)
+        plt.ylabel('dual penalty')
+        plt.subplot(414)
+        plt.plot(x, primal)
+        plt.ylabel('(infeasible) primal objective')
+        plt.show()
 
         assert np.allclose(y.min(), y[10]), "Minimum was not at converged messages"
 
@@ -236,9 +237,10 @@ class TestConvexBP(unittest.TestCase):
 
     def test_unary_belief_update(self):
         mn = self.create_q_model()
+        mn2 = self.create_q_model()
 
-        edge_count = 1
-        node_count = 1
+        edge_count = 1.0
+        node_count = 1.0
 
         counting_numbers = {(0, 1): edge_count,
                             (1, 2): edge_count,
@@ -254,15 +256,20 @@ class TestConvexBP(unittest.TestCase):
         bp = ConvexBeliefPropagator(mn, counting_numbers)
 
         bp.update_messages()
-        bp.update_messages()
+        # bp.update_messages()
+        # bp.infer(display='off')
 
         bp.compute_beliefs()
         bp.compute_pairwise_beliefs()
         beliefs = bp.belief_mat
+        pair_beliefs = bp.pair_belief_tensor
 
         res = 21
-        x = np.linspace(-1, 1, res)
+        x = np.linspace(-2, 2, res)
         y = np.zeros(res)
+        z = np.zeros(res)
+        entropy = np.zeros(res)
+        energy = np.zeros(res)
 
         direction = np.random.randn(beliefs.shape[0], beliefs.shape[1])
         # direction *= 0
@@ -274,20 +281,31 @@ class TestConvexBP(unittest.TestCase):
 
             bp.belief_mat = new_beliefs
 
-            y[i] = bp.compute_bethe_entropy() + bp.compute_energy()
+            z[i] = bp.compute_energy() + bp.compute_bethe_entropy()
+            y[i] = z[i] + np.sum(bp.message_mat * bp._compute_inconsistency_vector())
+            entropy[i] = bp.compute_bethe_entropy()
+            energy[i] = bp.compute_energy()
             # print y[i]
 
-        # plt.plot(x, y)
-        # plt.ylabel('energy functional')
-        # plt.xlabel('deviation from solution')
-        # plt.show()
+        plt.subplot(411)
+        plt.plot(x, y)
+        plt.ylabel('dual objective')
+        plt.xlabel('deviation from solution')
+        plt.subplot(412)
+        plt.plot(x, z)
+        plt.ylabel('primal objective')
+        plt.xlabel('deviation from solution')
+        plt.subplot(413)
+        plt.plot(x, entropy)
+        plt.ylabel('entropy')
+        plt.xlabel('deviation from solution')
+        plt.subplot(414)
+        plt.plot(x, energy)
+        plt.ylabel('energy')
+        plt.xlabel('deviation from solution')
+        plt.show()
 
-        assert np.allclose(y.min(), y[res / 2]), "Minimum was not at converged messages"
-
-        deriv = y[1:] - y[:-1]
-        second_deriv = deriv[1:] - deriv[:-1]
-        print second_deriv
-        assert np.all(second_deriv <= 0), "Estimated second derivative was not non-positive"
+        assert np.allclose(y.max(), y[res / 2]), "Maximum was not at closed-form belief update"
 
 
 if __name__ == '__main__':
