@@ -73,6 +73,7 @@ class LogLinearModel(MarkovNet):
         self.update_unary_matrix()
         self.update_edge_tensor()
         # print(time.time() - t)
+
     def set_weight_matrix(self, weight_mat):
         assert (np.array_equal(self.weight_mat.shape, weight_mat.shape))
         self.weight_mat[:, :] = weight_mat
@@ -129,18 +130,20 @@ class LogLinearModel(MarkovNet):
         num_edges = 0
         for var in markov_net.variables:
             for neighbor in markov_net.get_neighbors(var):
-                num_edges += 1
+                if var < neighbor:
+                    num_edges += 1
 
         # create edge indicator features
         i = 0
         for var in markov_net.variables:
             for neighbor in markov_net.get_neighbors(var):
-                edge = (var, neighbor)
-                self.set_edge_factor(edge, markov_net.get_potential(edge))
-                indicator_features = np.zeros(num_edges)
-                indicator_features[i] = 1.0
-                self.set_edge_features(edge, indicator_features)
-                i += 1
+                if var < neighbor:
+                    edge = (var, neighbor)
+                    self.set_edge_factor(edge, markov_net.get_potential(edge))
+                    indicator_features = np.zeros(num_edges)
+                    indicator_features[i] = 1.0
+                    self.set_edge_features(edge, indicator_features)
+                    i += 1
 
         self.create_matrices()
 
@@ -168,3 +171,23 @@ class LogLinearModel(MarkovNet):
         for edge, i in self.edge_index.items():
             self.set_edge_factor(edge,
                          self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
+
+    def get_weight_factor_index(self):
+        """Runs an index vector through the weight-vector conversion process to get an index matrix and tensor for
+        unary and edge potentials. Only makes sense for indicator model."""
+
+        indices = np.array(range(self.weight_dim))
+
+        num_vars = len(self.variables)
+
+        feature_size = self.max_features * self.max_states
+        unary_indices = indices[:feature_size].reshape((self.max_features, self.max_states))
+
+        pairwise_indices = indices[feature_size:].reshape((self.max_edge_features, self.max_states ** 2))
+
+        unary_matrix = np.rint(self.feature_mat.T.dot(unary_indices).T).astype(np.int)
+
+        pairwise_tensor = np.rint(self.edge_feature_mat.T.dot(pairwise_indices).T.reshape(
+               (self.max_states, self.max_states, self.num_edges))).astype(np.int)
+
+        return unary_matrix, pairwise_tensor

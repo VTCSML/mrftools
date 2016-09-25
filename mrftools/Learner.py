@@ -100,7 +100,7 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
-    def learn(self, weights, max_iter, callback_f=None):
+    def learn(self, weights, max_iter=300, callback_f=None):
         res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
         new_weights = res.x
         return new_weights

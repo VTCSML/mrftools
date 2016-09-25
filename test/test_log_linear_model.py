@@ -169,3 +169,95 @@ class TestLogLinearModel(unittest.TestCase):
 
         assert np.all(np.sum(model.message_to_map.todense(), axis=1) == 1), \
             "Message sender map has a row that doesn't sum to 1.0"
+
+
+    def test_indicator_model(self):
+        mn = MarkovNet()
+
+        np.random.seed(1)
+
+        k = [4, 3, 6, 2, 5]
+
+        mn.set_unary_factor(0, np.random.randn(k[0]))
+        mn.set_unary_factor(1, np.random.randn(k[1]))
+        mn.set_unary_factor(2, np.random.randn(k[2]))
+        mn.set_unary_factor(3, np.random.randn(k[3]))
+
+        factor4 = np.random.randn(k[4])
+
+        mn.set_unary_factor(4, factor4)
+
+        mn.set_edge_factor((0, 1), np.random.randn(k[0], k[1]))
+        mn.set_edge_factor((1, 2), np.random.randn(k[1], k[2]))
+        mn.set_edge_factor((3, 2), np.random.randn(k[3], k[2]))
+        mn.set_edge_factor((1, 4), np.random.randn(k[1], k[4]))
+
+        # create indicator model
+
+        model = LogLinearModel()
+        model.create_indicator_model(mn)
+
+        # try indices
+
+        unary_indices, pairwise_indices = model.get_weight_factor_index()
+
+        print unary_indices
+
+        print pairwise_indices
+
+        print np.sort(np.concatenate((unary_indices.ravel(), pairwise_indices.ravel())))
+
+        assert np.allclose(np.sort(np.concatenate((unary_indices.ravel(), pairwise_indices.ravel()))), np.array(range(model.weight_dim)))
+
+        # try uniform weights
+
+        var = 2
+        neighbor = 3
+        other = 4
+
+        weights = np.zeros(model.weight_dim)
+
+        bp = MatrixBeliefPropagator(model)
+
+        model.set_weights(weights)
+        bp.infer()
+        bp.load_beliefs()
+
+        print bp.belief_mat
+        # check that beliefs for var, neighbor, and other are all uniform
+        assert np.allclose(np.exp(bp.var_beliefs[var][0]), 1.0 / float(k[var]))
+        assert np.allclose(np.exp(bp.var_beliefs[neighbor][0]), 1.0 / float(k[neighbor]))
+        assert np.allclose(np.exp(bp.var_beliefs[other][0]), 1.0 / float(k[other]))
+
+        # change weights for unary potential
+
+        weights[unary_indices[:, model.var_index[var]]] = np.random.randn(model.max_states)
+        model.set_weights(weights)
+        bp.infer()
+        bp.load_beliefs()
+
+        print bp.belief_mat
+
+
+        # check that beliefs for var have changed but other remains uniform
+        assert np.abs(bp.var_beliefs[var][0]) - 1.0 / float(k[var]) > 1e-8
+
+        assert np.allclose(np.exp(bp.var_beliefs[other][0]), 1.0 / float(k[other]))
+
+        # change weights for pairwise potential
+
+        weights = np.zeros(model.weight_dim)
+        weights[pairwise_indices[:, :, model.edge_index[(var, neighbor)]]] = np.random.randn(model.max_states, model.max_states)
+        model.set_weights(weights)
+        bp.infer()
+        bp.compute_pairwise_beliefs()
+        bp.load_beliefs()
+
+        print bp.pair_beliefs[(var, neighbor)]
+
+        # check that beliefs for var and neighbor have changed, but not for other
+        assert np.abs(bp.var_beliefs[var][0]) - 1.0 / float(k[var]) > 1e-8
+        assert np.abs(bp.var_beliefs[neighbor][0]) - 1.0 / float(k[neighbor]) > 1e-8
+
+        assert np.allclose(np.exp(bp.var_beliefs[other][0]), 1.0 / float(k[other]))
+
