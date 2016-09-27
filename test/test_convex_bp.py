@@ -81,7 +81,7 @@ class TestConvexBP(unittest.TestCase):
         mn = self.create_q_model()
 
         bp = MatrixBeliefPropagator(mn)
-        bp.infer(display='final')
+        bp.infer(display='full')
         bp.load_beliefs()
 
         counting_numbers = {(0, 1): 1.0,
@@ -212,20 +212,20 @@ class TestConvexBP(unittest.TestCase):
 
         print ("Minimum dual objective: %f" % np.min(y))
         print ("Inconsistency at argmin: %f" % z[np.argmin(y)])
-
-        plt.subplot(411)
-        plt.plot(x, y)
-        plt.ylabel('dual objective')
-        plt.subplot(412)
-        plt.plot(x, z)
-        plt.ylabel('inconsistency')
-        plt.subplot(413)
-        plt.plot(x, dual_penalty)
-        plt.ylabel('dual penalty')
-        plt.subplot(414)
-        plt.plot(x, primal)
-        plt.ylabel('(infeasible) primal objective')
-        plt.show()
+        #
+        # plt.subplot(411)
+        # plt.plot(x, y)
+        # plt.ylabel('dual objective')
+        # plt.subplot(412)
+        # plt.plot(x, z)
+        # plt.ylabel('inconsistency')
+        # plt.subplot(413)
+        # plt.plot(x, dual_penalty)
+        # plt.ylabel('dual penalty')
+        # plt.subplot(414)
+        # plt.plot(x, primal)
+        # plt.ylabel('(infeasible) primal objective')
+        # plt.show()
 
         assert np.allclose(y.min(), y[10]), "Minimum was not at converged messages"
 
