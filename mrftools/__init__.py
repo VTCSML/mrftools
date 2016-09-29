@@ -17,3 +17,6 @@ from opt import *
 from ConvexBeliefPropagator import ConvexBeliefPropagator
 from AutogradLearner import AutogradLearner
 from AutogradEvaluator import AutogradEvaluator
+from MaxProductBeliefPropagator import *
+from MaxProductLinearProgramming import *
+

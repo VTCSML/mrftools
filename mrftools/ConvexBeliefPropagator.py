@@ -83,6 +83,21 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
         return change
 
+    def compute_dual_objective(self):
+        numerator = self.edge_counting_numbers
+        denominator = self.unary_coefficients[self.mn.message_to].T
+
+        coefficients = numerator / denominator
+
+        raw_beliefs = self.mn.unary_mat + self.conditioning_mat + sparse_dot(self.message_mat, self.mn.message_to_map)
+
+        dual_vars = self.message_mat - np.nan_to_num(coefficients * raw_beliefs[:, self.mn.message_to])
+
+        objective = self.compute_energy_functional() + \
+                    np.sum(dual_vars * self._compute_inconsistency_vector())
+
+        return objective
+
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:

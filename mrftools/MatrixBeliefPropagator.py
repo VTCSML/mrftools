@@ -36,6 +36,8 @@ class MatrixBeliefPropagator(Inference):
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
+        self.disallow_impossible_states()
+
     def set_max_iter(self, max_iter):
         self.max_iter = max_iter
 
@@ -46,13 +48,19 @@ class MatrixBeliefPropagator(Inference):
         i = self.mn.var_index[var]
         self.conditioning_mat[:, i] = -np.inf
         self.conditioning_mat[state, i] = 0
-        self.conditioned[i] = True
+        if isinstance(state, int):
+            self.conditioned[i] = True
 
         if np.all(self.conditioned):
             # compute beliefs and set flag to never recompute them
             self.compute_beliefs()
             self.compute_pairwise_beliefs()
             self.fully_conditioned = True
+
+    def disallow_impossible_states(self):
+        """ force variables to only allow nonzero probability on their possible states """
+        for var, num_states in self.mn.num_states.items():
+            self.condition(var, range(num_states))
 
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
@@ -194,18 +202,15 @@ class MatrixBeliefPropagator(Inference):
 @primitive
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
-
-#    if matrix.size <= 1:
-#        return matrix
-
-#    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
-#    with np.errstate(divide='ignore', under='ignore'):
-#        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
-    max_val = matrix.max(axis=dim, keepdims=True)
-    return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+    try:
+        return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+    except FloatingPointError:
+        max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+        with np.errstate(under='ignore', divide='ignore'):
+            return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 
-def make_grad_logsumexp(ans, matrix, dim = None):
+def make_grad_logsumexp(ans, matrix, dim):
     def gradient_product(g):
         return np.full(matrix.shape, g) * np.exp(matrix - np.full(matrix.shape, ans))
     return gradient_product
