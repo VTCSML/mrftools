@@ -233,80 +233,80 @@ class TestConvexBP(unittest.TestCase):
         second_deriv = deriv[1:] - deriv[:-1]
         print second_deriv
         assert np.all(second_deriv >= 0), "Estimated second derivative was not non-negative"
-    #
-    #
-    # def test_unary_belief_update(self):
-    #     mn = self.create_q_model()
-    #     mn2 = self.create_q_model()
-    #
-    #     edge_count = 1.0
-    #     node_count = 1.0
-    #
-    #     counting_numbers = {(0, 1): edge_count,
-    #                         (1, 2): edge_count,
-    #                         (2, 3): edge_count,
-    #                         (0, 3): edge_count,
-    #                         (0, 4): edge_count,
-    #                         0: node_count,
-    #                         1: node_count,
-    #                         2: node_count,
-    #                         3: node_count,
-    #                         4: node_count}
-    #
-    #     bp = ConvexBeliefPropagator(mn, counting_numbers)
-    #
-    #     bp.update_messages()
-    #     # bp.update_messages()
-    #     # bp.infer(display='off')
-    #
-    #     bp.compute_beliefs()
-    #     bp.compute_pairwise_beliefs()
-    #     beliefs = bp.belief_mat
-    #     pair_beliefs = bp.pair_belief_tensor
-    #
-    #     res = 21
-    #     x = np.linspace(-2, 2, res)
-    #     y = np.zeros(res)
-    #     z = np.zeros(res)
-    #     entropy = np.zeros(res)
-    #     energy = np.zeros(res)
-    #
-    #     direction = np.random.randn(beliefs.shape[0], beliefs.shape[1])
-    #     # direction *= 0
-    #     # direction[:, 0] = np.random.randn(6)
-    #
-    #     for i in range(res):
-    #         new_beliefs = beliefs + x[i] * direction
-    #         new_beliefs -= logsumexp(new_beliefs, 0)
-    #
-    #         bp.belief_mat = new_beliefs
-    #
-    #         z[i] = bp.compute_energy() + bp.compute_bethe_entropy()
-    #         y[i] = z[i] + np.sum(bp.message_mat * bp._compute_inconsistency_vector())
-    #         entropy[i] = bp.compute_bethe_entropy()
-    #         energy[i] = bp.compute_energy()
-    #         # print y[i]
-    #
-    #     plt.subplot(411)
-    #     plt.plot(x, y)
-    #     plt.ylabel('dual objective')
-    #     plt.xlabel('deviation from solution')
-    #     plt.subplot(412)
-    #     plt.plot(x, z)
-    #     plt.ylabel('primal objective')
-    #     plt.xlabel('deviation from solution')
-    #     plt.subplot(413)
-    #     plt.plot(x, entropy)
-    #     plt.ylabel('entropy')
-    #     plt.xlabel('deviation from solution')
-    #     plt.subplot(414)
-    #     plt.plot(x, energy)
-    #     plt.ylabel('energy')
-    #     plt.xlabel('deviation from solution')
-    #     plt.show()
-    #
-    #     assert np.allclose(y.max(), y[res / 2]), "Maximum was not at closed-form belief update"
-    #
+
+
+    def test_unary_belief_update(self):
+        mn = self.create_q_model()
+        mn2 = self.create_q_model()
+
+        edge_count = 1.0
+        node_count = 1.0
+
+        counting_numbers = {(0, 1): edge_count,
+                            (1, 2): edge_count,
+                            (2, 3): edge_count,
+                            (0, 3): edge_count,
+                            (0, 4): edge_count,
+                            0: node_count,
+                            1: node_count,
+                            2: node_count,
+                            3: node_count,
+                            4: node_count}
+
+        bp = ConvexBeliefPropagator(mn, counting_numbers)
+
+        bp.update_messages()
+        # bp.update_messages()
+        # bp.infer(display='off')
+
+        bp.compute_beliefs()
+        bp.compute_pairwise_beliefs()
+        beliefs = bp.belief_mat
+        pair_beliefs = bp.pair_belief_tensor
+
+        res = 21
+        x = np.linspace(-2, 2, res)
+        y = np.zeros(res)
+        z = np.zeros(res)
+        entropy = np.zeros(res)
+        energy = np.zeros(res)
+
+        direction = np.random.randn(beliefs.shape[0], beliefs.shape[1])
+        # direction *= 0
+        # direction[:, 0] = np.random.randn(6)
+
+        for i in range(res):
+            new_beliefs = beliefs + x[i] * direction
+            new_beliefs -= logsumexp(new_beliefs, 0)
+
+            bp.belief_mat = new_beliefs
+
+            z[i] = bp.compute_energy() + bp.compute_bethe_entropy()
+            y[i] = z[i] + bp._compute_dual_penalty()
+            entropy[i] = bp.compute_bethe_entropy()
+            energy[i] = bp.compute_energy()
+            # print y[i]
+
+        # plt.subplot(411)
+        # plt.plot(x, y)
+        # plt.ylabel('dual objective')
+        # plt.xlabel('deviation from solution')
+        # plt.subplot(412)
+        # plt.plot(x, z)
+        # plt.ylabel('primal objective')
+        # plt.xlabel('deviation from solution')
+        # plt.subplot(413)
+        # plt.plot(x, entropy)
+        # plt.ylabel('entropy')
+        # plt.xlabel('deviation from solution')
+        # plt.subplot(414)
+        # plt.plot(x, energy)
+        # plt.ylabel('energy')
+        # plt.xlabel('deviation from solution')
+        # plt.show()
+
+        assert np.allclose(y.max(), y[res / 2]), "Maximum was not at closed-form belief update"
+
 
 if __name__ == '__main__':
     unittest.main()

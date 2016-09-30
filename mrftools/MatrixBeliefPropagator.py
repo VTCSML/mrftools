@@ -203,8 +203,9 @@ class MatrixBeliefPropagator(Inference):
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
     try:
-        return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
-    except FloatingPointError:
+        with np.errstate(over='raise', under='raise'):
+            return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+    except:
         max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
         with np.errstate(under='ignore', divide='ignore'):
             return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
