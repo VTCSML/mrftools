@@ -36,7 +36,7 @@ class Learner(object):
         self.models.append(model)
         self.belief_propagators.append(self.inference_type(model))
 
-        if self.weight_dim == None:
+        if self.weight_dim is None:
             self.weight_dim = model.weight_dim
         else:
             assert self.weight_dim == model.weight_dim, "Parameter dimensionality did not match"
@@ -89,14 +89,9 @@ class Learner(object):
         return bethe
 
     def subgrad_obj(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
-
-    def subgrad_obj_dual(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
-            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
         if self.tau_q == None or not self.fully_observed:
@@ -164,7 +159,7 @@ class Learner(object):
         return grad
 
     def dual_obj(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
