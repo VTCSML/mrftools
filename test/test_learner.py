@@ -157,6 +157,15 @@ class TestLearner(unittest.TestCase):
             new_obj = learner.subgrad_obj(weight_record[i, :])
             assert new_obj >= 0, "Dual objective was not non-negative"
 
+    def test_overflow(self):
+        """Initialize weights to a huge number and see if learner can escape it"""
+        weights = 1000 * np.random.randn(8 + 32)
+        learner = Learner(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+
+        assert not np.isnan(learner.subgrad_obj(weights)), \
+            "Objective for learner was not a number"
+
     def create_random_model(self, num_states, d):
         model = LogLinearModel()
 
