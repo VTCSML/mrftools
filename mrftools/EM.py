@@ -16,6 +16,7 @@ class EM(Learner):
     def learn(self, weights, callback_f = None):
         old_weights = np.inf
         new_weights = weights
+        self.start = time.time ( )
         while not np.allclose(old_weights, new_weights):
             old_weights = new_weights
             self.e_step(new_weights)

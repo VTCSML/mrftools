@@ -110,9 +110,9 @@ class Learner(object):
         return self.gradient(weights)
 
     def learn(self, weights, callback_f=None):
+        self.start = time.time()
         res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         new_weights = res.x
-
         return new_weights
 
     def reset(self):
@@ -156,18 +156,23 @@ class Learner(object):
         return objec
 
     def gradient(self, weights, options=None):
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
 
-        grad = np.zeros(len(weights))
+        if time.time() - self.start > 4000:
+            grad = np.zeros ( len ( weights ) )
+            return grad
+        else:
+            self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
 
-        # add regularization penalties
-        grad += self.l1_regularization * np.sign(weights)
-        grad += self.l2_regularization * weights
+            grad = np.zeros(len(weights))
 
-        grad -= np.squeeze(self.tau_q)
-        grad += np.squeeze(self.tau_p)
+            # add regularization penalties
+            grad += self.l1_regularization * np.sign(weights)
+            grad += self.l2_regularization * weights
 
-        return grad
+            grad -= np.squeeze(self.tau_q)
+            grad += np.squeeze(self.tau_p)
+
+            return grad
 
     def dual_obj(self, weights, options=None):
         if self.tau_q == None or not self.fully_observed:

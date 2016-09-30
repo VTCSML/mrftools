@@ -118,6 +118,13 @@ class TestImageSegmentation(unittest.TestCase):
         model.set_edge_factor((3, 4), np.zeros((num_states, num_states)))
         model.set_edge_factor((1, 3), np.zeros((num_states, num_states)))
 
+        edge_probabilities = dict ( )
+
+        for edge in model.edge_potentials:
+            edge_probabilities[edge] = 0.75
+
+        model.tree_probabilities = edge_probabilities
+
         return model
 
     def set_up_learner(self, learner):
@@ -256,36 +263,42 @@ class TestImageSegmentation(unittest.TestCase):
 
     def test_fixed_points(self):
         np.random.seed(0)
-        inferences = [MatrixBeliefPropagator , MaxProductBeliefPropagator , MaxProductLinearProgramming]
+        # inferences = [MatrixBeliefPropagator , MaxProductBeliefPropagator , MatrixTRBeliefPropagator]
         initial_weights = np.random.rand ( 9 + 9 )
-        print initial_weights
+
+        # print initial_weights
+        # print '------------------------'
         # for inference_type in inferences:
-            # # # =====================================
-            # # # first train by subgradient
-            # # # =====================================
+            # # =====================================
+            # # first train by subgradient
+            # # =====================================
             # learner = Learner(inference_type)
             # self.set_up_learner(learner)
             # subgrad_weights = learner.learn(initial_weights, None)
-            #
-            # learner.reset()
-            # learner = EM(inference_type)
-            # self.set_up_learner(learner)
-            # em_weights = learner.learn(subgrad_weights, None)
-            # assert (np.allclose(em_weights, subgrad_weights, atol=1e-4)), str(inference_type).split('.')[-1][:-2] + " Model learned by subgrad is different from EM"
+
+            # learner1 = EM(inference_type)
+            # self.set_up_learner(learner1)
+            # em_weights = learner1.learn(subgrad_weights, None)
+            # atol = 1e-4
+            # assert np.all(np.abs((em_weights - subgrad_weights)) <= atol), str(inference_type).split('.')[-1][:-2] + ", Model learned by subgrad is different from EM"
 
             # learner.reset()
-            # learner = PairedDual(inference_type)
-            # self.set_up_learner(learner)
-            # paired_weights = learner.learn(subgrad_weights, None)
-            # print paired_weights, subgrad_weights
-            # assert (np.allclose(paired_weights, subgrad_weights, atol=1e-4)), str(inference_type).split('.')[-1][:-2] + " Model learned by subgrad is different from paired dual"
+            # learner1 = PairedDual(inference_type)
+            # self.set_up_learner(learner1)
+            # paired_weights = learner1.learn(subgrad_weights, None)
+            # print inference_type
+            # atol = 1e-4
+            # print np.abs(paired_weights- subgrad_weights)
+            # assert np.all(np.abs(paired_weights - subgrad_weights) <= atol) , str(inference_type).split('.')[-1][:-2] + ", Model learned by subgrad is different from paired dual"
             #
             # learner.reset()
-            # learner = PrimalDual(inference_type)
-            # self.set_up_learner(learner)
-            # primalDual_weights = learner.learn(subgrad_weights, None)
-            # # print primalDual_weights, subgrad_weights
-            # assert (np.allclose(primalDual_weights, subgrad_weights, atol=1e-4)), str(inference_type).split('.')[-1][:-2] + " Model learned by subgrad is different from primal dual"
+            # learner1 = PrimalDual(inference_type)
+            # self.set_up_learner(learner1)
+            # primalDual_weights = learner1.learn(subgrad_weights, None)
+            # print inference_type
+            # print np.abs(primalDual_weights - subgrad_weights)
+            # atol = 1e-4
+            # assert np.all(np.abs(primalDual_weights - subgrad_weights) <= atol) , str(inference_type).split('.')[-1][:-2] + ", Model learned by subgrad is different from primal dual"
 
 
             # # # =====================================
@@ -300,22 +313,28 @@ class TestImageSegmentation(unittest.TestCase):
             # learner1 = Learner(inference_type)
             # self.set_up_learner(learner1)
             # subgrad_weights = learner1.learn(em_weights, None)
-            # print em_weights,subgrad_weights
-            # assert (np.allclose(em_weights, subgrad_weights, atol=1e-1)), str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from subgrad"
+            # atol = 1e-1
+            # print inference_type
+            # print np.abs(em_weights - subgrad_weights)
+            # assert np.all(np.abs(em_weights - subgrad_weights) <= atol) , str(inference_type).split('.')[-1][:-2] + " , Model learned by EM is different from subgrad"
             #
             # learner.reset()
             # learner1 = PairedDual( inference_type)
             # self.set_up_learner(learner1)
             # paired_weights = learner1.learn(em_weights, None)
-            # print paired_weights, em_weights
-            # assert (np.allclose(em_weights, paired_weights, atol=1e-1)), str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from paired dual"
+            # atol = 1e-1
+            # print inference_type
+            # print np.abs(paired_weights - em_weights)
+            # assert np.all(np.abs(em_weights - paired_weights) <= atol), str(inference_type).split('.')[-1][:-2] + " , Model learned by EM is different from paired dual"
             #
             # learner.reset()
             # learner1 = PrimalDual(inference_type)
             # self.set_up_learner(learner1)
             # primalDual_weights = learner1.learn(em_weights, None)
-            # print primalDual_weights, em_weights
-            # assert (np.allclose(primalDual_weights, em_weights, atol=1e-1)), str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from primal dual"
+            # tol = 1e-1
+            # print inference_type
+            # print np.abs(primalDual_weights - em_weights)
+            # assert np.all(np.abs(primalDual_weights - em_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from primal dual"
             #
             # # =====================================
             # # first train by paired dual
@@ -329,21 +348,28 @@ class TestImageSegmentation(unittest.TestCase):
             # learner1 = EM(inference_type)
             # self.set_up_learner(learner1)
             # em_weights = learner1.learn(paired_weights, None)
+            # tol = 1e-1
             # print inference_type
-            # assert (np.allclose(em_weights, paired_weights, atol=1e-2)), str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from EM"
+            # print np.abs(em_weights - paired_weights)
+            # assert np.all(np.abs(em_weights - paired_weights) <= tol), str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from EM"
             #
             # learner.reset()
             # learner1 = Learner(inference_type)
             # self.set_up_learner(learner1)
+            # tol = 1e-1
             # subgrad_weights = learner1.learn(paired_weights)
-            # assert (np.allclose(subgrad_weights, paired_weights, atol=1e-2)), str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from subgrad"
+            # print inference_type
+            # print np.abs(subgrad_weights - paired_weights)
+            # assert np.all(np.abs(subgrad_weights - paired_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from subgrad"
             #
             # learner.reset()
             # learner1 = PrimalDual(inference_type)
             # self.set_up_learner(learner1)
             # primalDual_weights = learner1.learn(paired_weights, None)
-            # print primalDual_weights, paired_weights
-            # assert (np.allclose(primalDual_weights, paired_weights, atol=1e-2)), str(inference_type).split('.')[-1][:-2] + " Model learned by PairedDual is different from primal dual"
+            # print inference_type
+            # print np.abs(primalDual_weights - paired_weights)
+            # tol = 1e-1
+            # assert np.all(np.abs(primalDual_weights - paired_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by PairedDual is different from primal dual"
             #
             #
             # # =====================================
@@ -358,22 +384,28 @@ class TestImageSegmentation(unittest.TestCase):
             # learner1 = EM(inference_type)
             # self.set_up_learner(learner1)
             # em_weights = learner1.learn(primalDual_weights, None)
+            # tol = 1e-1
             # print inference_type
-            # assert (np.allclose(em_weights, primalDual_weights, atol=1e-1)), str(inference_type).split('.')[-1][:-2] + " Model learned by primal dual is different from EM"
+            # print np.abs(em_weights - primalDual_weights)
+            # assert np.all(np.abs(em_weights - primalDual_weights) <= tol), str(inference_type).split('.')[-1][:-2] + " , Model learned by primal dual is different from EM"
             #
             # learner.reset()
             # learner1 = Learner(inference_type)
             # self.set_up_learner(learner1)
             # subgrad_weights = learner1.learn(primalDual_weights)
             # print inference_type
-            # assert (np.allclose(subgrad_weights, primalDual_weights, atol=1e-1)), str(inference_type).split('.')[-1][:-2] + " Model learned by primal dual is different from subgrad"
-            #
+            # print np.abs(subgrad_weights - primalDual_weights)
+            # tol = 1e-1
+            # assert np.all(np.abs(subgrad_weights - primalDual_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by primal dual is different from subgrad"
+
             # learner.reset()
             # learner1 = PairedDual(inference_type)
             # self.set_up_learner(learner1)
             # paiedDual_weights = learner1.learn(primalDual_weights, None)
-            # print paiedDual_weights, primalDual_weights
-            # assert (np.allclose(paiedDual_weights, primalDual_weights, atol=1e-1)), str(inference_type).split('.')[-1][:-2] + " Model learned by primaldual is different from paired dual"
+            # print inference_type
+            # print np.abs(paiedDual_weights - primalDual_weights)
+            # tol = 1e-1
+            # assert np.all(np.abs(paiedDual_weights - primalDual_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " , Model learned by primaldual is different from paired dual"
 
 
 

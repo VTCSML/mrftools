@@ -38,7 +38,7 @@ class MatrixBeliefPropagator(Inference):
     def augment_loss(self, var, state):
         i = self.mn.var_index[var]
         self.augmented_mat[:, i] = 1
-        self.augmented_mat[state, i] = -1
+        self.augmented_mat[state, i] = 0
 
     def condition(self, var, state):
         i = self.mn.var_index[var]

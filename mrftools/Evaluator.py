@@ -39,6 +39,7 @@ class Evaluator(object):
                             if (x, y) in labels[i]:
                                 label_img[y, x] = labels[i][(x, y)]
 
+
                     beliefs_dic[key] = beliefs
 
                 self.draw_results(images[i], label_img, beliefs_dic, names[i], saved_path)
@@ -130,13 +131,14 @@ class Evaluator(object):
             row = p/col
             if  p % 3 > 0 :
                 row = row + 1
-
             plt.subplot(row, col, 1)
             plt.title('true image')
             plt.imshow(image, interpolation="nearest")
             plt.subplot(row, col, 2)
-            plt.title('true label')
+            plt.title('true label.png')
+
             seg_label = self.create_img ( label )
+
             plt.imshow ( seg_label )
             c = 1
             for key in beliefs.keys():
@@ -158,22 +160,30 @@ class Evaluator(object):
             plt.savefig(saved_path + name)
 
     def create_img(self, label):
-        color_dic = {0: [[160, 160, 160], 'gray'], 1: [[153, 153, 0], 'dark green'], 2: [[102, 0, 204], 'purple'],
-                     3: [[0, 153, 76], 'green'], 4: [[0, 51, 102], 'blue'], 5: [[102, 0, 0], 'dark red'],
-                     6: [[153, 76, 0], 'brown'], 7: [[255, 153, 51], 'orange']}
+
+
+        color_dic = {0: [[160, 160, 160], 'gray=sky'], 1: [[153, 153, 0], 'dark green=tree'], 2: [[102, 0, 204], 'purple=road'],
+                     3: [[0, 153, 76], 'green=grass'], 4: [[54, 145, 236], 'blue=water'], 5: [[213, 31, 31], 'dark red=building'],
+                     6: [[153, 76, 0], 'brown=mountain'], 7: [[255, 153, 51], 'orange=foreground']}
 
         h = label.shape[0]
         w = label.shape[1]
-        new_seg = np.empty ( (h, w, 3) )
+
+
+        new_seg = np.empty ( (h, w, 3) ,dtype= np.uint8)
         for i in range ( 0, h ):
             for j in range ( 0, w ):
+                # print label[i,j]
+                # print color_dic[label[i, j]][0]
                 new_seg[i, j, :] = color_dic[label[i, j]][0]
+
         return new_seg
 
     def evaluate_objective(self, method_list, path):
         plt.clf ( )
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
+            # obj_time = np.arange(100)
             obj_time = m_dic['time']
             obj = m_dic['objective']
             ttl = m_dic['learner_name']
