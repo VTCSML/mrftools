@@ -112,7 +112,7 @@ try:
 
             for x in range(length):
                 for y in range(length):
-                    model.declare_variable((x, y), np.random.randn(num_states))
+                    model.declare_variable((x, y), num_states)
                     model.set_unary_features((x, y), np.random.randn(feature_dim))
                     model.set_unary_factor((x, y), np.zeros(num_states))
 
