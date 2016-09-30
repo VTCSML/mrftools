@@ -58,6 +58,9 @@ def main():
 
     new_weights = learner.learn(weights)
 
+    print("Dual Objective: %f" % learner.dual_obj(new_weights))
+    print("Primal Objective: %f" % learner.subgrad_obj(new_weights))
+
     Eval = AutogradEvaluator(max_height, max_width)
     if num_training_images > 0:
         print("Training:")
@@ -86,6 +89,9 @@ def main():
     print "\n------------Dual-------------"
 
     new_weights = learner.learn_dual(weights)
+
+    print("Dual Objective: %f" % learner.dual_obj(new_weights))
+    print("Primal Objective: %f" % learner.subgrad_obj(new_weights))
 
     if num_training_images > 0:
         print("Training:")
