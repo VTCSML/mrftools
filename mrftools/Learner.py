@@ -94,7 +94,7 @@ class Learner(object):
         return self.objective(weights)
 
     def subgrad_grad(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
