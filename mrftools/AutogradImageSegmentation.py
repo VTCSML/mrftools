@@ -10,110 +10,118 @@ from ConvexBeliefPropagator import ConvexBeliefPropagator
 from AutogradEvaluator import AutogradEvaluator
 import os
 import time
+import matplotlib.pyplot as plt
+
+class AutogradImageSegmentation(object):
+    def __init__(self):
+        self.d_unary = 65
+        self.num_states = 2
+        self.d_edge = 11
+        self.max_height = 50
+        self.max_width = 50
+        self.num_training_images = 1
+        self.num_testing_images = 1
+        self.inc = True
+        self.path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
+        self.plot = False
+        self.initialization_flag = True
+
+        self.inference_type = ConvexBeliefPropagator
+        self.max_iter = 10
+        self.l2regularization = 1.0
+
+
+        n = 100
+        self.dual_objective_list = np.zeros(n)
+        self.inconsistency_list = np.zeros(n)
+        self.i = 0
+
+        self.set_up()
+
+
+    def set_up(self):
+
+        loader = ImageLoader(self.max_height, self.max_width)
+
+        self.images, self.models, self.labels, self.names = loader.load_all_images_and_labels(self.path+'/test/train', 2, self.num_training_images)
+
+        self.learner = AutogradLearner(self.inference_type)
+
+        self.learner.set_regularization(0.0, 1.0)
+
+        self.learner._set_initialization_flag(self.initialization_flag)
+
+        for model, states in zip(self.models, self.labels):
+         self.learner.add_data(states, model)
+
+        for bp in self.learner.belief_propagators_q:
+         bp.set_max_iter(self.max_iter)
+        for bp in self.learner.belief_propagators:
+         bp.set_max_iter(self.max_iter)
+
+        self.weights = np.zeros(self.d_unary * self.num_states + self.d_edge * self.num_states ** 2)
+
+
+
+    def learn_primal(self):
+        start = time.time()
+        print "\n------------Primal-------------"
+        new_weights = self.learner.learn(self.weights)
+
+        print("Dual Objective: %f" % self.learner.dual_obj(new_weights))
+        print("Primal Objective: %f" % self.learner.subgrad_obj(new_weights, self))
+        elapsed = time.time() - start
+
+        print ("Time elapsed: %f" % elapsed)
+        return new_weights
+
+
+    def learn_dual(self):
+        start = time.time()
+        print "\n------------Dual-------------"
+        new_weights = self.learner.learn_dual(self.weights)
+
+        print("Dual Objective: %f" % self.learner.dual_obj(new_weights))
+        print("Primal Objective: %f" % self.learner.subgrad_obj(new_weights, self))
+
+        elapsed = time.time() - start
+        print ("Time elapsed: %f" % elapsed)
+        return new_weights
+
+    def evaluating(self, weights):
+        Eval = AutogradEvaluator(self.max_height, self.max_width)
+        if self.num_training_images > 0:
+            print("Training:")
+            train_errors, train_total_inconsistency = Eval.evaluate_training_images(self.images, self.models, self.labels, self.names, weights, 2, self.num_training_images, self.inference_type, self.max_iter, self.inc, self.plot)
+            print ("Average Train Error rate: %f" % train_errors)
+            print train_total_inconsistency
+
+        if self.num_testing_images > 0:
+            print("Test:")
+            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(self.path+'/test/test', weights, 2, self.num_testing_images, self.inference_type, self.max_iter, self.inc, self.plot)
+            print ("Average Test Error rate: %f" % test_errors)
+
+        # self.error_list[] = np.zeros(n)
+        self.inconsistency_list[self.i] = train_total_inconsistency
+        self.i += 1
+
+        return train_errors
 
 def main():
 
-    start = time.time()
+    ais = AutogradImageSegmentation()
 
-    d_unary = 65
-    num_states = 2
-    d_edge = 11
-    max_height = 20
-    max_width = 20
-    num_training_images = 2
-    num_testing_images = 1
-    max_iter = 10
-    inc = True
-    path = os.path.abspath(os.path.join(os.path.dirname('settings.py'),os.path.pardir))
-    plot = False
-    initialization_flag = True
+    primal_weights = ais.learn_primal()
+    ais.evaluating(primal_weights)
 
-#   inference_type = MatrixBeliefPropagator
-#   inference_type = MatrixTRBeliefPropagator
-    inference_type = ConvexBeliefPropagator
+    dual_weights = ais.learn_dual()
+    ais.evaluating(dual_weights)
 
-    loader = ImageLoader(max_height, max_width)
 
-    images, models, labels, names = loader.load_all_images_and_labels(path+'/test/train', 2, num_training_images)
 
-    learner = AutogradLearner(inference_type)
 
-    learner.set_regularization(0.0, 1.0)
 
-    for model, states in zip(models, labels):
-     learner.add_data(states, model)
 
-    for bp in learner.belief_propagators_q:
-     bp.set_max_iter(max_iter)
-    for bp in learner.belief_propagators:
-     bp.set_max_iter(max_iter)
-
-    weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
-
-    # =====================================
-    # Primal
-    # =====================================
-
-    print "\n------------Primal-------------"
-
-    new_weights = learner.learn(weights)
-
-    print("Dual Objective: %f" % learner.dual_obj(new_weights))
-    print("Primal Objective: %f" % learner.subgrad_obj(new_weights))
-
-    Eval = AutogradEvaluator(max_height, max_width)
-    if num_training_images > 0:
-        print("Training:")
-        if inc == True:
-            train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc, plot)
-        else:
-            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2, num_training_images, inference_type, max_iter, inc, plot)
-        print ("Average Train Error rate: %f" % train_errors)
-
-    if num_testing_images > 0:
-        print("Test:")
-        if inc == True:
-            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
-        else:
-            test_errors = Eval.evaluate_testing_images(path+'/test/test', new_weights, 2, num_testing_images, inference_type, max_iter, inc, plot)
-        print ("Average Test Error rate: %f" % test_errors)
-
-        elapsed = time.time() - start
-
-    print ("Time elapsed: %f" % elapsed)
-
-    # =====================================
-    # Dual
-    # =====================================
-
-    print "\n------------Dual-------------"
-
-    new_weights = learner.learn_dual(weights)
-
-    print("Dual Objective: %f" % learner.dual_obj(new_weights))
-    print("Primal Objective: %f" % learner.subgrad_obj(new_weights))
-
-    if num_training_images > 0:
-        print("Training:")
-        if inc == True:
-            train_errors, train_total_inconsistency = Eval.evaluate_training_images(images, models, labels, names,
-                                                                                    new_weights, 2, num_training_images,
-                                                                                    inference_type, max_iter, inc, plot)
-        else:
-            train_errors = Eval.evaluate_training_images(images, models, labels, names, new_weights, 2,
-                                                         num_training_images, inference_type, max_iter, inc, plot)
-        print ("Average Train Error rate: %f" % train_errors)
-
-    if num_testing_images > 0:
-        print("Test:")
-        if inc == True:
-            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(path + '/test/test', new_weights, 2,
-                                                                                 num_testing_images, inference_type,
-                                                                                 max_iter, inc, plot)
-        else:
-            test_errors = Eval.evaluate_testing_images(path + '/test/test', new_weights, 2, num_testing_images,
-                                                       inference_type, max_iter, inc, plot)
-        print ("Average Test Error rate: %f" % test_errors)
 
 
 if __name__ == "__main__":

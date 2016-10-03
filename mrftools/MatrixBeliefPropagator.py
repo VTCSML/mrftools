@@ -22,6 +22,7 @@ class MatrixBeliefPropagator(Inference):
         self.mn = markov_net
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
+        self.temp = 1
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -128,7 +129,31 @@ class MatrixBeliefPropagator(Inference):
                 energy_func = self.compute_energy_functional()
                 disagreement = self.compute_inconsistency()
                 dual_obj = self.compute_dual_objective()
-                print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
+                if self.temp == 1:
+                    # print type(energy_func)
+                    # print type(disagreement)
+                    # print type(dual_obj)
+                    print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
+                    self.temp += 1
+                else:
+                    # energy_func = energy_func.value
+                    # print type(dual_obj)
+                    # dual_obj = dual_obj.value
+                    # print type(dual_obj)
+                    # print dual_obj
+                    # # change = change.value
+                    # # disagreement = disagreement.value
+                    # print type(energy_func)
+                    # print energy_func
+                    # # print type(disagreement)
+                    #
+                    # # print type(iteration)
+                    # print type(change)
+                    # print change
+                    print(
+                    "Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (
+                    iteration, change, disagreement, energy_func, dual_obj))
+
             elif display == "iter":
                 print("Iteration %d, change in messages %f." % (iteration, change))
             iteration += 1
@@ -205,6 +230,7 @@ def logsumexp(matrix, dim = None):
     try:
         with np.errstate(over='raise', under='raise'):
             return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+
     except:
         max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
         with np.errstate(under='ignore', divide='ignore'):

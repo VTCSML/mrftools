@@ -67,7 +67,8 @@ class Learner(object):
             if self.initialization_flag == True:
                 bp.initialize_messages()
             bp.infer(display = 'off')
-
+        #     print "-------------"
+        # print "=============="
     def set_inference_truncation(self, bp_iter):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(bp_iter)
@@ -101,11 +102,11 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
-    def learn(self, weights, callback_f=None):
-        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
-        new_weights = res.x
-
-        return new_weights
+    # def learn(self, weights, callback_f=None):
+    #     res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
+    #     new_weights = res.x
+    #
+    #     return new_weights
 
     def reset(self):
         self.weight_record =  np.array([])

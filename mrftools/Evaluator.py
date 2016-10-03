@@ -97,7 +97,7 @@ class Evaluator(object):
 
         average_errors = np.true_divide(average_errors, num_images)
         if inc == True:
-            print("Overall inconsistency: %f" % total_inconsistency)
+            # print("Overall inconsistency: %f" % total_inconsistency)
             return average_errors, total_inconsistency
 
         return average_errors

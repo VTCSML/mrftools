@@ -93,6 +93,8 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
         dual_vars = self.message_mat - np.nan_to_num(coefficients * raw_beliefs[:, self.mn.message_to])
 
+        # return np.sum(abs(dual_vars) * abs(self._compute_inconsistency_vector()))
+
         return np.sum(dual_vars * self._compute_inconsistency_vector())
 
     def compute_dual_objective(self):
