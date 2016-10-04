@@ -100,3 +100,16 @@ class TestMaxProductBeliefPropagator(unittest.TestCase):
         bf = BruteForce(mn)
         assert (np.array_equal(bp.belief_mat,bf.map_inference())), "beliefs are not exact"
 
+    def test_overflow(self):
+        mn = self.create_loop_model()
+
+        # set a really large factor
+        mn.set_unary_factor(0, [-1000, 2000, 3000, 4000])
+
+        mn.create_matrices()
+
+        bp = MaxProductBeliefPropagator(mn)
+
+        with np.errstate(all='raise'):
+            bp.infer()
+            bp.load_beliefs()
