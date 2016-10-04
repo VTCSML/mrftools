@@ -25,6 +25,7 @@ class Learner(object):
         self.fully_observed = True
         self.initialization_flag = False
         self.loss_augmented = False
+        self.warm_start = False
 
     def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -94,13 +95,19 @@ class Learner(object):
         bethe = bethe / self.num_examples
         return bethe
 
+    def warm_start_objective(self, weights, options=None):
+        if self.tau_q is None or not self.fully_observed:
+            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        return self.objective(weights)
+
+
     def subgrad_obj(self, weights, options=None):
         if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
     def subgrad_grad(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
@@ -128,8 +135,23 @@ class Learner(object):
 
         return self.get_feature_expectations(belief_propagators)
 
+
+    def calculate_tau_warm_start(self, weights, belief_propagators, belief_propagators_q, should_infer=True):
+        self.set_weights ( weights, belief_propagators )
+        if should_infer:
+            for bp in belief_propagators:
+                ind = belief_propagators.index(bp)
+                bp.message_mat = belief_propagators_q[ind].message_mat
+                bp.infer(display='off')
+
+        return self.get_feature_expectations ( belief_propagators )
+
+
     def objective(self, weights, options=None):
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+        if self.warm_start == True:
+            self.tau_p = self.calculate_tau_warm_start(weights,self.belief_propagators, self.belief_propagators_q, True)
+        else:
+            self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
 
@@ -152,11 +174,15 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if time.time() - self.start > 4000:
+        if time.time() - self.start > 7200:
+            print 'more than 2 hours'
             grad = np.zeros ( len ( weights ) )
             return grad
         else:
-            self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
+            if self.warm_start == True:
+                self.tau_p  = self.calculate_tau_warm_start(weights, self.belief_propagators, self.belief_propagators_q, False)
+            else:
+                self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
 
             grad = np.zeros(len(weights))
 
