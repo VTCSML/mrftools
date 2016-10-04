@@ -82,7 +82,7 @@ class ImageLoader(object):
                 if i % 10 == 0 or i == num_images-1:
                     elapsed = time.time() - start
                     eta = np.true_divide(elapsed, i + 1) * (len(files) - i - 1)
-                    print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i+1, num_images, elapsed, eta))
+                    # print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i+1, num_images, elapsed, eta))
 
         return images, models, labels, names
 

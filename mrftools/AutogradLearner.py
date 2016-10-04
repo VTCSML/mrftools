@@ -10,7 +10,7 @@ from opt import *
 
 class AutogradLearner(Learner):
 
-    def __init__(self, inference_type):
+    def __init__(self, inference_type, ais):
         super(AutogradLearner, self).__init__(inference_type)
 
         self.initialization_flag = True
@@ -18,9 +18,12 @@ class AutogradLearner(Learner):
         self.dual_objective_list = np.zeros(n)
         self.primal_objective_list = np.zeros(n)
         self.inconsistency_list = np.zeros(n)
+        self.training_error_list = np.zeros(n)
+        self.testing_error_list = np.zeros(n)
         self.i = 0
         self.calculate_dual_gradient()
         self.calculate_primal_gradient()
+        self.ais = ais
 
     def calculate_dual_gradient(self):
         self.dual_gradient = grad(self.dual_obj)
@@ -34,22 +37,32 @@ class AutogradLearner(Learner):
         self.dual_objective_list = np.zeros(n)
         self.primal_objective_list = np.zeros(n)
         self.inconsistency_list = np.zeros(n)
+        self.training_error_list = np.zeros(n)
+        self.testing_error_list = np.zeros(n)
         self.i = 0
         res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.primal_gradient, callback=self.f)
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.primal_gradient)
         new_weights = res.x
 
-        plt.subplot(311)
+        plt.subplot(511)
         plt.plot(self.dual_objective_list)
         plt.ylabel('dual objective')
         plt.xlabel('number of minimization iterations')
-        plt.subplot(312)
+        plt.subplot(512)
         plt.plot(self.primal_objective_list)
         plt.ylabel('primal objective')
         plt.xlabel('number of minimization iterations')
-        plt.subplot(313)
+        plt.subplot(513)
         plt.plot(self.inconsistency_list)
         plt.ylabel('inconsistency')
+        plt.xlabel('number of minimization iterations')
+        plt.subplot(514)
+        plt.plot(self.training_error_list)
+        plt.ylabel('training error')
+        plt.xlabel('number of minimization iterations')
+        plt.subplot(515)
+        plt.plot(self.testing_error_list)
+        plt.ylabel('testing error')
         plt.xlabel('number of minimization iterations')
         plt.show()
 
@@ -62,23 +75,33 @@ class AutogradLearner(Learner):
         self.dual_objective_list = np.zeros(n)
         self.primal_objective_list = np.zeros(n)
         self.inconsistency_list = np.zeros(n)
+        self.training_error_list = np.zeros(n)
+        self.testing_error_list = np.zeros(n)
         self.i = 0
 
         res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.dual_gradient, callback=self.f)
         # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.dual_gradient)
         new_weights = res.x
 
-        plt.subplot(311)
+        plt.subplot(511)
         plt.plot(self.dual_objective_list)
         plt.ylabel('dual objective')
         plt.xlabel('number of minimization iterations')
-        plt.subplot(312)
+        plt.subplot(512)
         plt.plot(self.primal_objective_list)
         plt.ylabel('primal objective')
         plt.xlabel('number of minimization iterations')
-        plt.subplot(313)
+        plt.subplot(513)
         plt.plot(self.inconsistency_list)
         plt.ylabel('inconsistency')
+        plt.xlabel('number of minimization iterations')
+        plt.subplot(514)
+        plt.plot(self.training_error_list)
+        plt.ylabel('training error')
+        plt.xlabel('number of minimization iterations')
+        plt.subplot(515)
+        plt.plot(self.testing_error_list)
+        plt.ylabel('testing error')
         plt.xlabel('number of minimization iterations')
         plt.show()
 
@@ -114,6 +137,10 @@ class AutogradLearner(Learner):
         self.dual_objective_list[self.i] = a
         self.primal_objective_list[self.i] = b
         self.inconsistency_list[self.i] = c
+
+        train_errors, test_errors = self.ais.evaluating2(weights)
+        self.training_error_list[self.i] = train_errors
+        self.testing_error_list[self.i] = test_errors
         self.i += 1
 
 

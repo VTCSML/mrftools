@@ -17,8 +17,8 @@ class AutogradImageSegmentation(object):
         self.d_unary = 65
         self.num_states = 2
         self.d_edge = 11
-        self.max_height = 50
-        self.max_width = 50
+        self.max_height = 20
+        self.max_width = 20
         self.num_training_images = 1
         self.num_testing_images = 1
         self.inc = True
@@ -31,9 +31,9 @@ class AutogradImageSegmentation(object):
         self.l2regularization = 1.0
 
 
-        n = 100
-        self.dual_objective_list = np.zeros(n)
-        self.inconsistency_list = np.zeros(n)
+        n = 1000
+        self.training_error_list = np.zeros(n)
+        self.testing_error_list = np.zeros(n)
         self.i = 0
 
         self.set_up()
@@ -45,7 +45,7 @@ class AutogradImageSegmentation(object):
 
         self.images, self.models, self.labels, self.names = loader.load_all_images_and_labels(self.path+'/test/train', 2, self.num_training_images)
 
-        self.learner = AutogradLearner(self.inference_type)
+        self.learner = AutogradLearner(self.inference_type, self)
 
         self.learner.set_regularization(0.0, 1.0)
 
@@ -60,7 +60,6 @@ class AutogradImageSegmentation(object):
          bp.set_max_iter(self.max_iter)
 
         self.weights = np.zeros(self.d_unary * self.num_states + self.d_edge * self.num_states ** 2)
-
 
 
     def learn_primal(self):
@@ -93,19 +92,24 @@ class AutogradImageSegmentation(object):
         if self.num_training_images > 0:
             print("Training:")
             train_errors, train_total_inconsistency = Eval.evaluate_training_images(self.images, self.models, self.labels, self.names, weights, 2, self.num_training_images, self.inference_type, self.max_iter, self.inc, self.plot)
+            print("Overall inconsistency: %f" % train_total_inconsistency)
             print ("Average Train Error rate: %f" % train_errors)
-            print train_total_inconsistency
 
         if self.num_testing_images > 0:
-            print("Test:")
-            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(self.path+'/test/test', weights, 2, self.num_testing_images, self.inference_type, self.max_iter, self.inc, self.plot)
+            print("Testing:")
+            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(self.path+'/test/test', weights, self.num_states, self.num_testing_images, self.inference_type, self.max_iter, self.inc, self.plot)
+            print("Overall inconsistency: %f" % test_total_inconsistency)
             print ("Average Test Error rate: %f" % test_errors)
 
-        # self.error_list[] = np.zeros(n)
-        self.inconsistency_list[self.i] = train_total_inconsistency
-        self.i += 1
+    def evaluating2(self, weights):
+        Eval = AutogradEvaluator(self.max_height, self.max_width)
+        if self.num_training_images > 0:
+            train_errors, train_total_inconsistency = Eval.evaluate_training_images(self.images, self.models, self.labels, self.names, weights, 2, self.num_training_images, self.inference_type, self.max_iter, self.inc, self.plot)
 
-        return train_errors
+        if self.num_testing_images > 0:
+            test_errors, test_total_inconsistency = Eval.evaluate_testing_images(self.path+'/test/test', weights, self.num_states, self.num_testing_images, self.inference_type, self.max_iter, self.inc, self.plot)
+        return train_errors, test_errors
+
 
 def main():
 
@@ -116,10 +120,6 @@ def main():
 
     dual_weights = ais.learn_dual()
     ais.evaluating(dual_weights)
-
-
-
-
 
 
 

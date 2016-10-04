@@ -95,7 +95,7 @@ class AutogradEvaluator(object):
 
             average_errors = np.true_divide(average_errors, i + 1)
         if inc == True:
-            print("Overall inconsistency: %f" % total_inconsistency)
+            # print("Overall inconsistency: %f" % total_inconsistency)
             return average_errors, total_inconsistency
 
         return average_errors
