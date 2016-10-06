@@ -164,7 +164,12 @@ class Learner(object):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = np.dot(self.tau_q, weights)
+        if not self.fully_observed:
+            # recompute energy functional for label distributions only in latent variable case
+            self.set_weights(weights, self.belief_propagators_q)
+            term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        else:
+            term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
 
