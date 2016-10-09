@@ -69,14 +69,14 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg
             if num_edges > prune_firing_threshold * num_possible_edges and prune_time >= 6: # Test for priority reassignment if graph density is above 'prune_firing_threshol'
                 prune_time = 0
                 pq , active_set, search_space, injection, success, is_added_edge, resulting_edges  = priority_reassignment(variables, active_set, aml_optimize, prune_threshold, data, search_space, pq, l1_coeff, sufficient_stats, mn)
-                # num_success, num_injection, priority_reassignements, num_edges_reassigned = update_mod_grafting_metrics(injection, success, resulting_edges, edges_reassigned, graph_edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
+                num_success, num_injection, priority_reassignements, num_edges_reassigned = update_mod_grafting_metrics(injection, success, resulting_edges, edges_reassigned, graph_edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
                 if is_added_edge:
                     added_edges += 1
-                # num_success, num_injection, priority_reassignements, num_edges_reassigned = update_grafting_metrics(injection, success, resulting_edges, edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
+                num_success, num_injection, priority_reassignements, num_edges_reassigned = update_grafting_metrics(injection, success, resulting_edges, edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
             ## GRADIENT TEST
             is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
-            # edges_reassigned.extend(curr_edges_reassigned)
-            # naive_edges_reassigned.extend(curr_edges_reassigned)
+            edges_reassigned.extend(curr_edges_reassigned)
+            naive_edges_reassigned.extend(curr_edges_reassigned)
         aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
         weights_opt = aml_optimize.learn(np.zeros(aml_optimize.weight_dim), 2500, edge_regularizers, var_regularizers)
         is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
@@ -115,20 +115,26 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
 
-    # if edges_reassigned:
-    #     reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
-    #     print('reassignment_success_rate')
-    #     print(reassignment_success_rate)
+    print('Total priority reassignment')
+    print(len(edges_reassigned))
+    if edges_reassigned:
+        reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
+        print('Total reassignment success rate')
+        print(reassignment_success_rate)
 
-    # if naive_edges_reassigned:
-    #     naive_reassignment_success_rate = float(len([x for x in naive_edges_reassigned if x not in active_set])) / float(len(naive_edges_reassigned))
-    #     print('naive_reassignment_success_rate')
-    #     print(naive_reassignment_success_rate)
+    print('Naive edge reassignments')
+    print(len(naive_edges_reassigned))
+    if naive_edges_reassigned:
+        naive_reassignment_success_rate = float(len([x for x in naive_edges_reassigned if x not in active_set])) / float(len(naive_edges_reassigned))
+        print('Naive reassignment success rate')
+        print(naive_reassignment_success_rate)
 
-    # if graph_edges_reassigned:
-    #     graph_reassignment_success_rate = float(len([x for x in graph_edges_reassigned if x not in active_set])) / float(len(graph_edges_reassigned))
-    #     print('graph_reassignment_success_rate')
-    #     print(graph_reassignment_success_rate)
+    print('Graph edge reassignments')
+    print(len(graph_edges_reassigned))
+    if graph_edges_reassigned:
+        graph_reassignment_success_rate = float(len([x for x in graph_edges_reassigned if x not in active_set])) / float(len(graph_edges_reassigned))
+        print('Graph reassignment success rate')
+        print(graph_reassignment_success_rate)
 
 
     return learned_mn, final_active_set

@@ -49,6 +49,7 @@ def priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, ed
         while ((len(pq) > 0) and is_activated_edge): # Stop if all edges are added or no edge is added at the previous iteration
             num_edges += 1
             added_edges += 1
+            prune_time += 1
             active_set.append(activated_edge)
             # print('Selected gradient')
             # print(sel_gradient)
@@ -67,22 +68,6 @@ def priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, ed
             
             aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
 
-            # aml_optimize = ApproxMaxLikelihood(mn) #Create a new 'ApproxMaxLikelihood' object at each iteration using the updated markov network
-            # aml_optimize.set_regularization(l1_coeff, l2_coeff, var_reg, edge_reg)
-            # aml_optimize.init_grafting()
-            # unary_indices, pairwise_indices = aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
-            # tau_q = np.zeros(aml_optimize.weight_dim)
-            # for var in mn.variables:
-            #     i = aml_optimize.belief_propagators[0].mn.var_index[var]
-            #     inds = unary_indices[:, i]
-            #     tau_q[inds] = padded_sufficient_stats[var] / len(data)
-            # for edge in active_set:
-            #     i = aml_optimize.belief_propagators[0].mn.edge_index[edge]
-            #     inds = pairwise_indices[:, :, i]
-            #     tau_q[inds] = padded_sufficient_stats[edge] / len(data)
-            # aml_optimize.set_sufficient_stats(tau_q)
-            ################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
             #OPTIMIZE
             tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(added_edges * vector_length_per_edge)))
             weights_opt = aml_optimize.learn(tmp_weights_opt, max_iter_graft, edge_regularizers, var_regularizers)
@@ -94,7 +79,7 @@ def priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, ed
                 pq , active_set, search_space, injection, success, is_added_edge, resulting_edges  = priority_reassignment(variables, active_set, aml_optimize, prune_threshold, data, search_space, pq, l1_coeff, sufficient_stats, mn)
                 if is_added_edge:
                     added_edges += 1
-                # num_success, num_injection, priority_reassignements, num_edges_reassigned = update_grafting_metrics(injection, success, resulting_edges, edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
+                num_success, num_injection, priority_reassignements, num_edges_reassigned = update_grafting_metrics(injection, success, resulting_edges, edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
             ## GRADIENT TEST
             is_activated_edge, activated_edge, sel_gradient = priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff)
 
@@ -137,10 +122,12 @@ def priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, ed
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
 
-    # if edges_reassigned:
-    #     reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
-    #     print('reassignment_success_rate')
-    #     print(reassignment_success_rate)
+    print('Graph priority reassignments')
+    print(len(edges_reassigned))
+    if edges_reassigned:
+        reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
+        print('Graph reassignment success rate')
+        print(reassignment_success_rate)
     # print('Outer loop')
     # print(outer_loop)
 

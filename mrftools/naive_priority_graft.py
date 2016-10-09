@@ -38,8 +38,8 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
     weights_opt = aml_optimize.learn(np.random.randn(aml_optimize.weight_dim), max_iter_graft, edge_regularizers, var_regularizers)
     ## GRADIENT TEST
     is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
-    # edges_reassigned.extend(curr_edges_reassigned)
-    # naive_edges_reassigned.extend(curr_edges_reassigned)
+    edges_reassigned.extend(curr_edges_reassigned)
+    naive_edges_reassigned.extend(curr_edges_reassigned)
     while is_activated_edge:
         while ((len(pq) > 0) and is_activated_edge): # Stop if all edges are added or no edge is added at the previous iteration
             active_set.append(activated_edge)
@@ -58,8 +58,7 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
             weights_opt = aml_optimize.learn(tmp_weights_opt, max_iter_graft, edge_regularizers, var_regularizers)
             ## GRADIENT TEST
             is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
-            # edges_reassigned.extend(curr_edges_reassigned)
-            # naive_edges_reassigned.extend(curr_edges_reassigned)
+            naive_edges_reassigned.extend(curr_edges_reassigned)
         aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
         weights_opt = aml_optimize.learn(np.zeros(aml_optimize.weight_dim), 2500, edge_regularizers, var_regularizers)
         is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
@@ -99,20 +98,13 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
 
-    # if edges_reassigned:
-    #     reassignment_success_rate = float(len([x for x in edges_reassigned if x not in active_set])) / float(len(edges_reassigned))
-    #     print('reassignment_success_rate')
-    #     print(reassignment_success_rate)
 
-    # if naive_edges_reassigned:
-    #     naive_reassignment_success_rate = float(len([x for x in naive_edges_reassigned if x not in active_set])) / float(len(naive_edges_reassigned))
-    #     print('naive_reassignment_success_rate')
-    #     print(naive_reassignment_success_rate)
-
-    # if graph_edges_reassigned:
-    #     graph_reassignment_success_rate = float(len([x for x in graph_edges_reassigned if x not in active_set])) / float(len(graph_edges_reassigned))
-    #     print('graph_reassignment_success_rate')
-    #     print(graph_reassignment_success_rate)
+    print('Naive edge reassignments')
+    print(len(naive_edges_reassigned))
+    if naive_edges_reassigned:
+        naive_reassignment_success_rate = float(len([x for x in naive_edges_reassigned if x not in active_set])) / float(len(naive_edges_reassigned))
+        print('Naive reassignment success rate')
+        print(naive_reassignment_success_rate)
 
 
     # print('Outer loop')
