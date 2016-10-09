@@ -7,7 +7,6 @@ import time
 
 class LogLinearModel(MarkovNet):
     """Log linear model class. Able to convert from log linear features to pairwise MRF. For now, only allows indicator features for pairwise features."""
-
     def __init__(self):
         """Initialize a LogLinearModel. Create a Markov net."""
         super(LogLinearModel, self).__init__()
@@ -17,6 +16,8 @@ class LogLinearModel(MarkovNet):
         self.num_features = dict()
         self.num_edge_features = dict()
         self.weight_dim = None
+        self.map_edges = dict()
+        self.edge_ind = 0
 
     def set_edge_factor(self, edge, potential):
         super(LogLinearModel, self).set_edge_factor(edge, potential)
@@ -134,19 +135,17 @@ class LogLinearModel(MarkovNet):
                     num_edges += 1
 
         # create edge indicator features
-        i = 0
         for var in markov_net.variables:
             for neighbor in markov_net.get_neighbors(var):
                 if var < neighbor:
                     edge = (var, neighbor)
                     self.set_edge_factor(edge, markov_net.get_potential(edge))
                     indicator_features = np.zeros(num_edges)
-                    indicator_features[i] = 1.0
+                    indicator_features[self.edge_ind] = 1.0
                     self.set_edge_features(edge, indicator_features)
-                    i += 1
+                    self.edge_ind += 1
 
         self.create_matrices()
-
         self.feature_mat = csr_matrix(self.feature_mat)
         self.edge_feature_mat = csr_matrix(self.edge_feature_mat)
 
@@ -170,7 +169,7 @@ class LogLinearModel(MarkovNet):
 
         for edge, i in self.edge_index.items():
             self.set_edge_factor(edge,
-                         self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
+                self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
 
     def get_weight_factor_index(self):
         """Runs an index vector through the weight-vector conversion process to get an index matrix and tensor for
@@ -191,3 +190,26 @@ class LogLinearModel(MarkovNet):
                (self.max_states, self.max_states, self.num_edges))).astype(np.int)
 
         return unary_matrix, pairwise_tensor
+
+
+    def update_model(self, markov_net, edge):
+        n = len(markov_net.variables)
+
+
+        # create edge indicator features
+        self.set_edge_factor(edge, markov_net.get_potential(edge))
+        indicator_features = np.zeros(self.edge_ind + 1)
+        indicator_features[self.edge_ind] = 1.0
+        self.set_edge_features(edge, indicator_features)
+        self.edge_ind += 1
+
+        # self.create_matrices()
+        self.feature_mat = csr_matrix(self.feature_mat)
+        self.edge_feature_mat = csr_matrix(self.edge_feature_mat)
+
+
+        for (edge, i) in self.edge_index.items():
+            padded_potential = -np.inf * np.ones((self.max_states, self.max_states))
+            potential = self.get_potential(edge)
+            padded_potential[:self.num_states[edge[0]], :self.num_states[edge[1]]] = potential
+            self.edge_weight_mat[i, :] = padded_potential.ravel()

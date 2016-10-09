@@ -23,21 +23,17 @@ class MarkovNet(object):
         self.has_edges = False
 
 
-    def initialize_edge_factors(self, active_set, map_weights_to_variables):
+    def initialize_edge_factors(self, active_set):
         """Initialize the potential function for all the unary factors. Implicitly declare variables. Must be called before setting edge factors."""
         for edge in active_set:
-            map_weights_to_variables.append(edge)
             self.set_edge_factor(edge, np.zeros(
                 (len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]]))))
 
     def initialize_unary_factors(self, variables, num_states):
         """Initialize the potential function for all the unary factors. Implicitly declare variables. Must be called before setting edge factors."""
-        map_weights_to_variables = []
         for var in variables:
             self.set_unary_factor(var, np.zeros(num_states[var]))
-            map_weights_to_variables.append(var)
         self.init_search_space()
-        return map_weights_to_variables
 
     def set_unary_factor(self, variable, potential):
         """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
@@ -196,4 +192,35 @@ class MarkovNet(object):
                 tmp = np.asarray(table.reshape((-1, 1)))
                 edgesDataSum[edge] = edgesDataSum[edge] + tmp
         return edgesDataSum
+
+    def get_sufficient_stats(self, data, max_states):
+        """Compute joint states reoccurrences in the data"""
+        sufficient_stats = dict()
+        padded_sufficient_stats = dict()
+        for edge in self.search_space:
+            padded_sufficient_stats[edge] = np.asarray(
+                np.zeros((max_states, max_states)).reshape((-1, 1)))
+            sufficient_stats[edge] = np.asarray(
+                np.zeros((len(self.unary_potentials[edge[0]]), (len(self.unary_potentials[edge[1]])))).reshape((-1, 1)))
+        for var in self.variables:
+            padded_sufficient_stats[var] = np.asarray(np.zeros(max_states))
+            sufficient_stats[var] = np.asarray(np.zeros(len(self.unary_potentials[var])))
+        for states in data:
+            for var in self.variables:
+                padded_vec = np.zeros(max_states)
+                vec = np.zeros(len(self.unary_potentials[var]))
+                vec[states[var]] = 1
+                padded_vec[states[var]] = 1
+                sufficient_stats[var] = sufficient_stats[var] + vec
+                padded_sufficient_stats[var] = padded_sufficient_stats[var] + padded_vec
+            for edge in self.search_space:
+                padded_table = np.zeros((max_states, (max_states)))
+                padded_table[states[edge[0]], states[edge[1]]] = 1
+                padded_tmp = np.asarray(padded_table.reshape((-1, 1)))
+                table = np.zeros((len(self.unary_potentials[edge[0]]), (len(self.unary_potentials[edge[1]]))))
+                table[states[edge[0]], states[edge[1]]] = 1
+                tmp = np.asarray(table.reshape((-1, 1)))
+                sufficient_stats[edge] = sufficient_stats[edge] + tmp
+                padded_sufficient_stats[edge] = padded_sufficient_stats[edge] + padded_tmp
+        return sufficient_stats, padded_sufficient_stats
 

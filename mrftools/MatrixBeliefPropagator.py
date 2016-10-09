@@ -34,6 +34,11 @@ class MatrixBeliefPropagator(Inference):
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
 
+    def graft_condition(self):
+        self.compute_beliefs()
+        self.compute_pairwise_beliefs()
+        self.fully_conditioned = True
+
     def condition(self, var, state):
         i = self.mn.var_index[var]
         self.conditioning_mat[:, i] = -np.inf
@@ -183,13 +188,15 @@ class MatrixBeliefPropagator(Inference):
 
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
-
-    if matrix.size <= 1:
-        return matrix
-
-    max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
-    with np.errstate(divide='ignore', under='ignore'):
-        return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+    try:
+       return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+    except FloatingPointError:
+        with np.errstate(over='raise', under='raise'):
+            return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+    except:
+         max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+         with np.errstate(under='ignore', divide='ignore'):
+             return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T

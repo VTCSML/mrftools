@@ -22,3 +22,10 @@ class ApproxMaxLikelihood(Learner):
 
         # as a hack to save time, since these models don't condition on anything, make all belief propagators equal
         self.belief_propagators = [self.belief_propagators[0]]
+
+
+    def init_grafting(self):
+        model = deepcopy(self.base_model)
+        super(ApproxMaxLikelihood, self).init_model(model)
+
+        self.belief_propagators = [self.belief_propagators[0]]

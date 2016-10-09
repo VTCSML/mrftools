@@ -18,15 +18,40 @@ class Learner(object):
         self.belief_propagators_q = []
         self.belief_propagators = []
         self.l1_regularization = 0.00
-        self.l2_regularization = 1
+        self.l2_regularization = 0
         self.weight_dim = None
         self.fully_observed = True
         self.initialization_flag = False
+        self.edges_group_regularizers = 0
+        self.var_group_regularizers = 0
+        self.edge_regularizers = dict()
+        self.var_regularizers = dict()
+        self.graft = False
+        self.sufficent_stats = None
 
-    def set_regularization(self, l1, l2):
+
+    def set_regularization(self, l1, l2, var_reg, edge_reg):
         """Set the regularization parameters."""
         self.l1_regularization = l1
         self.l2_regularization = l2
+        self.edges_group_regularizers = edge_reg
+        self.var_group_regularizers = var_reg
+
+    def init_model(self, model):
+
+        self.models.append(model)
+        self.belief_propagators.append(self.inference_type(model))
+        if self.weight_dim == None:
+            self.weight_dim = model.weight_dim
+        else:
+            assert self.weight_dim == model.weight_dim, "Parameter dimensionality did not match"
+        model_q = copy.deepcopy(model)
+        bp_q = self.inference_type(model_q)
+        bp_q.graft_condition()
+
+        self.belief_propagators_q.append(bp_q)
+
+
 
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
@@ -86,21 +111,26 @@ class Learner(object):
         return bethe
 
     def subgrad_obj(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if (self.tau_q == None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
     def subgrad_obj_dual(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if (self.tau_q == None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
-        if self.tau_q == None or not self.fully_observed:
+        if (self.tau_q == None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
-    def learn(self, weights, max_iter=300, callback_f=None):
+
+###############################
+
+    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, callback_f=None):
+        self.edge_regularizers = edge_regularizers
+        self.var_regularizers = var_regularizers
         res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
         new_weights = res.x
         return new_weights
@@ -138,6 +168,16 @@ class Learner(object):
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * weights.dot(weights)
         objec += self.term_q_p
+        for edge in self.edge_regularizers.keys():
+            curr_reg = np.zeros(len(weights))
+            curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
+            objec += 0.5 * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+
+        for var in self.var_regularizers.keys():
+            curr_reg = np.zeros(len(weights))
+            curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
+            objec += 0.5 * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+
         return objec
 
     def gradient(self, weights, options=None):
@@ -151,6 +191,17 @@ class Learner(object):
 
         grad -= np.squeeze(self.tau_q)
         grad += np.squeeze(self.tau_p)
+
+        for edge in self.edge_regularizers.keys():
+            curr_reg = np.zeros(len(weights))
+            curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
+            grad += 0.5 * self.edges_group_regularizers * (curr_reg / 2 * np.sqrt(curr_reg.dot(curr_reg)))
+
+        for var in self.var_regularizers.keys():
+            curr_reg = np.zeros(len(weights))
+            curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
+            grad += 0.5 * self.var_group_regularizers * (curr_reg / 2 * np.sqrt(curr_reg.dot(curr_reg)))
+
         return grad
 
     def dual_obj(self, weights, options=None):
@@ -171,4 +222,20 @@ class Learner(object):
         objec += 0.5 * self.l2_regularization * weights.dot(weights)
         objec += self.term_q_p
 
+        for edge in self.edge_regularizers.keys():
+            curr_reg = np.zeors(len(weights))
+            curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
+            objec += 0.5 * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+
+        for var in self.var_regularizers.keys():
+            curr_reg = np.zeros(len(weights))
+            curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
+            objec += 0.5 * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+
         return objec
+
+    def set_sufficient_stats(self, stats):
+        self.graft = True
+        # self.set_weights(weights, belief_propagators)
+        # self.do_inference(self.belief_propagators)
+        self.tau_q = stats

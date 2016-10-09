@@ -1,5 +1,8 @@
 import unittest
-from mrftools import *
+import sys
+import numpy as np
+sys.path.insert(0, '../')
+from mrftools import ApproxMaxLikelihood, Learner, MarkovNet, GibbsSampler, opt, ObjectivePlotter, BeliefPropagator
 
 class TestApproxMaxLikelihood(unittest.TestCase):
     def test_sampled_data(self):
@@ -17,7 +20,9 @@ class TestApproxMaxLikelihood(unittest.TestCase):
 
         weights = np.zeros(learner.weight_dim)
 
-        new_weights = learner.learn(weights)#, plotter.callback)
+        new_weights = learner.learn(weights, 1500)#, plotter.callback)
+        print('WEIGHTS')
+        print(new_weights)
         new_model = learner.belief_propagators[0].mn
         new_model.load_factors_from_matrices()
 
@@ -39,6 +44,7 @@ def set_up_learner(learner, model):
     data = sample_data(model)
 
     for example in data:
+        # print(example)
         learner.add_data(example)
 
 def create_model(seed):
