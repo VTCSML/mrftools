@@ -73,7 +73,7 @@ def main():
                     print(' ----------------------------------- PRIORITY GRAFT (STRUCTURE) -----------------------------------')
                     print('l1 coeff: '+ str(l1_coeff))
                     t_priority_graft = time.time()
-                    mn_graft, active_space_mod_Graft = priority_graft( variables, num_states, train_data, l1_coeff, l2_coeff, var_reg, edge_reg,  2, .5, max_priority_grafting_iter, max_num_states, verbose)
+                    mn_graft, active_space_mod_Graft = priority_graft( variables, num_states, train_data, l1_coeff, l2_coeff, var_reg, edge_reg,  2, .1, max_priority_grafting_iter, max_num_states, verbose)
                     t_priority_graft = time.time() - t_priority_graft
                     print('recall')
                     recall = float(len([x for x in active_space_mod_Graft if x in edges]))/len(edges)
@@ -88,28 +88,6 @@ def main():
                     priority_graft_precision_vec.append(precision)
                     priority_graft_likelihood_vec.append(likelihood_graft)
                     t_priority_graft_vec.append(t_priority_graft)
-
-
-                    
-
-                    print(' ----------------------------------- GENERAL PRIORITY GRAFT -----------------------------------')
-                    print('l1 coeff: '+ str(l1_coeff))
-                    t_mod_graft = time.time()
-                    mn_graft, active_space_mod_Graft = mod_priority_graft( variables, num_states, train_data, l1_coeff, l2_coeff, var_reg, edge_reg,  2, .5, max_priority_grafting_iter, max_num_states, verbose)
-                    t_mod_graft = time.time() - t_mod_graft
-                    print('recall')
-                    recall = float(len([x for x in active_space_mod_Graft if x in edges]))/len(edges)
-                    print(recall)
-                    print('precision')
-                    precision = float(len([x for x in edges if x in active_space_mod_Graft]))/len(active_space_mod_Graft)
-                    print(precision)
-                    likelihood_graft = compute_likelihood(mn_graft, num_attributes, test_data)
-                    print('Likelihood Graft')
-                    print(likelihood_graft)
-                    mod_graft_recall_vec.append(recall)
-                    mod_graft_precision_vec.append(precision)
-                    mod_graft_likelihood_vec.append(likelihood_graft)
-                    t_mod_graft_vec.append(t_mod_graft)
 
 
                     print(' ----------------------------------- PRIORITY GRAFT (NAIVE) -----------------------------------')
@@ -130,6 +108,26 @@ def main():
                     naive_graft_precision_vec.append(precision)
                     naive_graft_likelihood_vec.append(likelihood_graft)
                     t_naive_graft_vec.append(t_naive_graft)
+                    
+
+                    print(' ----------------------------------- GENERAL PRIORITY GRAFT -----------------------------------')
+                    print('l1 coeff: '+ str(l1_coeff))
+                    t_mod_graft = time.time()
+                    mn_graft, active_space_mod_Graft = mod_priority_graft( variables, num_states, train_data, l1_coeff, l2_coeff, var_reg, edge_reg,  2, .1, max_priority_grafting_iter, max_num_states, verbose)
+                    t_mod_graft = time.time() - t_mod_graft
+                    print('recall')
+                    recall = float(len([x for x in active_space_mod_Graft if x in edges]))/len(edges)
+                    print(recall)
+                    print('precision')
+                    precision = float(len([x for x in edges if x in active_space_mod_Graft]))/len(active_space_mod_Graft)
+                    print(precision)
+                    likelihood_graft = compute_likelihood(mn_graft, num_attributes, test_data)
+                    print('Likelihood Graft')
+                    print(likelihood_graft)
+                    mod_graft_recall_vec.append(recall)
+                    mod_graft_precision_vec.append(precision)
+                    mod_graft_likelihood_vec.append(likelihood_graft)
+                    t_mod_graft_vec.append(t_mod_graft)
 
                     print(' ----------------------------------- GRAFT -----------------------------------')
                     print('l1 coeff: '+ str(l1_coeff))

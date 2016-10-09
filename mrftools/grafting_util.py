@@ -19,11 +19,11 @@ def priority_reassignment(variables, active_set, aml_optimize , prune_threshold,
     found, selected_edge, resulting_edges = select_edge_to_inject(curr_graph, search_space, prune_threshold)
     if found:
         injection = True
-        print('Testing priority Reassignment possibility using edge:')
-        print(selected_edge)
+        # print('Testing priority Reassignment possibility using edge:')
+        # print(selected_edge)
         added_edge = edge_gradient_test(aml_optimize.belief_propagators[0], selected_edge, edges_data_sum, data, l1_coeff)
         if added_edge:
-            print('priority Reassignment NOT Authorized')
+            # print('priority Reassignment NOT Authorized')
             pq.pop(selected_edge)
             search_space.remove(selected_edge)
             active_set.append(selected_edge)
@@ -34,7 +34,7 @@ def priority_reassignment(variables, active_set, aml_optimize , prune_threshold,
             # print(active_Set)
         else:
             success = True
-            print('priority Reassignment Authorized')
+            # print('priority Reassignment Authorized')
             # print('priority Reassigned Edges:')
             # print(resulting_edges)
             pq.pop(selected_edge)
@@ -86,8 +86,8 @@ def edge_gradient_test(bp, edge, data_sum, data, l1_coeff):
     bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
     gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
     mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
-    print('GRADIENT')
-    print(mean_gradient)
+    # print('GRADIENT')
+    # print(mean_gradient)
     remove = mean_gradient < l1_coeff
     if remove:
         return False

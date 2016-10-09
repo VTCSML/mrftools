@@ -115,6 +115,10 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
 
+    edges_reassigned = list(set(edges_reassigned))
+    naive_edges_reassigned = list(set(naive_edges_reassigned))
+    graph_edges_reassigned = list(set(graph_edges_reassigned))
+    
     print('Total priority reassignment')
     print(len(edges_reassigned))
     if edges_reassigned:

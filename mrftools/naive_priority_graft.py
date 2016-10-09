@@ -99,6 +99,7 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
     learned_mn.load_factors_from_matrices()
 
 
+    naive_edges_reassigned = list(set(naive_edges_reassigned))
     print('Naive edge reassignments')
     print(len(naive_edges_reassigned))
     if naive_edges_reassigned:

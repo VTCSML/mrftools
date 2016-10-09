@@ -122,6 +122,7 @@ def priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, ed
     learned_mn = aml_optimize.belief_propagators[0].mn
     learned_mn.load_factors_from_matrices()
 
+    edges_reassigned = list(set(edges_reassigned))
     print('Graph priority reassignments')
     print(len(edges_reassigned))
     if edges_reassigned:
