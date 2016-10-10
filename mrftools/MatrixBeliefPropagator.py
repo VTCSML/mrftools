@@ -17,11 +17,12 @@ from Inference import Inference
 class MatrixBeliefPropagator(Inference):
     """Object that can run belief propagation on a MarkovNet."""
 
-    def __init__(self, markov_net):
+    def __init__(self, markov_net, labels):
         """Initialize belief propagator for markov_net."""
         self.mn = markov_net
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
+        self.labels = labels
         self.temp = 1
 
         if not self.mn.matrix_mode:
@@ -33,11 +34,18 @@ class MatrixBeliefPropagator(Inference):
         self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
+        self.lables_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.max_iter = 300
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
         self.disallow_impossible_states()
+        self.build_lables_mat()
+
+    def build_lables_mat(self):
+        for var, label in self.labels.items():
+            i = self.mn.var_index[var]
+            self.lables_mat[label, i] = 1
 
     def set_max_iter(self, max_iter):
         self.max_iter = max_iter
@@ -191,6 +199,7 @@ class MatrixBeliefPropagator(Inference):
         """Compute the log-linear energy. Assume that the beliefs have been computed and are fresh."""
         energy = np.sum(np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]) * np.exp(self.pair_belief_tensor)) + \
                  np.sum(np.nan_to_num(self.mn.unary_mat) * np.exp(self.belief_mat))
+        # print self.belief_mat
 
         return energy
 

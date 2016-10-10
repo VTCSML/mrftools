@@ -37,7 +37,7 @@ class Learner(object):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
         self.models.append(model)
-        self.belief_propagators.append(self.inference_type(model))
+        self.belief_propagators.append(self.inference_type(model, labels))
 
         if self.weight_dim is None:
             self.weight_dim = model.weight_dim
@@ -47,7 +47,7 @@ class Learner(object):
         model_q = copy.deepcopy(model)
         self.models_q.append(model_q)
 
-        bp_q = self.inference_type(model_q)
+        bp_q = self.inference_type(model_q, labels)
         for (var, state) in labels.items():
             bp_q.condition(var, state)
 
@@ -59,6 +59,7 @@ class Learner(object):
 
         self.num_examples += 1
 
+
     def _set_initialization_flag(self, flag):
         self.initialization_flag = flag
 
@@ -67,8 +68,6 @@ class Learner(object):
             if self.initialization_flag == True:
                 bp.initialize_messages()
             bp.infer(display = 'off')
-        #     print "-------------"
-        # print "=============="
     def set_inference_truncation(self, bp_iter):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(bp_iter)
@@ -97,10 +96,10 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
-    def subgrad_grad(self, weights, options=None):
-        if self.tau_q is None or not self.fully_observed:
-            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
-        return self.gradient(weights)
+    # def subgrad_grad(self, weights, options=None):
+    #     if self.tau_q is None or not self.fully_observed:
+    #         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
+    #     return self.gradient(weights)
 
     # def learn(self, weights, callback_f=None):
     #     res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
@@ -128,9 +127,7 @@ class Learner(object):
 
     def objective(self, weights, options=None):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
-
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
             self.set_weights(weights, self.belief_propagators_q)
@@ -162,20 +159,21 @@ class Learner(object):
 
         return grad
 
-    def dual_obj(self, weights, options=None):
-        if self.tau_q is None or not self.fully_observed:
-            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-
-        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = np.dot(self.tau_q, weights)
-
-        self.term_q_p = term_p - term_q
-
-        objec = 0.0
-        # add regularization penalties
-        objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * weights.dot(weights)
-        objec += self.term_q_p
-
-        return objec
+    # def dual_obj(self, weights, options=None):
+    #     if self.tau_q is None or not self.fully_observed:
+    #         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+    #     self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+    #
+    #     term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
+    #     term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+    #     # term_q = np.dot(self.tau_q, weights)
+    #
+    #     self.term_q_p = term_p - term_q
+    #
+    #     objec = 0.0
+    #     # add regularization penalties
+    #     objec += self.l1_regularization * np.sum(np.abs(weights))
+    #     objec += 0.5 * self.l2_regularization * weights.dot(weights)
+    #     objec += self.term_q_p
+    #
+    #     return objec

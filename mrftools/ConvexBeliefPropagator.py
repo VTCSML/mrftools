@@ -7,8 +7,8 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
 class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
-    def __init__(self, markov_net, counting_numbers=None):
-        super(ConvexBeliefPropagator, self).__init__(markov_net)
+    def __init__(self, markov_net, labels, counting_numbers=None):
+        super(ConvexBeliefPropagator, self).__init__(markov_net, labels)
 
         self.unary_counting_numbers = np.ones(len(self.mn.variables))
         self.edge_counting_numbers = np.ones(2 * self.mn.num_edges)
@@ -28,6 +28,8 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
 
     def _set_counting_numbers(self, counting_numbers):
+
+
         self.edge_counting_numbers = np.zeros(2 * self.mn.num_edges)
 
         for edge, i in self.mn.edge_index.items():
@@ -93,8 +95,6 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
         dual_vars = self.message_mat - np.nan_to_num(coefficients * raw_beliefs[:, self.mn.message_to])
 
-        # return np.sum(abs(dual_vars) * abs(self._compute_inconsistency_vector()))
-
         return np.sum(dual_vars * self._compute_inconsistency_vector())
 
     def compute_dual_objective(self):
@@ -130,3 +130,39 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
             beliefs -= logsumexp(beliefs, (0, 1))
 
             self.pair_belief_tensor = beliefs
+
+    def compute_univariate_logistic_loss(self):
+        self.compute_beliefs()
+        loss = - np.sum(np.nan_to_num(self.belief_mat) * self.lables_mat)
+        return loss
+
+
+    # def compute_univariate_logistic_loss_anytime(self, tolerance=1e-8, display='iter'):
+    #     """Run belief propagation until messages change less than tolerance."""
+    #     change = np.inf
+    #     iteration = 0
+    #     loss = 0
+    #     while change > tolerance and iteration < self.max_iter:
+    #         change = self.update_messages()
+    #         if display == "full":
+    #             energy_func = self.compute_energy_functional()
+    #             disagreement = self.compute_inconsistency()
+    #             dual_obj = self.compute_dual_objective()
+    #             if self.temp == 1:
+    #                 print(
+    #                 "Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (
+    #                 iteration, change, disagreement, energy_func, dual_obj))
+    #                 self.temp += 1
+    #             else:
+    #                 print(
+    #                     "Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (
+    #                         iteration, change, disagreement, energy_func, dual_obj))
+    #
+    #         elif display == "iter":
+    #             print("Iteration %d, change in messages %f." % (iteration, change))
+    #         iteration += 1
+    #         loss += self.compute_univariate_logistic_loss()
+    #     if display == 'final' or display == 'full' or display == 'iter':
+    #         print("Belief propagation finished in %d iterations." % iteration)
+    #
+    #     return loss

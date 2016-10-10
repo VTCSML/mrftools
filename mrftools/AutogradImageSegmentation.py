@@ -4,6 +4,7 @@ except ImportError:
     import numpy as np
 from ImageLoader import ImageLoader
 from AutogradLearner import AutogradLearner
+from AutogradLearner_new import AutogradLearner_new
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
 from ConvexBeliefPropagator import ConvexBeliefPropagator
@@ -20,14 +21,14 @@ class AutogradImageSegmentation(object):
         self.max_height = 20
         self.max_width = 20
         self.num_training_images = 1
-        self.num_testing_images = 1
+        self.num_testing_images = 0
         self.inc = True
         self.path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
         self.plot = False
         self.initialization_flag = True
 
         self.inference_type = ConvexBeliefPropagator
-        self.max_iter = 10
+        self.max_iter = 5
         self.l2regularization = 1.0
 
 
@@ -45,7 +46,7 @@ class AutogradImageSegmentation(object):
 
         self.images, self.models, self.labels, self.names = loader.load_all_images_and_labels(self.path+'/test/train', 2, self.num_training_images)
 
-        self.learner = AutogradLearner(self.inference_type, self)
+        self.learner = AutogradLearner_new(self.inference_type, self)
 
         self.learner.set_regularization(0.0, 1.0)
 
@@ -67,8 +68,8 @@ class AutogradImageSegmentation(object):
         print "\n------------Primal-------------"
         new_weights = self.learner.learn(self.weights)
 
-        print("Dual Objective: %f" % self.learner.dual_obj(new_weights))
-        print("Primal Objective: %f" % self.learner.subgrad_obj(new_weights, self))
+        # print("Dual Objective: %f" % self.learner.dual_obj(new_weights))
+        # print("Primal Objective: %f" % self.learner.subgrad_obj(new_weights, self))
         elapsed = time.time() - start
 
         print ("Time elapsed: %f" % elapsed)
@@ -80,8 +81,8 @@ class AutogradImageSegmentation(object):
         print "\n------------Dual-------------"
         new_weights = self.learner.learn_dual(self.weights)
 
-        print("Dual Objective: %f" % self.learner.dual_obj(new_weights))
-        print("Primal Objective: %f" % self.learner.subgrad_obj(new_weights, self))
+        # print("Dual Objective: %f" % self.learner.dual_obj(new_weights))
+        # print("Primal Objective: %f" % self.learner.subgrad_obj(new_weights, self))
 
         elapsed = time.time() - start
         print ("Time elapsed: %f" % elapsed)
@@ -115,11 +116,13 @@ def main():
 
     ais = AutogradImageSegmentation()
 
+
     primal_weights = ais.learn_primal()
     ais.evaluating(primal_weights)
-
-    dual_weights = ais.learn_dual()
-    ais.evaluating(dual_weights)
+    # #
+    # ais.learner.tau_q = None
+    # dual_weights = ais.learn_dual()
+    # ais.evaluating(dual_weights)
 
 
 
