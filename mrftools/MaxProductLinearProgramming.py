@@ -22,7 +22,7 @@ class MaxProductLinearProgramming(MaxProductBeliefPropagator):
         incoming_messages = np.squeeze(adjusted_message_prod.max(1))
 
         outgoing_messages = message_sum[:, self.mn.message_to] - self.message_mat
-        messages = np.nan_to_num(0.5 * incoming_messages - 0.5 * np.nan_to_num(outgoing_messages))
+        messages = 0.5 * np.nan_to_num(  incoming_messages -   np.nan_to_num(outgoing_messages))
 
         import matplotlib.pyplot as plt
         #
@@ -38,7 +38,7 @@ class MaxProductLinearProgramming(MaxProductBeliefPropagator):
 
         change = np.sum(np.abs(messages - self.message_mat))
 
-        print (messages - self.message_mat)
+        # print (messages - self.message_mat)
 
         self.message_mat = messages
 

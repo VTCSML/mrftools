@@ -29,7 +29,7 @@ def ada_grad(func, grad, x, args, callback):
         old_x = x
         g = grad(x, args)
         grad_sum += g * g
-        x = x - 0.1 * g / (np.sqrt(grad_sum) + 0.001)
+        x = x - 0.01 * g / (np.sqrt(grad_sum) + 0.001)
         grad_norm = np.sqrt(g.dot(g))
         t += 1
         if callback:
