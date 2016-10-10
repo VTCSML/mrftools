@@ -37,10 +37,10 @@ class Learner(object):
     def instantiate(self, model):
         default_counting_numbers = dict ( )
         for var in model.variables:
-            default_counting_numbers[var] = 0.0001
+            default_counting_numbers[var] = 0.001
             for neighbor in model.neighbors[var]:
                 if var < neighbor:
-                    default_counting_numbers[(var, neighbor)] = 0.0001
+                    default_counting_numbers[(var, neighbor)] = 0.001
 
         bp = ConvexBeliefPropagator ( model, default_counting_numbers )
         return bp
