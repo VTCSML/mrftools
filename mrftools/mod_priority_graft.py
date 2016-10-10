@@ -66,7 +66,7 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg
 
             added_edges = 0
             ## PRUNING TEST
-            if num_edges > prune_firing_threshold * num_possible_edges and prune_time >= 6: # Test for priority reassignment if graph density is above 'prune_firing_threshol'
+            if num_edges > prune_firing_threshold * num_possible_edges and prune_time >= 2: # Test for priority reassignment if graph density is above 'prune_firing_threshol'
                 prune_time = 0
                 pq , active_set, search_space, injection, success, is_added_edge, resulting_edges  = priority_reassignment(variables, active_set, aml_optimize, prune_threshold, data, search_space, pq, l1_coeff, sufficient_stats, mn)
                 num_success, num_injection, priority_reassignements, num_edges_reassigned = update_mod_grafting_metrics(injection, success, resulting_edges, edges_reassigned, graph_edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements)
@@ -118,7 +118,7 @@ def mod_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg
     edges_reassigned = list(set(edges_reassigned))
     naive_edges_reassigned = list(set(naive_edges_reassigned))
     graph_edges_reassigned = list(set(graph_edges_reassigned))
-    
+
     print('Total priority reassignment')
     print(len(edges_reassigned))
     if edges_reassigned:

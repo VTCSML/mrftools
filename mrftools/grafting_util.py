@@ -5,6 +5,59 @@ from graph_mining_util import *
 from pqdict import pqdict
 from ApproxMaxLikelihood import ApproxMaxLikelihood
 
+
+
+def strcutured_priority_mean_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff, reassignmet):
+    """
+    Functionality :
+    1 - Parse the priority queue 'pq' and compute the gradient of the current edge. 
+    2 - Activate edge if gradient has at least one component bigger than l1_coeff.
+    3 - Reduce the priority of not activated edges.
+    """
+    reassignmet = 2
+    p_thresh = 3
+    tmp_list = []
+    resulting_edges = []
+    while len(pq)>0:
+        item = pq.popitem()# Get edges by order of priority
+        edge = item[0]
+        bp = bps[0]
+        bp.load_beliefs()
+        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
+        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
+        gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
+        mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
+        activate = mean_gradient > l1_coeff
+        if activate:
+            search_space.remove(item[0])
+            for item in tmp_list:
+                pq.additem(item[0], item[1]+reassignmet)# If an edge is activated, return the previously poped edges with reduced priority
+            ###################################
+            if resulting_edges:
+                tmp_list.extend(resulting_edges)
+                for res_edge in resulting_edges:
+                    if (not set(res_edge) == set(edge)):
+                        pq.updateitem(res_edge, pq[res_edge] + 1)
+            ###################################
+            return True, edge, [x[0] for x in tmp_list], resulting_edges
+        else:
+            tmp_list.append(item)# Store not activated edges in a temporary list
+            edge = item[0]
+            neighbors_1 = bp.mn.get_neighbors(edge[0])
+            neighbors_2 = bp.mn.get_neighbors(edge[1])
+            ###################################
+            if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
+                curr_resulting_edges = list(set([(x, y) for (x, y) in
+                              list(itertools.product(neighbors_1, neighbors_2)) +
+                              list(itertools.product(neighbors_2, neighbors_1)) if
+                              x < y and (x, y) in pq and pq[(x, y)]==0 ]))
+                if len(curr_resulting_edges) > 1:
+                    resulting_edges.extend(curr_resulting_edges)
+            ###################################
+    return False, (0, 0), [], []
+
+
+
 def priority_reassignment(variables, active_set, aml_optimize , prune_threshold, data, search_space, pq, l1_coeff, edges_data_sum, mn):
     """
     Functionality :
@@ -55,14 +108,10 @@ def naive_priority_mean_gradient_test(bps, search_space, pq, data_sum, data, l1_
     while len(pq)>0:
         item = pq.popitem()# Get edges by order of priority
         edge = item[0]
-        n = 0
-        belief = 0
-        for bp in bps:
-            bp.load_beliefs()
-            belief += bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-            bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-            n += 1
-        belief = belief / n
+        bp = bps[0]
+        bp.load_beliefs()
+        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
+        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
         mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
         activate = mean_gradient > l1_coeff
@@ -70,10 +119,10 @@ def naive_priority_mean_gradient_test(bps, search_space, pq, data_sum, data, l1_
             search_space.remove(item[0])
             for item in tmp_list:
                 pq.additem(item[0], item[1]+reassignmet)# If an edge is activated, return the previously poped edges with reduced priority
-            return True, edge, tmp_list
+            return True, edge, [x[0] for x in tmp_list]
         else:
             tmp_list.append(item)# Store not activated edges in a temporary list
-    return False, (0, 0), tmp_list
+    return False, (0, 0), []
 
 def edge_gradient_test(bp, edge, data_sum, data, l1_coeff):
     """
@@ -104,14 +153,10 @@ def priority_mean_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff)
     while len(pq)>0:
         item = pq.popitem()# Get edges by order of priority
         edge = item[0]
-        n = 0
-        belief = 0
-        for bp in bps:
-            bp.load_beliefs()
-            belief += bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-            bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-            n += 1
-        belief = belief / n
+        bp = bps[0]
+        bp.load_beliefs()
+        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
+        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
         mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
         activate = mean_gradient > l1_coeff
@@ -134,14 +179,10 @@ def priority_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff):
     while len(pq)>0:
         item = pq.popitem()# Get edges by order of priority
         edge = item[0]
-        n = 0
-        belief = 0
-        for bp in bps:
-            bp.load_beliefs()
-            belief += bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-            bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-            n += 1
-        belief = belief / n
+        bp = bps[0]
+        bp.load_beliefs()
+        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
+        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
         activate = not all(i < l1_coeff for i in np.abs(gradient))
         if activate:
@@ -163,14 +204,10 @@ def naive_priority_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff
     while len(pq)>0:
         item = pq.popitem()# Get edges by order of priority
         edge = item[0]
-        n = 0
-        belief = 0
-        for bp in bps:
-            bp.load_beliefs()
-            belief += bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-            bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-            n += 1
-        belief = belief / n
+        bp = bps[0]
+        bp.load_beliefs()
+        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
+        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
         activate = not all(i < l1_coeff for i in np.abs(gradient))
         if activate:
