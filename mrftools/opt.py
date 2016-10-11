@@ -49,8 +49,8 @@ def adam(func, grad, x, args, callback):
     v = np.zeros(x.shape)
     grad_norm = np.inf
     while grad_norm > tolerance and t < max_iter:
-        t += 1
         func ( x, args )
+        t += 1
         g = grad ( x, args )
         m = beta_1 * m + (1 - beta_1) * g
         v = beta_2 * v + (1 - beta_2) * np.multiply(g,g)

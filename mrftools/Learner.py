@@ -37,10 +37,10 @@ class Learner(object):
     def instantiate(self, model):
         default_counting_numbers = dict ( )
         for var in model.variables:
-            default_counting_numbers[var] = 0.001
+            default_counting_numbers[var] = 0.15
             for neighbor in model.neighbors[var]:
                 if var < neighbor:
-                    default_counting_numbers[(var, neighbor)] = 0.001
+                    default_counting_numbers[(var, neighbor)] = 0.15
 
         bp = ConvexBeliefPropagator ( model, default_counting_numbers )
         return bp
@@ -129,6 +129,7 @@ class Learner(object):
 
     def learn(self, weights, callback_f=None):
         self.start = time.time()
+        # res = adam(self.subgrad_obj, self.subgrad_grad, weights, args=None, callback=callback_f)
         res = ada_grad ( self.subgrad_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
         new_weights = res
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
@@ -180,8 +181,8 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if time.time() - self.start > 100:
-            print 'more than 200 sec'
+        if time.time() - self.start > 60:
+            print 'more than 60 sec'
             grad = np.zeros ( len ( weights ) )
             return grad
         else:
