@@ -36,12 +36,6 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
     for model, states in zip(models, labels):
         learner.add_data(states, model)
 
-    if max_iter > 0:
-        for bp in learner.belief_propagators_q:
-            bp.set_max_iter(max_iter)
-        for bp in learner.belief_propagators:
-            bp.set_max_iter(max_iter)
-
     wr_obj = WeightRecord()
     new_weight = learner.learn(weights, wr_obj.callback)
     weight_record = wr_obj.weight_record
@@ -61,7 +55,7 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
 
     div = l/100
 
-    for k in range(100):
+    for k in range(10):
         i = k * div
         my_list.append(time_record[i] - t)
         obj_list.append(learner.subgrad_obj(weight_record[i, :]))
@@ -70,11 +64,11 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
                                           inference_type, max_iter, inc='false', plot='false')
         train_accuracy_list.append ( ave_error )
 
-        ave_error_test = Eval.evaluate_training_images ( saved_path, test_images, test_models, test_labels, test_names, weight_record[i, :],
-                                                num_states, num_testing_images,
-                                                inference_type, max_iter, inc='false', plot='false' )
-
-        test_accuracy_list.append(ave_error_test)
+        # ave_error_test = Eval.evaluate_training_images ( saved_path, test_images, test_models, test_labels, test_names, weight_record[i, :],
+        #                                         num_states, num_testing_images,
+        #                                         inference_type, max_iter, inc='false', plot='false' )
+        #
+        # test_accuracy_list.append(ave_error_test)
 
 
 
@@ -114,7 +108,7 @@ def main(arg):
     # max_width = 320
     max_height = 6
     max_width = 6
-    num_training_images = 2
+    num_training_images = 1
     num_testing_images = 2
     # num_training_images = 6
     # num_testing_images = 2
@@ -185,13 +179,13 @@ def main(arg):
 
 
 # # ## ********************************************************
-#     inferences = [MatrixTRBeliefPropagator]
+    inferences = [MatrixBeliefPropagator]
 #     learners = [PrimalDual]
-    inferences = [ConvexBeliefPropagator,MatrixTRBeliefPropagator, MatrixBeliefPropagator]
+#     inferences = [ConvexBeliefPropagator,MatrixTRBeliefPropagator, MatrixBeliefPropagator]
     # learners = [EM]
-    learners = [EM,Learner,PairedDual,PrimalDual]
+    # learners = [EM,Learner,PairedDual,PrimalDual]
     # inferences = [MatrixBeliefPropagator]
-    # learners = [Learner]
+    learners = [Learner]
     regularizers = [0,0.1]
     loss_aug = False
     MAP_Convex = False
@@ -212,40 +206,40 @@ def main(arg):
             pickle.dump ( lnr_dic, f )
             f.close ( )
 
-#     # inferences = ['ConvexBeliefPropagator_MAP']
-#     # learners = [PrimalDual]
-    inferences = [MaxProductBeliefPropagator, 'ConvexBeliefPropagator_MAP']
-    learners = [EM, Learner,PairedDual,PrimalDual]
-#     # learners = [EM]
-    regularizers = [0,0.1]
-    loss_aug = True
-    for infr in inferences:
-        for learner_type in learners:
-            if str(infr) == 'ConvexBeliefPropagator_MAP':
-                inference_type = ConvexBeliefPropagator
-                MAP_Convex = True
-                inferece_name = str(infr)
-            else:
-                inference_type = infr
-                MAP_Convex = False
-                inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
-
-            learner_name = str(learner_type).split('.')[-1][:-2]
-
-
-            lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
-                                    images, num_training_images,
-                                    max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images, MAP_Convex=MAP_Convex)
-
-            if not os.path.exists ( saved_path +  inferece_name + '/'):
-                os.makedirs ( saved_path + '/'+ inferece_name + '/' )
-            f = open ( saved_path  +'/' +inferece_name + '/' + str(regularizers)+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
-            pickle.dump ( lnr_dic, f )
-            f.close ( )
-# # #     # # #
-#     # # # ***************************************************
-
-
+# #     # inferences = ['ConvexBeliefPropagator_MAP']
+# #     # learners = [PrimalDual]
+#     inferences = [MaxProductBeliefPropagator, 'ConvexBeliefPropagator_MAP']
+#     learners = [EM, Learner,PairedDual,PrimalDual]
+# #     # learners = [EM]
+#     regularizers = [0,0.1]
+#     loss_aug = True
+#     for infr in inferences:
+#         for learner_type in learners:
+#             if str(infr) == 'ConvexBeliefPropagator_MAP':
+#                 inference_type = ConvexBeliefPropagator
+#                 MAP_Convex = True
+#                 inferece_name = str(infr)
+#             else:
+#                 inference_type = infr
+#                 MAP_Convex = False
+#                 inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
+#
+#             learner_name = str(learner_type).split('.')[-1][:-2]
+#
+#
+#             lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
+#                                     images, num_training_images,
+#                                     max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images, MAP_Convex=MAP_Convex)
+#
+#             if not os.path.exists ( saved_path +  inferece_name + '/'):
+#                 os.makedirs ( saved_path + '/'+ inferece_name + '/' )
+#             f = open ( saved_path  +'/' +inferece_name + '/' + str(regularizers)+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
+#             pickle.dump ( lnr_dic, f )
+#             f.close ( )
+# # # #     # # #
+# #     # # # ***************************************************
+#
+#
 
 
 

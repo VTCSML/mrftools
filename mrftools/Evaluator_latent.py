@@ -23,7 +23,7 @@ class Evaluator_latent(object):
                     w = weights[key]
                     models[i].set_weights(w)
                     bp = inference_type(models[i])
-                    bp.set_max_iter(max_iter)
+                    # bp.set_max_iter(max_iter)
                     bp.infer(display='off')
                     bp.load_beliefs()
                     beliefs = np.zeros ( (images[i].height, images[i].width) )
@@ -52,7 +52,7 @@ class Evaluator_latent(object):
             if i < num_images:
                 models[i].set_weights(weights)
                 bp = inference_type(models[i])
-                bp.set_max_iter(max_iter)
+                # bp.set_max_iter(max_iter)
                 bp.infer(display='off')
                 bp.load_beliefs()
 
