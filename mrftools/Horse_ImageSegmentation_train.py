@@ -107,14 +107,14 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
 def main(arg):
 # def main():
 
-    dataset = "background"
+    dataset = "horse"
     d_unary = 65
     d_edge = 11
     # max_height = 240
     # max_width = 320
-    max_height = 6
-    max_width = 6
-    num_training_images = 2
+    max_height =24
+    max_width = 24
+    num_training_images = 5
     num_testing_images = 2
     # num_training_images = 6
     # num_testing_images = 2
@@ -135,7 +135,7 @@ def main(arg):
     elif dataset == "background":
         num_states = 8
         weights = pickle.load ( open ( 'initial_weights.txt', 'r' ) )
-        # weights = np.zeros ( d_unary * num_states + d_edge * num_states ** 2 )
+
     loader = ImageLoader(max_width, max_height)
     images, models, labels, names = loader.load_all_images_and_labels(data_path + '/train', num_states, num_training_images)
     true_label = copy.deepcopy(labels)
@@ -161,7 +161,7 @@ def main(arg):
     #             del labels[l][k]
 
 
-    # every other row is latent
+    # # every other row is unknown
     for l in range ( len ( labels ) ):
         for k, v in labels[l].items ( ):
             if (np.remainder ( k[0], 2 ) == 0):
@@ -185,65 +185,45 @@ def main(arg):
 
 
 # # ## ********************************************************
-#     inferences = [MatrixTRBeliefPropagator]
-#     learners = [PrimalDual]
-    inferences = [ConvexBeliefPropagator,MatrixTRBeliefPropagator, MatrixBeliefPropagator]
-    # learners = [EM]
-    learners = [EM,Learner,PairedDual,PrimalDual]
-    # inferences = [MatrixBeliefPropagator]
-    # learners = [Learner]
-    regularizers = [0,0.1]
-    loss_aug = False
-    MAP_Convex = False
-    for infr in inferences:
-        for learner_type in learners:
-            inference_type = infr
-            inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
-            learner_name = str(learner_type).split('.')[-1][:-2]
-
-
-            lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
-                                    images, num_training_images,
-                                    max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images, MAP_Convex=MAP_Convex)
-#
-            if not os.path.exists ( saved_path +  inferece_name + '/'):
-                os.makedirs ( saved_path + '/'+ inferece_name + '/' )
-            f = open ( saved_path  +'/' +inferece_name + '/' + str(regularizers)+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
-            pickle.dump ( lnr_dic, f )
-            f.close ( )
-
-#     # inferences = ['ConvexBeliefPropagator_MAP']
+#     inferences = ['ConvexBeliefPropagator_MAP',MatrixTRBeliefPropagator,ConvexBeliefPropagator,MatrixBeliefPropagator]
+#     # inference_type = MaxProductLinearProgramming
+#     learners = [Learner,EM,PairedDual,PrimalDual]
 #     # learners = [PrimalDual]
-    inferences = [MaxProductBeliefPropagator, 'ConvexBeliefPropagator_MAP']
-    learners = [EM, Learner,PairedDual,PrimalDual]
-#     # learners = [EM]
-    regularizers = [0,0.1]
-    loss_aug = True
-    for infr in inferences:
-        for learner_type in learners:
-            if str(infr) == 'ConvexBeliefPropagator_MAP':
-                inference_type = ConvexBeliefPropagator
-                MAP_Convex = True
-                inferece_name = str(infr)
-            else:
-                inference_type = infr
-                MAP_Convex = False
-                inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
-
-            learner_name = str(learner_type).split('.')[-1][:-2]
-
-
-            lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
-                                    images, num_training_images,
-                                    max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images, MAP_Convex=MAP_Convex)
-
-            if not os.path.exists ( saved_path +  inferece_name + '/'):
-                os.makedirs ( saved_path + '/'+ inferece_name + '/' )
-            f = open ( saved_path  +'/' +inferece_name + '/' + str(regularizers)+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
-            pickle.dump ( lnr_dic, f )
-            f.close ( )
-# # #     # # #
-#     # # # ***************************************************
+#     # inferences = [MatrixBeliefPropagator]
+#     # learners = [Learner]
+#     regularizers = [0,1]
+#     # losses = [False]
+#     losses = [True,False]
+#     # MAP_Convex = True
+#     # MAP_Convex = False
+#     for infr in inferences:
+#         for learner_type in learners:
+#             for loss_aug in losses:
+#
+#                 if str(infr) == 'ConvexBeliefPropagator_MAP':
+#                     inference_type = ConvexBeliefPropagator
+#                     MAP_Convex = True
+#                     inferece_name = str(infr)
+#                 else:
+#                     inference_type = infr
+#                     MAP_Convex = False
+#                     inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
+#
+#                 learner_name = str(learner_type).split('.')[-1][:-2]
+#
+#
+#                 lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
+#                                         images, num_training_images,
+#                                         max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images, MAP_Convex=MAP_Convex)
+#
+#
+#                 if not os.path.exists ( saved_path +  inferece_name + '/'):
+#                     os.makedirs ( saved_path + '/'+ inferece_name + '/' )
+#                 f = open ( saved_path  +'/' +inferece_name + '/' + str(regularizers)+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
+#                 pickle.dump ( lnr_dic, f )
+#                 f.close ( )
+#     # # #
+    # # # ***************************************************
 
 
 
@@ -251,43 +231,46 @@ def main(arg):
 
 
     # # ###############################*******train and save files*********###############################
-    # infr = arg[0]
-    # learner_type = eval(arg[1])
-    # loss_aug = eval(arg[2])
-    # regularizers = np.array(arg[3].split(','))
-    # regularizers = regularizers.astype ( np.float )
-    # # weights = np.zeros( d_unary * num_states + d_edge * num_states ** 2)
-    # # weights = np.random.rand ( d_unary * num_states + d_edge * num_states ** 2 ) * 0.001
-    # # f = open ( 'initial_weights_horse.txt','w' )
-    # # pickle.dump(weights,f)
-    # # f.close()
-    #
-    # if str(infr) == 'ConvexBeliefPropagator_MAP':
-    #     inference_type = ConvexBeliefPropagator
-    #     MAP_Convex = True
-    #     inferece_name = str(infr)
-    # else:
-    #     inference_type = eval ( infr )
-    #     MAP_Convex = False
-    #     inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
-    #
-    #
-    #
-    # learner_name = str(learner_type).split('.')[-1][:-2]
-    #
-    #
-    # if not os.path.isfile(saved_path + '/'+ inferece_name + '/' +arg[3]+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt'):
-    #     lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
-    #                             images, num_training_images,
-    #                             max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images,MAP_Convex=MAP_Convex)
-    #
-    #
-    #     if not os.path.exists ( saved_path + inferece_name + '/' ):
-    #         os.makedirs ( saved_path + '/' + inferece_name + '/' )
-    #
-    #     f = open ( saved_path + '/'+ inferece_name + '/' +arg[3]+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
-    #     pickle.dump ( lnr_dic, f )
-    #     f.close ( )
+    infr = arg[0]
+    learner_type = eval(arg[1])
+    loss_aug = eval(arg[2])
+    regularizers = np.array(arg[3].split(','))
+    regularizers = regularizers.astype ( np.float )
+    # weights = np.zeros( d_unary * num_states + d_edge * num_states ** 2)
+    # weights = np.random.rand ( d_unary * num_states + d_edge * num_states ** 2 ) * 0.001
+    # f = open ( 'initial_weights_horse.txt','w' )
+    # pickle.dump(weights,f)
+    # f.close()
+
+    if str(infr) == 'ConvexBeliefPropagator_MAP':
+        inference_type = ConvexBeliefPropagator
+        MAP_Convex = True
+        inferece_name = str(infr)
+    else:
+        inference_type = eval ( infr )
+        MAP_Convex = False
+        inferece_name = str ( inference_type ).split ( '.' )[-1][:-2]
+
+
+
+    learner_name = str(learner_type).split('.')[-1][:-2]
+
+
+    if not os.path.isfile ( saved_path + '/' + inferece_name + '/' + arg[3] + '_' + inferece_name + '_' + learner_name + '_' + str ( loss_aug ) + '.txt' ):
+        print 'not exisst'
+        lnr_dic = learn_image ( saved_path,data_path, learner_type, inference_type, models, labels, num_states, names,
+                                images, num_training_images,
+                                max_iter, max_height, max_width, weights, loss_aug, regularizers, num_testing_images,MAP_Convex=MAP_Convex)
+
+
+        if not os.path.exists ( saved_path + inferece_name + '/' ):
+            os.makedirs ( saved_path + '/' + inferece_name + '/' )
+
+        f = open ( saved_path + '/'+ inferece_name + '/' +arg[3]+ '_' +inferece_name+ '_' + learner_name + '_'+ str(loss_aug) + '.txt', 'w' )
+        pickle.dump ( lnr_dic, f )
+        f.close ( )
+    else:
+        print 'exists'
 
 
 

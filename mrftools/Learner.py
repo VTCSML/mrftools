@@ -168,7 +168,6 @@ class Learner(object):
             term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
-        print self.term_q_p
 
 
         objec = 0.0
@@ -181,24 +180,24 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        # if time.time() - self.start > 11000:
-        #     print 'more than 3 hours'
-        #     grad = np.zeros ( len ( weights ) )
-        #     return grad
-        # else:
+        if time.time() - self.start > 100:
+            print 'more than 200 sec'
+            grad = np.zeros ( len ( weights ) )
+            return grad
+        else:
 
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
+            self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
 
-        grad = np.zeros(len(weights))
+            grad = np.zeros(len(weights))
 
-        # add regularization penalties
-        grad += self.l1_regularization * np.sign(weights)
-        grad += self.l2_regularization * weights
+            # add regularization penalties
+            grad += self.l1_regularization * np.sign(weights)
+            grad += self.l2_regularization * weights
 
-        grad -= np.squeeze(self.tau_q)
-        grad += np.squeeze(self.tau_p)
+            grad -= np.squeeze(self.tau_q)
+            grad += np.squeeze(self.tau_p)
 
-        return grad
+            return grad
 
     def dual_obj(self, weights, options=None):
         if self.tau_q is None or not self.fully_observed:
@@ -206,10 +205,10 @@ class Learner(object):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = np.dot(self.tau_q, weights)
+        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        # term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
-        print self.term_q_p
 
         objec = 0.0
         # add regularization penalties
