@@ -169,7 +169,7 @@ class Evaluator_latent(object):
         plt.clf ( )
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
-            obj_time = np.arange(100)
+            obj_time = np.arange(10)
             # obj_time = m_dic['time']
             obj = m_dic['objective']
             ttl = m_dic['learner_name']
@@ -192,7 +192,8 @@ class Evaluator_latent(object):
         plt.clf()
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
-            obj_time = m_dic['time']
+            # obj_time = m_dic['time']
+            obj_time = np.arange ( 10 )
             if mode == 'train':
                 accuracy = m_dic['training_error']
             else:
