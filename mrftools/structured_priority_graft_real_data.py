@@ -29,7 +29,7 @@ def stuctured_priority_graft_real_data( variables, num_states, data, l1_coeff, l
     mn = MarkovNet()
     map_weights_to_variables = mn.initialize_unary_factors(variables, num_states)
     search_space = mn.search_space
-    search_space = [ search_space[i] for i in list_order]
+    # search_space = [ search_space[i] for i in list_order]
     # GET DATA EXPECTATION
     sufficient_stats, padded_sufficient_stats = mn.get_unary_sufficient_stats(data, max_num_states)
     # INITIALIZE PRIORITY QUEUE
@@ -51,7 +51,7 @@ def stuctured_priority_graft_real_data( variables, num_states, data, l1_coeff, l
             if verbose:
                 print('ACTIVATED EDGE')
                 print(activated_edge)
-                print('CURRENT ACTIVE SPACE')
+                print('CURRENT ACTIVE SPACE, size %d' % len(active_set))
                 print(active_set)
 
             mn.set_edge_factor(activated_edge, np.zeros((len(mn.unary_potentials[activated_edge[0]]), len(mn.unary_potentials[activated_edge[1]]))))
