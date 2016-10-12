@@ -224,3 +224,20 @@ class MarkovNet(object):
                 padded_sufficient_stats[edge] = padded_sufficient_stats[edge] + padded_tmp
         return sufficient_stats, padded_sufficient_stats
 
+
+    def get_unary_sufficient_stats(self, data, max_states):
+        """Compute joint states reoccurrences in the data"""
+        sufficient_stats = dict()
+        padded_sufficient_stats = dict()
+        for var in self.variables:
+            padded_sufficient_stats[var] = np.asarray(np.zeros(max_states))
+            sufficient_stats[var] = np.asarray(np.zeros(len(self.unary_potentials[var])))
+        for states in data:
+            for var in self.variables:
+                padded_vec = np.zeros(max_states)
+                vec = np.zeros(len(self.unary_potentials[var]))
+                vec[states[var]] = 1
+                padded_vec[states[var]] = 1
+                sufficient_stats[var] = sufficient_stats[var] + vec
+                padded_sufficient_stats[var] = padded_sufficient_stats[var] + padded_vec
+        return sufficient_stats, padded_sufficient_stats

@@ -17,7 +17,7 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
     Reference: To be added.
     """
     # INITIALIZE VARIABLES
-
+    iterations = list()
     priority_reassignements, num_injection, num_success, num_edges_reassigned = 0, 0, 0, 0
     naive_edges_reassigned, graph_edges_reassigned,edges_reassigned, map_weights_to_variables, map_weights_to_edges, active_set = [], [], [], [], [], []
     edge_regularizers, var_regularizers = dict(), dict()
@@ -37,7 +37,9 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
     # START GRAFTING
     weights_opt = aml_optimize.learn(np.random.randn(aml_optimize.weight_dim), max_iter_graft, edge_regularizers, var_regularizers)
     ## GRADIENT TEST
-    is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
+    is_activated_edge, activated_edge, curr_edges_reassigned, sel_iter = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
+    if sel_iter:
+        iterations.append(sel_iter)
     edges_reassigned.extend(curr_edges_reassigned)
     naive_edges_reassigned.extend(curr_edges_reassigned)
     while is_activated_edge:
@@ -57,11 +59,13 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
             tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(vector_length_per_edge)))
             weights_opt = aml_optimize.learn(tmp_weights_opt, max_iter_graft, edge_regularizers, var_regularizers)
             ## GRADIENT TEST
-            is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
+            is_activated_edge, activated_edge, curr_edges_reassigned,sel_iter = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
             naive_edges_reassigned.extend(curr_edges_reassigned)
+            if sel_iter:
+                iterations.append(sel_iter)
         aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
         weights_opt = aml_optimize.learn(np.zeros(aml_optimize.weight_dim), 2500, edge_regularizers, var_regularizers)
-        is_activated_edge, activated_edge, curr_edges_reassigned = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
+        is_activated_edge, activated_edge, curr_edges_reassigned, sel_iter = naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, sufficient_stats, data, l1_coeff, 1)
         # outer_loop += 1
 
     # REMOVE NON RELEVANT EDGES
@@ -106,8 +110,11 @@ def naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_r
         naive_reassignment_success_rate = float(len([x for x in naive_edges_reassigned if x not in active_set])) / float(len(naive_edges_reassigned))
         print('Naive reassignment success rate')
         print(naive_reassignment_success_rate)
-
-
+    print('Average Selection iterations')
+    print(float(sum(iterations))/len(iterations))
+    plt.plot(range(1,len(iterations) + 1, 1), iterations)
+    plt.savefig('Iter_number/naive_' + str(len(variables)) +'Nodes_MRF.png')
+    plt.close()
     # print('Outer loop')
     # print(outer_loop)
 
