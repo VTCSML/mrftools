@@ -159,14 +159,15 @@ class Learner(object):
 
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
+        term_p = np.true_divide(sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators),36)
 
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
             self.set_weights(weights, self.belief_propagators_q)
-            term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+            term_q = np.true_divide(sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q),36)
         else:
-            term_q = np.dot(self.tau_q, weights)
+            print 'not fully observed'
+            term_q = np.true_divide(np.dot(self.tau_q, weights),36)
 
         self.term_q_p = term_p - term_q
 
@@ -182,7 +183,6 @@ class Learner(object):
     def gradient(self, weights, options=None):
 
         if time.time() - self.start > 60:
-            print 'more than 60 sec'
             grad = np.zeros ( len ( weights ) )
             return grad
         else:
@@ -205,8 +205,8 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        term_p = np.true_divide(sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators),36)
+        term_q = np.true_divide(sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q),36)
         # term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
