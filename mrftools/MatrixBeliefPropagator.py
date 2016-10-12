@@ -35,7 +35,7 @@ class MatrixBeliefPropagator(Inference):
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.lables_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
-        self.max_iter = 300
+        self.max_iter = 300000
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
