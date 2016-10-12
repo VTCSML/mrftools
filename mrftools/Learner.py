@@ -102,7 +102,7 @@ class Learner(object):
         """
         marginal_sum = 0
         for bp in belief_propagators:
-            marginal_sum += bp.get_feature_expectations()
+            marginal_sum += np.true_divide(bp.get_feature_expectations(), len(bp.mn.variables))
 
         return marginal_sum / len(belief_propagators)
 
@@ -154,20 +154,19 @@ class Learner(object):
 
         return self.get_feature_expectations(belief_propagators)
 
-
     def objective(self, weights, options=None):
 
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        term_p = np.true_divide(sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators),36)
+        term_p = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in self.belief_propagators]) / len(self.belief_propagators)
 
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
             self.set_weights(weights, self.belief_propagators_q)
-            term_q = np.true_divide(sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q),36)
+            term_q = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
         else:
-            print 'not fully observed'
-            term_q = np.true_divide(np.dot(self.tau_q, weights),36)
+            print 'fully observed'
+            term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
 
@@ -186,7 +185,6 @@ class Learner(object):
             grad = np.zeros ( len ( weights ) )
             return grad
         else:
-
             self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
 
             grad = np.zeros(len(weights))
@@ -205,8 +203,8 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        term_p = np.true_divide(sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators),36)
-        term_q = np.true_divide(sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q),36)
+        term_p = sum([np.true_divide(x.compute_dual_objective(), len(x.mn.variables)) for x in self.belief_propagators]) / len(self.belief_propagators)
+        term_q = sum([np.true_divide(x.compute_dual_objective(), len(x.mn.variables)) for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
         # term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q

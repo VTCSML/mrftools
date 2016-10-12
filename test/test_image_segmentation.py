@@ -146,6 +146,8 @@ class TestImageSegmentation(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
+        learner.set_regularization(0, 0.1)
+
     def test_subgradient_obj(self):
         np.random.seed(0)
         weights = np.zeros(9 + 9)
@@ -211,6 +213,7 @@ class TestImageSegmentation(unittest.TestCase):
         subgrad_accuracy_ave_train = self.get_ave_accuracy(len(subgrad_time), subgrad_weight_record)
 
         for i in range(len(subgrad_accuracy_ave_train)):
+            print "iter %d: accuracy %e" % (i, subgrad_accuracy_ave_train[i])
             if i != len(subgrad_accuracy_ave_train) - 1:
                 assert (subgrad_accuracy_ave_train[i] <=
                         subgrad_accuracy_ave_train[i + 1]), "subgradient accuracy is not increasing"
@@ -233,6 +236,7 @@ class TestImageSegmentation(unittest.TestCase):
         em_accuracy_ave_train = self.get_ave_accuracy(len(em_time), em_weight_record)
 
         for i in range(len(em_accuracy_ave_train)):
+            print "iter %d: accuracy %e" % (i, em_accuracy_ave_train[i])
             if i != len(em_accuracy_ave_train) - 1:
                 assert (em_accuracy_ave_train[i] <= em_accuracy_ave_train[i + 1]), \
                     "subgradient accuracy is not increasing"
@@ -255,6 +259,7 @@ class TestImageSegmentation(unittest.TestCase):
         paired_dual_accuracy_ave_train = self.get_ave_accuracy(len(em_time), em_weight_record)
 
         for i in range(len(paired_dual_accuracy_ave_train)):
+            print "iter %d: accuracy %e" % (i, paired_dual_accuracy_ave_train[i])
             if i != len(paired_dual_accuracy_ave_train) - 1:
                 assert (paired_dual_accuracy_ave_train[i] <= paired_dual_accuracy_ave_train[
                     i + 1]), "subgradient accuracy is not increasing"
