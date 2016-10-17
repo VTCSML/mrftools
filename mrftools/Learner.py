@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
 from MatrixBeliefPropagator import MatrixBeliefPropagator
-
+from opt import *
 
 class Learner(object):
     def __init__(self, inference_type):
@@ -99,8 +99,11 @@ class Learner(object):
         return self.gradient(weights)
 
     def learn(self, weights, callback_f=None):
-        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
-        new_weights = res.x
+        # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
+        # new_weights = res.x
+
+        res = adam(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
+        new_weights = res
 
         return new_weights
 

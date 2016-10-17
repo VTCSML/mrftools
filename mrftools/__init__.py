@@ -17,4 +17,4 @@ from opt import *
 from ConvexBeliefPropagator import ConvexBeliefPropagator
 from MaxProductBeliefPropagator import *
 from MaxProductLinearProgramming import *
-
+from Evaluator import *
