@@ -5,19 +5,21 @@ from ApproxMaxLikelihood import ApproxMaxLikelihood
 from scipy.optimize import minimize, check_grad
 import matplotlib.pyplot as plt
 import time
-from grafting_util import priority_reassignment, naive_priority_mean_gradient_test, initialize_priority_queue, setup_learner, update_grafting_metrics, update_mod_grafting_metrics, setup_learner_1, reset_unary_factors, reset_edge_factors, new_naive_priority_mean_gradient_test
+from grafting_util import initialize_priority_queue, setup_learner, reset_unary_factors, reset_edge_factors, new_naive_priority_mean_gradient_test
 from graph_mining_util import make_graph, select_edge_to_inject
 import copy
 import operator
 from graph_mining_util import draw_graph, make_graph
+import scipy.sparse as sps
 
 
-def new_naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, edge_reg, max_iter_graft, max_num_states, verbose, num_edges, edges, list_order):
+def new_naive_priority_gradient_graft( variables, num_states, data, l1_coeff, l2_coeff, var_reg, edge_reg, max_iter_graft, max_num_states, verbose, num_edges, edges, list_order, zero_threshold, plot_queue):
     """
     Main Script for priority graft algorithm.
     Reference: To be added.
     """
     # INITIALIZE VARIABLES
+    sel_time = list()
     recall, precision = list(), list()
     suff_stats_list = list()
     iterations = list()
@@ -31,23 +33,47 @@ def new_naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, v
     mn = MarkovNet()
     map_weights_to_variables = mn.initialize_unary_factors(variables, num_states)
     search_space = mn.search_space
+    len_search_space = len(search_space)
     search_space = [ search_space[i] for i in list_order]
     # GET DATA EXPECTATION
     sufficient_stats, padded_sufficient_stats = mn.get_unary_sufficient_stats(data, max_num_states)
     # INITIALIZE PRIORITY QUEUE
     pq = initialize_priority_queue(search_space)
-    aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats,  len(data), active_set)
+    aml_optimize = setup_learner(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats,  len(data), active_set)
     # START GRAFTING
     weights_opt = aml_optimize.learn(np.random.randn(aml_optimize.weight_dim), max_iter_graft, edge_regularizers, var_regularizers)
     ## GRADIENT TEST
-    is_activated_edge, activated_edge, curr_edges_reassigned, sel_iter = new_naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, data, l1_coeff, len(active_set)+2, sufficient_stats, padded_sufficient_stats, max_num_states)
+    is_activated_edge, activated_edge, curr_edges_reassigned, sel_iter = new_naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, data, edge_reg, len(active_set)+2, sufficient_stats, padded_sufficient_stats, max_num_states)
     if sel_iter:
         iterations.append(sel_iter)
     edges_reassigned.extend(curr_edges_reassigned)
     naive_edges_reassigned.extend(curr_edges_reassigned)
     t = time.time()
+    if plot_queue:
+        loop_num = 0
+        columns = list()
+        rows = list()
+        values = list()
+        pq_history = dict()
     while is_activated_edge and len(active_set) < num_edges:
         while ((len(pq) > 0) and is_activated_edge) and len(active_set) < num_edges: # Stop if all edges are added or no edge is added at the previous iteration
+            if plot_queue:
+                loop_num += 1
+                for t in range(len(active_set)):
+                    columns.append(t)
+                    rows.append(len(active_set))
+                    values.append(.5)
+                copy_pq = copy.deepcopy(pq)
+                pq_history[loop_num] = copy.deepcopy(copy_pq)
+
+                len_pq = len(copy_pq)
+                for c in range(len_pq):
+                    test_edge = copy_pq.popitem()[0]
+                    if test_edge in edges:
+                        columns.append(c + len(active_set) )
+                        rows.append(len(active_set))
+                        values.append(1)
+
             active_set.append(activated_edge)
             if verbose:
                 print('ACTIVATED EDGE')
@@ -63,22 +89,31 @@ def new_naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, v
 
             mn.set_edge_factor(activated_edge, np.zeros((len(mn.unary_potentials[activated_edge[0]]), len(mn.unary_potentials[activated_edge[1]]))))
             t11 = time.time()
-            aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
+            aml_optimize = setup_learner(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
+            
+
+            aml_optimize.belief_propagators[0].mn.update_edge_tensor()
+            for edge in active_set:
+                unary_indices, pairwise_indices = aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
+                edge_regularizers[edge] = pairwise_indices[:, :, aml_optimize.belief_propagators[0].mn.edge_index[edge]]
+
             #OPTIMIZE
             tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(vector_length_per_edge)))
             weights_opt = aml_optimize.learn(tmp_weights_opt, max_iter_graft, edge_regularizers, var_regularizers)
-            print(time.time() - t11)
             ## GRADIENT TEST
-            is_activated_edge, activated_edge, curr_edges_reassigned,sel_iter = new_naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, data, l1_coeff, len(active_set)+2, sufficient_stats, padded_sufficient_stats, max_num_states)
+            t11 = time.time()
+            is_activated_edge, activated_edge, curr_edges_reassigned,sel_iter = new_naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, data, edge_reg, len(active_set)+2, sufficient_stats, padded_sufficient_stats, max_num_states)
+            t11 = time.time() - t11
+            sel_time.append(t11)
             if sel_iter:
                 iterations.append(sel_iter)
             if curr_edges_reassigned:
                 naive_edges_reassigned.extend(curr_edges_reassigned)
 
 
-        aml_optimize = setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
+        aml_optimize = setup_learner(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len(data), active_set)
         weights_opt = aml_optimize.learn(np.zeros(aml_optimize.weight_dim), 2500, edge_regularizers, var_regularizers)
-        is_activated_edge, activated_edge, curr_edges_reassigned, sel_iter = new_naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, data, l1_coeff, len(active_set)+2, sufficient_stats, padded_sufficient_stats, max_num_states)
+        is_activated_edge, activated_edge, curr_edges_reassigned, sel_iter = new_naive_priority_mean_gradient_test(aml_optimize.belief_propagators, search_space, pq, data, edge_reg, len(active_set)+2, sufficient_stats, padded_sufficient_stats, max_num_states)
 
     recall.append(float(len([x for x in active_set if x in edges]))/len(edges))
     precision.append(float(len([x for x in edges if x in active_set]))/len(active_set))
@@ -88,15 +123,66 @@ def new_naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, v
     aml_optimize.belief_propagators[0].mn.update_edge_tensor()
     unary_indices, pairwise_indices = aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
 
+
+    if plot_queue:
+        view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num, len_search_space))
+        view_queue_tmp = view_queue_tmp.todense()
+        view_queue_tmp[view_queue_tmp==0] = .2
+        view_queue = np.zeros((loop_num+2, len_search_space+2))
+        view_queue[1:loop_num+1, 1:len_search_space+1] = view_queue_tmp
+
+        # plt.imshow(view_queue,interpolation='none',cmap='binary')
+        plt.imshow(view_queue,interpolation='none',cmap='binary', aspect='auto')
+        plt.title('Naive Truth')
+        # plt.colorbar()
+        plt.axis('off')
+        plt.savefig('pq_plot/Naive_Truth_' + str(len(variables)) +'Nodes_&_'+ str(len(edges)) +'Edges.png')
+        plt.close()
+
     final_active_set = active_set
-    # final_active_set = []
-    # edge_mean_weights = list()
-    # for edge in active_set:
-    #     i = aml_optimize.belief_propagators[0].mn.edge_index[edge]
-    #     edge_weights = aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
-    #     edge_mean_weights.append((edge,edge_weights.dot(edge_weights) / len(edge_weights)))
-    #     if edge_weights.dot(edge_weights) / len(edge_weights) > .05:
-    #         final_active_set.append(edge)
+    final_active_set = []
+    edge_mean_weights = list()
+    for edge in active_set:
+        i = aml_optimize.belief_propagators[0].mn.edge_index[edge]
+        edge_weights = aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
+        edge_mean_weights.append((edge,edge_weights.dot(edge_weights) / len(edge_weights)))
+        if np.sqrt(edge_weights.dot(edge_weights))  > zero_threshold:
+            final_active_set.append(edge)
+
+
+    if plot_queue:
+        columns = list()
+        rows = list()
+        values = list()
+        for t in range(len(pq_history)):
+            copy_pq = pq_history[t+1]
+            for t1 in range(t):
+                columns.append(t1)
+                rows.append(t)
+                values.append(.5)
+            len_pq = len(copy_pq)
+            for c in range(len_pq):
+                test_edge = copy_pq.popitem()[0]
+                if test_edge in final_active_set:
+                    columns.append(c + t)
+                    rows.append(t )
+                    values.append(1)
+
+
+        view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num, len_search_space))
+        view_queue_tmp = view_queue_tmp.todense()
+        view_queue_tmp[view_queue_tmp==0] = .2
+        view_queue = np.zeros((loop_num+2, len_search_space+2))
+        view_queue[1:loop_num+1, 1:len_search_space+1] = view_queue_tmp
+
+        # plt.imshow(view_queue,interpolation='none',cmap='binary')
+        plt.imshow(view_queue,interpolation='none',cmap='binary', aspect='auto')
+        plt.title('Naive Synthetic')
+        # plt.colorbar()
+        plt.axis('off')
+        plt.savefig('pq_plot/Naive_Synth_' + str(len(variables)) +'Nodes_'+ str(len(edges)) +'Edges.png')
+        plt.close()
+
 
 
     # draw_graph(active_set, variables)
@@ -147,9 +233,13 @@ def new_naive_priority_graft( variables, num_states, data, l1_coeff, l2_coeff, v
     # plt.savefig('Recall_Precision/Naive_precision_' + str(len(variables)) +'Nodes_MRF.png') 
     # plt.close()
 
+    # plt.plot(iterations)
+    # plt.savefig('Sel_time/Naive_' + str(len(variables)) +'Nodes_MRF.png') 
+    # plt.close()
+
     print('SUFFICIENT STATS')
     print(len(sufficient_stats)- len(variables))
 
     print(iterations)
 
-    return learned_mn, final_active_set, suff_stats_list, recall, precision, timing
+    return learned_mn, final_active_set, suff_stats_list, recall, precision, timing, iterations

@@ -13,7 +13,9 @@ def make_graph(nodes, edges):
     for node in nodes:
         graph.add_node(node)
     for edge in edges:
+        print(edge)
         graph.add_edge(edge[0], edge[1])
+        print(edge)
     return graph
 
 def select_central_nodes(graph, threshold):
@@ -100,3 +102,4 @@ def draw_two_graphs(graph1, graph2, initial_nodes):
     plt.figure(2)
     nx.draw(G2, pos2)
     plt.show()
+    

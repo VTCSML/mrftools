@@ -26,7 +26,9 @@ def create_model(clusters, nodes_per_cluster, max_states):
             edges.append((min(outer_node, old_outer_node), max(outer_node, old_outer_node)))
         k += nodes_per_cluster + 1
         old_outer_node = outer_node
-    num_states = [np.random.randint(2,max_states) for r in xrange(k)]
+    
+    # num_states = [np.random.randint(2,max_states) for r in xrange(k)]
+    num_states = [np.random.randint(max_states - 1,max_states) for r in xrange(k)]
 
     # edges = [(0,1), (1,2), (3,5), (3,4), (4,8), (5,8), (2,6)]
     # k = 10

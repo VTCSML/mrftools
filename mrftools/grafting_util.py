@@ -8,6 +8,114 @@ import time
 from random import shuffle
 
 
+def new_strcutured_priority_mean_gradient_test(bps, search_space, pq, data, l1_coeff, reassignmet, sufficient_stats, padded_sufficient_stats, max_num_states):
+    """
+    Functionality :
+    1 - Parse the priority queue 'pq' and compute the gradient of the current edge. 
+    2 - Activate edge if gradient has at least one component bigger than l1_coeff.
+    3 - Reduce the priority of not activated edges.
+    """
+    iteration_activation = 0
+    alpha_prioritize = .9
+    alpha_deprioritize = .8
+    # reassignmet = 2
+    p_thresh = -1
+    tmp_list = []
+    resulting_edges = []
+    bp = bps[0]
+    bp.load_beliefs()
+    copy_search_space = copy.deepcopy(search_space)
+    while len(pq)>0:
+        item = pq.popitem()# Get edges by order of priority
+        edge = item[0]
+        if edge in copy_search_space:
+            iteration_activation += 1
+            copy_search_space.remove(edge)
+            if edge in sufficient_stats:
+                sufficient_stat_edge = sufficient_stats[edge]
+            else:
+                sufficient_stat_edge, padded_sufficient_stat_edge =  get_sufficient_stats_per_edge(bp.mn, data, max_num_states, edge)
+                sufficient_stats[edge] = sufficient_stat_edge
+                padded_sufficient_stats[edge] = padded_sufficient_stat_edge
+            belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
+            bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
+            gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(data)).squeeze()
+            # mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
+            mean_gradient = np.sqrt(gradient.dot(gradient))
+            activate = mean_gradient > l1_coeff
+            if activate:
+                search_space.remove(item[0])
+                [pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
+                # print('ACTIVATED EDGE')
+                # print(item[0])
+                # print('PQ 1')
+                # print(pq)
+                reward1 = alpha_prioritize ** 1 * (1 - mean_gradient/l1_coeff)
+                reward2 = alpha_prioritize ** 2 * (1 - mean_gradient/l1_coeff)
+                edge = item[0]
+                neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
+                neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
+                if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
+                    curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
+                                  list(itertools.product([edge[0]], neighbors_2)) +
+                                  list(itertools.product([edge[1]], neighbors_1)) if
+                                  x < y and (x, y) in search_space]))
+                    curr_resulting_edges_2 = list(set([(x, y) for (x, y) in
+                                  list(itertools.product(neighbors_1, neighbors_2)) +
+                                  list(itertools.product(neighbors_2, neighbors_1)) if
+                                  x < y and (x, y) in search_space]))
+                    for res_edge in curr_resulting_edges_1:
+                        try:
+                            pq.updateitem(res_edge, pq[res_edge] + reward1)
+                            copy_search_space.remove(res_edge)
+                        except:
+                            pass
+                    for res_edge in curr_resulting_edges_2:
+                        try:
+                            # pq.updateitem(res_edge, pq[res_edge] + (1 - min(1, mean_gradient/l1_coeff)) * (1 +  reassignmet))
+                            pq.updateitem(res_edge, pq[res_edge] + reward2)
+                            copy_search_space.remove(res_edge)
+                        except:
+                            pass
+                # print('PQ 2')
+                # print(pq)
+                return True, edge, [x[0] for x in tmp_list], resulting_edges, iteration_activation
+            else:
+                tmp_list.append( (item[0], item[1] + (1 - mean_gradient/l1_coeff)) )# Store not activated edges in a temporary list
+                edge = item[0]
+                penalty1 = alpha_deprioritize ** 1 * (1 - mean_gradient/l1_coeff)
+                penalty2 = alpha_deprioritize ** 2 * (1 - mean_gradient/l1_coeff)
+                neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
+                neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
+                if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
+                    curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
+                                  list(itertools.product([edge[0]], neighbors_2)) +
+                                  list(itertools.product([edge[1]], neighbors_1)) if
+                                  x < y and (x, y) in search_space]))
+                    curr_resulting_edges_2 = list(set([(x, y) for (x, y) in
+                                  list(itertools.product(neighbors_1, neighbors_2)) +
+                                  list(itertools.product(neighbors_2, neighbors_1)) if
+                                  x < y and (x, y) in search_space]))
+                    for res_edge in curr_resulting_edges_1:
+                        try:
+                            pq.updateitem(res_edge, pq[res_edge] +  penalty1)
+                            copy_search_space.remove(res_edge)
+                        except:
+                            pass
+                    for res_edge in curr_resulting_edges_2:
+                        try:
+                            # pq.updateitem(res_edge, pq[res_edge] + (1 - min(1, mean_gradient/l1_coeff)) * (1 +  reassignmet))
+                            pq.updateitem(res_edge, pq[res_edge] + penalty2)
+                            copy_search_space.remove(res_edge)
+                        except:
+                            pass
+                    print('curr_resulting_edges_1')
+                    print(curr_resulting_edges_1)
+                    resulting_edges.extend(curr_resulting_edges_1)
+                    resulting_edges.extend(curr_resulting_edges_2)
+    return False, (0, 0), [], [], 0
+
+
 def new_naive_priority_mean_gradient_test(bps, search_space, pq, data, l1_coeff, reassignmet, sufficient_stats, padded_sufficient_stats, max_num_states):
     """
     Functionality :
@@ -36,189 +144,60 @@ def new_naive_priority_mean_gradient_test(bps, search_space, pq, data, l1_coeff,
         belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
         bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(data)).squeeze()
-        mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
+        # mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
+        mean_gradient = np.sqrt(gradient.dot(gradient))
         activate = mean_gradient > l1_coeff
         if activate:
             search_space.remove(item[0])
-            [pq.additem(item[0], item[1]+reassignmet) for item in tmp_list]
+            [pq.additem(item[0], item[1]) for item in tmp_list]
             return True, edge, [x[0] for x in tmp_list], iteration_activation
         else:
-            tmp_list.append(item)# Store not activated edges in a temporary list
+            # tmp_list.append(item)# Store not activated edges in a temporary list
+            tmp_list.append((item[0], item[1] + (1 -mean_gradient/l1_coeff)))
     return False, (0, 0), [], 0
 
 
-def new_strcutured_priority_mean_gradient_test(bps, search_space, pq, data, l1_coeff, reassignmet, sufficient_stats, padded_sufficient_stats, max_num_states):
+
+
+def queue_mean_gradient_test(bps, search_space, pq, data, l1_coeff, reassignmet, sufficient_stats, padded_sufficient_stats, max_num_states):
     """
     Functionality :
     1 - Parse the priority queue 'pq' and compute the gradient of the current edge. 
     2 - Activate edge if gradient has at least one component bigger than l1_coeff.
     3 - Reduce the priority of not activated edges.
     """
-    iteration_activation = 0
     # reassignmet = 2
-    p_thresh = 1
+    iteration_activation = 0
     tmp_list = []
-    resulting_edges = []
     bp = bps[0]
     bp.load_beliefs()
-    # print('START')
     copy_search_space = copy.deepcopy(search_space)
     while len(pq)>0:
-        # print(iteration_activation)
         iteration_activation += 1
         item = pq.popitem()# Get edges by order of priority
         edge = item[0]
         # print(edge)
-        try:
-            copy_search_space.remove(edge)
-        except:
-            # pass
-            continue
-        # print(item[1])
+        copy_search_space.remove(edge)
         if edge in sufficient_stats:
-            # print('YES')
             sufficient_stat_edge = sufficient_stats[edge]
         else:
-            # print('NO')
-            # t = time.time()
             sufficient_stat_edge, padded_sufficient_stat_edge =  get_sufficient_stats_per_edge(bp.mn, data, max_num_states, edge)
             sufficient_stats[edge] = sufficient_stat_edge
-            # print('computing stats')
-            # print(time.time() - t)
             padded_sufficient_stats[edge] = padded_sufficient_stat_edge
         belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
         bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(data)).squeeze()
-        mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
+        # mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
+        mean_gradient = np.sqrt(gradient.dot(gradient))
         activate = mean_gradient > l1_coeff
         if activate:
             search_space.remove(item[0])
-            [pq.additem(item[0], item[1]+reassignmet) for item in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
-            ###################################
-            # if resulting_edges:
-            #     for res_edge in resulting_edges:
-            #         if (not set(res_edge) == set(edge)):
-            #             pq.updateitem(res_edge, pq[res_edge] + 1)
-            ###################################
-            return True, edge, [x[0] for x in tmp_list], resulting_edges, iteration_activation
+            [pq.additem(item[0], item[1]) for item in tmp_list]
+            return True, edge, [x[0] for x in tmp_list], iteration_activation
         else:
-            tmp_list.append(item)# Store not activated edges in a temporary list
-            # pq.additem(item[0], item[1]+reassignmet)
-            edge = item[0]
-
-            neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
-            neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
-            # ###################################
-            if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
-                curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
-                              list(itertools.product([edge[0]], neighbors_2)) +
-                              list(itertools.product([edge[1]], neighbors_1)) if
-                              x < y and (x, y) in copy_search_space]))
-                curr_resulting_edges_2 = list(set([(x, y) for (x, y) in
-                              list(itertools.product(neighbors_1, neighbors_2)) +
-                              list(itertools.product(neighbors_2, neighbors_1)) if
-                              x < y and (x, y) in copy_search_space]))
-                for res_edge in curr_resulting_edges_1:
-                    try:
-                        pq.updateitem(res_edge, pq[res_edge] + 2)
-                        copy_search_space.remove(res_edge)
-                    except:
-                        pass
-
-                for res_edge in curr_resulting_edges_2:
-                    try:
-                        pq.updateitem(res_edge, pq[res_edge] + 1)
-                        copy_search_space.remove(res_edge)
-                    except:
-                        pass
-
-                resulting_edges.extend(curr_resulting_edges_1)
-                resulting_edges.extend(curr_resulting_edges_2)
-            # ###################################
-
-            # ###################################
-            # # print(edge)
-            # if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
-            #     curr_resulting_edges = list(set([(x, y) for (x, y) in
-            #                   list(itertools.product(neighbors_1, [edge[1]])) +
-            #                   list(itertools.product(neighbors_2, [edge[0]])) if
-            #                   x < y and (x, y) in copy_search_space]))
-            #     for res_edge in curr_resulting_edges:
-            #         pq.updateitem(res_edge, pq[res_edge] + 1)
-            #         try:
-            #             copy_search_space.remove(res_edge)
-            #         except:
-            #             pass
-            #     resulting_edges.extend(curr_resulting_edges)
-            ###################################
-    # print('TESTED ALL')
-    return False, (0, 0), [], [], 0
-
-
-
-def strcutured_priority_mean_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff, reassignmet):
-    """
-    Functionality :
-    1 - Parse the priority queue 'pq' and compute the gradient of the current edge. 
-    2 - Activate edge if gradient has at least one component bigger than l1_coeff.
-    3 - Reduce the priority of not activated edges.
-    """
-    iteration_activation = 0
-    reassignmet = -2
-    p_thresh = 1
-    tmp_list = []
-    resulting_edges = []
-    bp = bps[0]
-    bp.load_beliefs()
-    while len(pq)>0:
-        iteration_activation += 1
-        item = pq.popitem()# Get edges by order of priority
-        edge = item[0]
-        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-        gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
-        mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
-        activate = mean_gradient > l1_coeff
-        if activate:
-            search_space.remove(item[0])
-            for item in tmp_list:
-                pq.additem(item[0], item[1]+reassignmet)# If an edge is activated, return the previously poped edges with reduced priority
-            ###################################
-            if resulting_edges:
-                for res_edge in resulting_edges:
-                    if (not set(res_edge) == set(edge)):
-                        pq.updateitem(res_edge, pq[res_edge] + 1)
-            ###################################
-            return True, edge, [x[0] for x in tmp_list], resulting_edges, iteration_activation
-        else:
-            tmp_list.append(item)# Store not activated edges in a temporary list
-            edge = item[0]
-
-            # ###################################
-            # neighbors_1 = bp.mn.get_neighbors(edge[0])
-            # neighbors_2 = bp.mn.get_neighbors(edge[1])
-            # if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
-            #     curr_resulting_edges = list(set([(x, y) for (x, y) in
-            #                   list(itertools.product(neighbors_1, neighbors_2)) +
-            #                   list(itertools.product(neighbors_2, neighbors_1)) if
-            #                   x < y and (x, y) in pq ]))
-            #     if len(curr_resulting_edges) > 1:
-            #         resulting_edges.extend(curr_resulting_edges)
-            # ###################################
-
-            ###################################
-            neighbors_1 = bp.mn.get_neighbors(edge[0])
-            neighbors_2 = bp.mn.get_neighbors(edge[1])
-            if len(neighbors_1) > p_thresh and len(neighbors_2) > p_thresh:
-                curr_resulting_edges = list(set([(x, y) for (x, y) in
-                              list(itertools.product(neighbors_1, [edge[1]])) +
-                              list(itertools.product(neighbors_2, [edge[0]])) if
-                              x < y and (x, y) in pq]))
-                if len(curr_resulting_edges) > 1:
-                    resulting_edges.extend(curr_resulting_edges)
-            ###################################
-    # print('TESTED ALL')
-    return False, (0, 0), [], [], 0
+            # tmp_list.append(item)# Store not activated edges in a temporary list
+            tmp_list.append((item[0], item[1]))
+    return False, (0, 0), [], 0
 
 
 def priority_reassignment(variables, active_set, aml_optimize , prune_threshold, data, search_space, pq, l1_coeff, edges_data_sum, mn):
@@ -259,36 +238,6 @@ def priority_reassignment(variables, active_set, aml_optimize , prune_threshold,
     return pq, active_set, search_space, injection, success, added_edge, resulting_edges
 
 
-
-def naive_priority_mean_gradient_test(bps, search_space, pq, data_sum, data, l1_coeff, reassignmet):
-    """
-    Functionality :
-    1 - Parse the priority queue 'pq' and compute the gradient of the current edge. 
-    2 - Activate edge if gradient has at least one component bigger than l1_coeff.
-    3 - Reduce the priority of not activated edges.
-    """
-    iteration_activation = 0
-    tmp_list = []
-    bp = bps[0]
-    bp.load_beliefs()
-    while len(copy_search_space)>0:
-        iteration_activation += 1
-        item = pq.popitem()# Get edges by order of priority
-        edge = item[0]
-        belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(
-        bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-        gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(data_sum[edge]) / len(data)).squeeze()
-        mean_gradient = np.sqrt(gradient.dot(gradient) / len(gradient))
-        activate = mean_gradient > l1_coeff
-        if activate:
-            search_space.remove(item[0])
-            # for item in tmp_list:
-                # pq.additem(item[0], item[1]+reassignmet)# If an edge is activated, return the previously poped edges with reduced priority
-            return True, edge, [x[0] for x in tmp_list], iteration_activation
-        else:
-            pq.additem(item[0], item[1]+reassignmet)
-            tmp_list.append(item)# Store not activated edges in a temporary list
-    return False, (0, 0), [], 0
 
 
 def edge_gradient_test(bp, edge, data_sum, data, l1_coeff):
@@ -494,12 +443,9 @@ def initialize_priority_queue(search_space):
     """
     pq = pqdict()
     for edge in search_space:
-        pq.additem(edge, 1e+6)
+        pq.additem(edge, 0)
     return pq
 
-def setup_learner(aml_optimize, data):
-    for instance in data:
-        aml_optimize.add_data(instance)
 
 def update_grafting_metrics(injection, success, resulting_edges, edges_reassigned, num_success, num_injection, num_edges_reassigned, priority_reassignements):
     if injection:
@@ -543,7 +489,7 @@ def reduce_priority(pq, edges):
         pq.updateitem(edge, pq[edge]+1)
     return pq
 
-def setup_learner_1(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len_data, active_set):
+def setup_learner(mn, l1_coeff, l2_coeff, var_reg, edge_reg, padded_sufficient_stats, len_data, active_set):
     aml_optimize = ApproxMaxLikelihood(mn) #Create a new 'ApproxMaxLikelihood' object at each iteration using the updated markov network
     aml_optimize.set_regularization(l1_coeff, l2_coeff, var_reg, edge_reg)
     aml_optimize.init_grafting()
@@ -568,7 +514,6 @@ def reset_edge_factors(mn, mn_old, active_set):
     for edge in active_set:
         mn.set_edge_factor(edge, mn_old.edge_potentials[edge])
 
-
 def get_sufficient_stats_per_edge(mn, data, max_states, edge):
         """Compute joint states reoccurrences in the data"""
         edge_padded_sufficient_stats = np.asarray(np.zeros((max_states, max_states)).reshape((-1, 1)))
@@ -583,4 +528,5 @@ def get_sufficient_stats_per_edge(mn, data, max_states, edge):
             edge_sufficient_stats += tmp
             edge_padded_sufficient_stats += padded_tmp
         return edge_sufficient_stats, edge_padded_sufficient_stats
+
 
