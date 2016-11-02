@@ -21,4 +21,4 @@ from MaxProductLinearProgramming import MaxProductLinearProgramming
 
 from MaxProductBeliefPropagator import *
 from MaxProductLinearProgramming import *
-from Evaluator import *
+from Evaluator_latent import *

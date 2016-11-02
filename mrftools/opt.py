@@ -109,36 +109,6 @@ def adam(func, grad, x, args, callback):
             callback(x)
     return x
 
-def adam(func, grad, x, args, callback):
-    t = 0
-    tolerance = 1e-8
-    max_iter = 500
-    alpha = 0.001
-    beta_1 = 0.9
-    beta_2 = 0.999
-    epsilon = 1e-8
-    m = np.zeros(x.shape)
-    v = np.zeros(x.shape)
-    grad_norm = np.inf
-    while grad_norm > tolerance and t < max_iter:
-        func ( x, args )
-        t += 1
-        g = grad ( x, args )
-        m = beta_1 * m + (1 - beta_1) * g
-        v = beta_2 * v + (1 - beta_2) * np.multiply(g,g)
-        m_hat = np.true_divide(m,(1 - np.power(beta_1,t)))
-        v_hat = np.true_divide(v,(1 - np.power(beta_2,t)))
-        x = x - alpha * (np.true_divide(m_hat,np.sqrt(v_hat) + epsilon))
-        grad_norm = np.sqrt(g.dot(g))
-
-
-        if callback:
-            callback(x)
-
-    return x
-
-
-
 import matplotlib.pyplot as plt
 import time
 

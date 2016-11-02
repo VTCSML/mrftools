@@ -21,6 +21,7 @@ class PairedDual(Learner):
             for i in range(self.warm_up):
                     bp.update_messages()
 
+        self.start = time.time ( )
         res = rms_prop(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
         new_weights = res
         return new_weights
