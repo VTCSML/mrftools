@@ -19,3 +19,6 @@ from ConvexBeliefPropagator import ConvexBeliefPropagator
 from MaxProductBeliefPropagator import MaxProductBeliefPropagator
 from MaxProductLinearProgramming import MaxProductLinearProgramming
 
+from MaxProductBeliefPropagator import *
+from MaxProductLinearProgramming import *
+from Evaluator import *

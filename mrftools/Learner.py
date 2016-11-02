@@ -128,12 +128,12 @@ class Learner(object):
         return self.gradient(weights)
 
     def learn(self, weights, callback_f=None):
-        self.start = time.time()
-        # res = adam(self.subgrad_obj, self.subgrad_grad, weights, args=None, callback=callback_f)
-        res = ada_grad ( self.subgrad_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
-        new_weights = res
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         # new_weights = res.x
+        self.start = time.time ( )
+        res = adam(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
+        new_weights = res
+
         return new_weights
 
     def reset(self):
@@ -155,7 +155,6 @@ class Learner(object):
         return self.get_feature_expectations(belief_propagators)
 
     def objective(self, weights, options=None):
-
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in self.belief_propagators]) / len(self.belief_propagators)
@@ -168,7 +167,6 @@ class Learner(object):
             term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
-
 
         objec = 0.0
         # add regularization penalties
@@ -202,10 +200,13 @@ class Learner(object):
         if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-
-        term_p = sum([np.true_divide(x.compute_dual_objective(), len(x.mn.variables)) for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([np.true_divide(x.compute_dual_objective(), len(x.mn.variables)) for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        # term_q = np.dot(self.tau_q, weights)
+        term_p = sum ( [np.true_divide ( x.compute_dual_objective ( ), len ( x.mn.variables ) ) for x in self.belief_propagators] ) / len ( self.belief_propagators )
+        if not self.fully_observed:
+            # recompute energy functional for label distributions only in latent variable case
+            self.set_weights(weights, self.belief_propagators_q)
+            term_q = sum ( [np.true_divide ( x.compute_dual_objective ( ), len ( x.mn.variables ) ) for x in self.belief_propagators_q] ) / len ( self.belief_propagators_q )
+        else:
+            term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
 

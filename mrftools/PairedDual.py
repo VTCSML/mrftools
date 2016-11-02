@@ -10,17 +10,17 @@ from opt import *
 
 
 class PairedDual(Learner):
-    def __init__(self, inference_type, bp_iter=1):
+    def __init__(self, inference_type, bp_iter=2, warm_up=5):
         super(PairedDual, self).__init__(inference_type)
         self.bp_iter = bp_iter
+        self.warm_up = warm_up
 
     def learn(self, weights, callback_f=None):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(self.bp_iter)
-        # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
-        # new_weights = res.x
-        self.start = time.time ( )
-        res = ada_grad(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
-        # res = adam ( self.dual_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
+            for i in range(self.warm_up):
+                    bp.update_messages()
+
+        res = rms_prop(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
         new_weights = res
         return new_weights

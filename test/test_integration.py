@@ -327,6 +327,67 @@ class TestIntegration(unittest.TestCase):
 
 
 
+    def test_optimizer(self):
+        d_unary = 65
+        num_states = 2
+        d_edge = 11
+
+        learner_type = PairedDual
+        inference_type = MatrixBeliefPropagator
+
+        weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
+
+        image_size = 12
+
+        eval = Evaluator(image_size, image_size)
+
+        loader = ImageLoader(image_size, image_size)
+
+        images, models, labels, names = loader.load_all_images_and_labels(
+            os.path.join(os.path.dirname(__file__), 'train'), 2, 2)
+
+        # make latent variable
+
+        for label in labels:
+            # print "Number of labels: %d" % len(label)
+            for x in range(image_size / 2):
+                for y in range(image_size / 2):
+                    del label[(x, y)]
+            # print "Number of labels after removing quadrant: %d" % len(label)
+
+        learner = learner_type(inference_type)
+        learner.set_regularization(0.0, 1.0)
+
+        eval_learner = learner_type(inference_type)
+        eval_learner.set_regularization(0.0, 1.0)
+
+        for model, states in zip(models, labels):
+            learner.add_data(states, model)
+            eval_learner.add_data(states.copy(), copy.copy(model))
+
+        errors = []
+        objectives = []
+
+        op = ObjectivePlotter(eval_learner.subgrad_obj, eval_learner.subgrad_grad)
+        # op = ObjectivePlotter(learner.dual_obj, eval_learner.subgrad_grad)
+
+        for round in range(4):
+            prev_weights = weights
+            start = time.time()
+            weights = learner.learn(prev_weights, callback_f=op.callback)
+            subgrad_time = time.time() - start
+            print "Learner took %f seconds" % subgrad_time
+
+            objectives.append(learner.subgrad_obj(weights))
+
+            print "After round %d of optimization, objective was %e." % (round, objectives[round])
+
+            errors.append(eval.evaluate_training_images(images, models, labels, names, weights, 2, 3,
+                                                 inference_type, plot='false', display='final'))
+            print "After round %d of optimization, training error was %f." % (round, errors[round])
+
+        for round in range(len(objectives) - 1):
+            assert objectives[round] - objectives[round+1] < 1e-2, "Optimizer improved after supposedly reaching optimum"
 
 if __name__ == '__main__':
     unittest.main()
