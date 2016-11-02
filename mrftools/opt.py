@@ -67,10 +67,6 @@ def adam(func, grad, x, args, callback):
 
 
 
-
-
-
-
 import matplotlib.pyplot as plt
 import time
 

@@ -3,6 +3,8 @@ import numpy as np
 import unittest
 import os
 import matplotlib.pyplot as plt
+import copy
+
 
 
 class TestIntegration(unittest.TestCase):
@@ -211,6 +213,119 @@ class TestIntegration(unittest.TestCase):
         print "PD took %f seconds" % pd_time
 
         assert pd_time < subgrad_time, "Paired dual learning took longer than subgradient"
+
+    def test_repeating_optimizer(self):
+        loader = ImageLoader ( 20, 20 )
+
+        images, models, labels, names = loader.load_all_images_and_labels (
+            os.path.join ( os.path.dirname ( __file__ ), 'train' ), 2, 3 )
+
+        treu_labels = copy.deepcopy(labels)
+
+        ## every other row is latent
+        for l in range ( len ( labels ) ):
+            for k, v in labels[l].items ( ):
+                if (np.remainder ( k[0], 2 ) == 0):
+                    for jj in range ( 20 ):
+                        labels[l][k[0], jj] = -100
+
+            for lbl in labels[l].keys ( ):
+                if labels[l][lbl] == -100:
+                    del labels[l][lbl]
+
+        learner = EM ( MatrixBeliefPropagator )
+
+        learner.set_regularization ( 0.0, 0.00001 )
+
+        for model, states in zip ( models, labels ):
+            learner.add_data ( states, model )
+
+        d_unary = 65
+        num_states = 2
+        d_edge = 11
+
+        weights = np.zeros ( d_unary * num_states + d_edge * num_states ** 2 )
+        # weights = np.random.rand ( d_unary * num_states + d_edge * num_states ** 2 ) * 0.001
+        new_weights = learner.learn ( weights )
+
+        i = 1
+
+        models[i].set_weights(new_weights)
+        bp = MatrixBeliefPropagator(models[i])
+        bp.infer(display='final')
+        bp.load_beliefs()
+
+        beliefs = np.zeros((images[i].height, images[i].width))
+        label_img = np.zeros((images[i].height, images[i].width))
+        errors = 0
+        baseline = 0
+
+        for x in range(images[i].width):
+            for y in range(images[i].height):
+                beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
+                label_img[y, x] = treu_labels[i][(x, y)]
+                errors += np.abs(treu_labels[i][(x, y)] - np.round(beliefs[y, x]))
+                # baseline += labels[i][(x, y)]
+
+
+
+
+        # plt.subplot(131)
+        # plt.imshow(images[i], interpolation="nearest")
+        # plt.subplot(132)
+        # plt.imshow(label_img, interpolation="nearest")
+        # plt.subplot(133)
+        # plt.imshow(beliefs, interpolation="nearest")
+        # plt.show()
+
+
+
+        learner_1 = EM ( MatrixBeliefPropagator )
+
+        learner_1.set_regularization ( 0.0, 0.00001 )
+
+        for model, states in zip ( models, labels ):
+            learner_1.add_data ( states, model )
+
+        new_weights = learner_1.leanr_repeated ( weights )
+
+        i = 1
+
+        models[i].set_weights ( new_weights )
+        bp = MatrixBeliefPropagator ( models[i] )
+        bp.infer ( display='final' )
+        bp.load_beliefs ( )
+
+        beliefs = np.zeros ( (images[i].height, images[i].width) )
+        label_img = np.zeros ( (images[i].height, images[i].width) )
+        errors_1 = 0
+        baseline_1 = 0
+
+        for x in range ( images[i].width ):
+            for y in range ( images[i].height ):
+                beliefs[y, x] = np.exp ( bp.var_beliefs[(x, y)][1] )
+                label_img[y, x] = treu_labels[i][(x, y)]
+                errors_1 += np.abs ( treu_labels[i][(x, y)] - np.round ( beliefs[y, x] ) )
+                # baseline_1 += labels[i][(x, y)]
+
+        # # # uncomment this to plot the beliefs
+        # plt.subplot(131)
+        # plt.imshow(images[i], interpolation="nearest")
+        # plt.subplot(132)
+        # plt.imshow(label_img, interpolation="nearest")
+        # plt.subplot(133)
+        # plt.imshow(beliefs, interpolation="nearest")
+        # plt.show()
+
+        print errors
+        print errors_1
+        assert errors_1 == errors, "Learned model with repeated inference should be the same as original EM."
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

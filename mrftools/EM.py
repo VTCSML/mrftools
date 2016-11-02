@@ -34,3 +34,23 @@ class EM(Learner):
         return res
         # res = minimize(self.objective, weights, None, method='L-BFGS-B', jac = self.gradient, callback=callback_f)
         # return res.x
+
+
+    def leanr_repeated(self,weights, callback_f = None):
+        old_weights = np.inf
+        new_weights = weights
+        self.start = time.time ( )
+        while not np.allclose(old_weights, new_weights):
+            old_weights = new_weights
+            self.e_step(new_weights)
+            new_weights = self.m_step_repeated(new_weights, callback_f)
+
+        return new_weights
+
+
+    def m_step_repeated(self, weights, callback_f):
+        res = ada_grad ( self.subgrad_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
+        # res = adam ( self.objective, self.gradient, weights, args=None, callback=callback_f )
+        return res
+        # res = minimize(self.objective, weights, None, method='L-BFGS-B', jac = self.gradient, callback=callback_f)
+        # return res.x

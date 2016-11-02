@@ -37,10 +37,10 @@ class Learner(object):
     def instantiate(self, model):
         default_counting_numbers = dict ( )
         for var in model.variables:
-            default_counting_numbers[var] = 0.15
+            default_counting_numbers[var] = 0.1
             for neighbor in model.neighbors[var]:
                 if var < neighbor:
-                    default_counting_numbers[(var, neighbor)] = 0.15
+                    default_counting_numbers[(var, neighbor)] = 0.1
 
         bp = ConvexBeliefPropagator ( model, default_counting_numbers )
         return bp
@@ -165,7 +165,6 @@ class Learner(object):
             self.set_weights(weights, self.belief_propagators_q)
             term_q = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
         else:
-            print 'fully observed'
             term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
@@ -181,7 +180,8 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if time.time() - self.start > 60:
+        if time.time() - self.start > 100:
+            print 'more than 100 sec...'
             grad = np.zeros ( len ( weights ) )
             return grad
         else:
