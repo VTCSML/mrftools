@@ -4,7 +4,7 @@ import numpy as np
 from generate_synthetic_data import generate_synthetic_data
 from random import shuffle
 from scipy import signal as sg
-from StructuredPriorityGraft import StructuredPriorityGraft
+from Graft import Graft
 
 
 
@@ -19,9 +19,8 @@ if __name__ == '__main__':
 	num_attributes = len(variables)
 	list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
 	shuffle(list_order)
-	spg = StructuredPriorityGraft(variables, num_states, max_num_states, data, list_order, method)
-	spg.on_show_metrics()
+	grafter = Graft(variables, num_states, max_num_states, data, list_order)
+	grafter.on_show_metrics()
 	# spg.on_verbose()
-	spg.on_plot_queue()
-	spg.setup_learning_parameters(edge_reg)
-	learned_mn, final_active_set, suff_stats_list, recall, precision, iterations = spg.learn_structure(edge_num, edges)
+	grafter.setup_learning_parameters(edge_reg)
+	learned_mn, final_active_set, suff_stats_list, recall, precision = grafter.learn_structure(edge_num, edges)
