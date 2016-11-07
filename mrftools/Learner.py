@@ -223,7 +223,7 @@ class Learner(object):
         objec += self.term_q_p
 
         for edge in self.edge_regularizers.keys():
-            curr_reg = np.zeors(len(weights))
+            curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
             objec += 0.5 * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 

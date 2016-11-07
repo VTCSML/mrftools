@@ -24,12 +24,10 @@ import os
 # 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 class StructuredPriorityGraft():
     """
     Structured priority grafting class
     """
-
     def __init__(self, variables, num_states, max_num_states, data, list_order, method='structured'):
         """
         Initialize StructuredPriorityGraft class
@@ -56,8 +54,8 @@ class StructuredPriorityGraft():
         self.is_show_metrics = False
         self.is_plot_queue = False
         self.is_verbose = False
-        self.priority_increase_decay_factor = .9
-        self.priority_decrease_decay_factor = .8
+        self.priority_increase_decay_factor = .5
+        self.priority_decrease_decay_factor = .99
         self.plot_path = '.'
 
     def set_priority_factors(priority_increase_decay_factor, priority_decrease_decay_factor):
@@ -244,13 +242,11 @@ class StructuredPriorityGraft():
                         for res_edge in curr_resulting_edges_1:
                             try:
                                 self.pq.updateitem(res_edge, self.pq[res_edge] + reward1)
-                                copy_search_space.remove(res_edge)
                             except:
                                 pass
                         for res_edge in curr_resulting_edges_2:
                             try:
                                 self.pq.updateitem(res_edge, self.pq[res_edge] + reward2)
-                                copy_search_space.remove(res_edge)
                             except:
                                 pass
                     return True, edge, iteration_activation
@@ -261,8 +257,8 @@ class StructuredPriorityGraft():
                     tmp_list.append( (item[0], item[1] + direct_penalty) )# Store not activated edges in a temporary list
                     edge = item[0]
                     if self.method == 'structured':
-                        penalty1 = self.priority_decrease_decay_factor ** 1 * (1 - gradient_norm/self.l1_coeff)
-                        penalty2 = self.priority_decrease_decay_factor ** 2 * (1 - gradient_norm/self.l1_coeff)
+                        penalty1 = self.priority_decrease_decay_factor ** 1 * (1 - gradient_norm/self.edge_l1)
+                        penalty2 = self.priority_decrease_decay_factor ** 2 * (1 - gradient_norm/self.edge_l1)
                         neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
                         neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
                         curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
@@ -275,13 +271,13 @@ class StructuredPriorityGraft():
                                       x < y and (x, y) in self.search_space]))
                         for res_edge in curr_resulting_edges_1:
                             try:
-                                self.pq.updateitem(res_edge, pq[res_edge] +  penalty1)
+                                self.pq.updateitem(res_edge, self.pq[res_edge] +  penalty1)
                                 copy_search_space.remove(res_edge)
                             except:
                                 pass
                         for res_edge in curr_resulting_edges_2:
                             try:
-                                self.pq.updateitem(res_edge, pq[res_edge] + penalty2)
+                                self.pq.updateitem(res_edge, self.pq[res_edge] + penalty2)
                                 copy_search_space.remove(res_edge)
                             except:
                                 pass
@@ -299,10 +295,10 @@ class StructuredPriorityGraft():
         view_queue = np.zeros((loop_num+2, len_search_space+2))
         view_queue[1:loop_num+1, 1:len_search_space+1] = view_queue_tmp
         plt.imshow(view_queue,interpolation='none',cmap='binary', aspect='auto')
-        plt.title('Structured Ground truth')
+        plt.title(self.method + ' Ground truth')
         # plt.colorbar()
         plt.axis('off')
-        file_name = str(len(self.variables)) +'_Nodes.png'
+        file_name = self.method + str(len(self.variables)) +'_Nodes.png'
         plt.savefig(os.path.join(self.plot_path, file_name))
         plt.close()
 
@@ -334,10 +330,10 @@ class StructuredPriorityGraft():
         view_queue[1:loop_num+1, 1:len_search_space+1] = view_queue_tmp
         # plt.imshow(view_queue,interpolation='none',cmap='binary')
         plt.imshow(view_queue,interpolation='none',cmap='binary', aspect='auto')
-        plt.title('Structured Synthetic truth')
+        plt.title(self.method + ' Synthetic truth')
         # plt.colorbar()
         plt.axis('off')
-        file_name = str(len(self.variables)) +'_Nodes.png'
+        file_name = self.method + str(len(self.variables)) +'_Nodes.png'
         plt.savefig(os.path.join(self.plot_path, file_name))
         plt.close()
 
@@ -377,7 +373,7 @@ class StructuredPriorityGraft():
         """
         recall.append(float(len([x for x in self.active_set if x in edges]))/len(edges))
         precision.append(float(len([x for x in edges if x in self.active_set]))/len(self.active_set))
-        suff_stats_list.append(100 * (len(self.sufficient_stats) - len(self.variables))/(len(self.variables) ** 2 - len(self.variables)) / 2)
+        suff_stats_list.append((len(self.sufficient_stats) - len(self.variables)))
         iterations.append(iter_number)
 
     def remove_zero_edges(self):
