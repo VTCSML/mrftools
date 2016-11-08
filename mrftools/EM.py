@@ -28,9 +28,10 @@ class EM(Learner):
     def e_step(self, weights):
         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
 
-    def m_step(self, weights, callback_f):
-        res = ada_grad ( self.objective, self.gradient, weights, args=None, callback=callback_f )
-        # res = adam ( self.objective, self.gradient, weights, args=None, callback=callback_f )
+    def m_step(self, weights, callback_f=None):
+        # res = rms_prop ( self.objective, self.gradient, weights, args=None, callback=callback_f )
+        # res = ada_grad ( self.objective, self.gradient, weights, args=None, callback=callback_f )
+        res = adam ( self.objective, self.gradient, weights, args=None, callback=callback_f )
         return res
         # res = minimize(self.objective, weights, None, method='L-BFGS-B', jac = self.gradient, callback=callback_f)
         # return res.x

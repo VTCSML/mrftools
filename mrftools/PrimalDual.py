@@ -25,7 +25,8 @@ class PrimalDual(PairedDual):
         # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         # new_weights = res.x
         self.start = time.time ( )
-        res = ada_grad(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
-        # res = adam ( self.dual_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
+        # res = rms_prop(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
+        # res = ada_grad(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
+        res = adam ( self.dual_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
         new_weights = res
         return new_weights

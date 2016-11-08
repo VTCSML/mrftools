@@ -28,6 +28,7 @@ class Learner(object):
         self.initialization_flag = False
         self.loss_augmented = False
         self.MAP_Convex_inference = False
+        self.start = 0
 
     def set_regularization(self, l1, l2):
         """Set the regularization parameters."""
@@ -43,7 +44,9 @@ class Learner(object):
                     default_counting_numbers[(var, neighbor)] = 0.1
 
         bp = ConvexBeliefPropagator ( model, default_counting_numbers )
-        return bp
+        return
+        eporeir
+
 
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
@@ -130,8 +133,9 @@ class Learner(object):
     def learn(self, weights, callback_f=None):
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         # new_weights = res.x
-        self.start = time.time ( )
+
         res = adam(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
+        # res = rms_prop(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
         new_weights = res
 
         return new_weights
@@ -178,7 +182,7 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if time.time() - self.start > 100:
+        if self.start != 0 and time.time() - self.start > 100:
             print 'more than 100 sec...'
             grad = np.zeros ( len ( weights ) )
             return grad
@@ -210,10 +214,13 @@ class Learner(object):
 
         self.term_q_p = term_p - term_q
 
+
         objec = 0.0
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * weights.dot(weights)
         objec += self.term_q_p
+
+        # print str(self.term_q_p)+ '     '+ str(0.5 * self.l2_regularization * weights.dot(weights))
 
         return objec

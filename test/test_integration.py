@@ -259,13 +259,19 @@ class TestIntegration(unittest.TestCase):
         label_img = np.zeros((images[i].height, images[i].width))
         errors = 0
         baseline = 0
-
+        num_latent = 0
         for x in range(images[i].width):
             for y in range(images[i].height):
-                beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
+                beliefs[y, x] = np.argmax(np.exp(bp.var_beliefs[(x, y)]))
                 label_img[y, x] = treu_labels[i][(x, y)]
-                errors += np.abs(treu_labels[i][(x, y)] - np.round(beliefs[y, x]))
-                # baseline += labels[i][(x, y)]
+                if (x,y) in labels[i]:
+                    print 'yes'
+                    if beliefs[y, x] != label_img[y, x]:
+                        errors += 1
+                else:
+                    num_latent += 1
+
+        errors = np.true_divide ( errors, images[i].width * images[i].height - num_latent )
 
 
 
@@ -300,13 +306,20 @@ class TestIntegration(unittest.TestCase):
         label_img = np.zeros ( (images[i].height, images[i].width) )
         errors_1 = 0
         baseline_1 = 0
+        num_latent = 0
 
         for x in range ( images[i].width ):
             for y in range ( images[i].height ):
-                beliefs[y, x] = np.exp ( bp.var_beliefs[(x, y)][1] )
+                beliefs[y, x] = np.argmax(np.exp ( bp.var_beliefs[(x, y)] ))
                 label_img[y, x] = treu_labels[i][(x, y)]
-                errors_1 += np.abs ( treu_labels[i][(x, y)] - np.round ( beliefs[y, x] ) )
-                # baseline_1 += labels[i][(x, y)]
+                if (x, y) in labels[i]:
+                    print 'yes'
+                    if beliefs[y, x] != label_img[y, x]:
+                        errors_1 += 1
+                else:
+                    num_latent += 1
+
+        errors_1 = np.true_divide ( errors_1, images[i].width * images[i].height - num_latent )
 
         # # # uncomment this to plot the beliefs
         # plt.subplot(131)
@@ -321,12 +334,6 @@ class TestIntegration(unittest.TestCase):
         print errors_1
         assert errors_1 == errors, "Learned model with repeated inference should be the same as original EM."
 
-
-
-
-
-
-
     def test_optimizer(self):
         d_unary = 65
         num_states = 2
@@ -337,9 +344,9 @@ class TestIntegration(unittest.TestCase):
 
         weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
 
-        image_size = 12
+        image_size = 6
 
-        eval = Evaluator(image_size, image_size)
+        eval = Evaluator_latent(image_size, image_size)
 
         loader = ImageLoader(image_size, image_size)
 
@@ -374,6 +381,7 @@ class TestIntegration(unittest.TestCase):
         for round in range(4):
             prev_weights = weights
             start = time.time()
+
             weights = learner.learn(prev_weights, callback_f=op.callback)
             subgrad_time = time.time() - start
             print "Learner took %f seconds" % subgrad_time
@@ -382,12 +390,13 @@ class TestIntegration(unittest.TestCase):
 
             print "After round %d of optimization, objective was %e." % (round, objectives[round])
 
-            errors.append(eval.evaluate_training_images(images, models, labels, names, weights, 2, 3,
+            errors.append(eval.evaluate_training_images('',images, models, labels, names, weights, 2, 3,
                                                  inference_type, plot='false', display='final'))
             print "After round %d of optimization, training error was %f." % (round, errors[round])
 
         for round in range(len(objectives) - 1):
             assert objectives[round] - objectives[round+1] < 1e-2, "Optimizer improved after supposedly reaching optimum"
+
 
 if __name__ == '__main__':
     unittest.main()

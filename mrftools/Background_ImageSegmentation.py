@@ -76,7 +76,22 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
 
         test_accuracy_list.append(ave_error_test)
 
+    if i != l-1:
+        i = l - 1
+        my_list.append ( time_record[i] - t )
+        obj_list.append ( learner.subgrad_obj ( weight_record[i, :] ) )
+        # print learner.subgrad_obj(weight_record[i, :])
+        ave_error = Eval.evaluate_training_images ( saved_path, images, models, labels, names, weight_record[i, :],
+                                                    num_states, num_training_images,
+                                                    inference_type, max_iter, inc='false', plot='false' )
+        train_accuracy_list.append ( ave_error )
 
+        ave_error_test = Eval.evaluate_training_images ( saved_path, test_images, test_models, test_labels, test_names,
+                                                         weight_record[i, :],
+                                                         num_states, num_testing_images,
+                                                         inference_type, max_iter, inc='false', plot='false' )
+
+        test_accuracy_list.append ( ave_error_test )
 
     # for i in range(l):
     #     my_list.append(time_record[i] - t)
@@ -101,7 +116,6 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
     learner_dic['testing_error'] = test_accuracy_list
 
     return learner_dic
-
 
 
 def make_latent(labels, latent_type, max_width, max_height,block_size):
@@ -159,13 +173,12 @@ def main(arg):
     run_remote = "no"
 
     dataset = "background"
-
     d_unary = 65
     d_edge = 11
     # max_height = 240
     # max_width = 320
-    max_height =5
-    max_width = 5
+    max_height = 10
+    max_width = 10
     num_training_images = 2
     num_testing_images = 2
     max_iter = 0
@@ -198,13 +211,16 @@ def main(arg):
 # # # ###############################*******train and save files*********###############################
 
     if run_remote == "no":
-        MAP_inferences = ['ConvexBeliefPropagator_MAP', MaxProductBeliefPropagator, MaxProductLinearProgramming]
-        Marginal_inferences = [MatrixTRBeliefPropagator,ConvexBeliefPropagator,MatrixBeliefPropagator]
+        # MAP_inferences = ['ConvexBeliefPropagator_MAP', MaxProductBeliefPropagator, MaxProductLinearProgramming]
+        # Marginal_inferences = [MatrixTRBeliefPropagator,ConvexBeliefPropagator,MatrixBeliefPropagator]
+        MAP_inferences = []
+        Marginal_inferences = [MatrixBeliefPropagator]
+        # learners = [Learner]
         learners = [Learner,EM,PairedDual,PrimalDual]
-        regularizers = [0,1]
+        regularizers = [0,0.0001]
         for infr in MAP_inferences + Marginal_inferences:
             for learner_type in learners:
-
+                print learner_type
                 if str(infr) == 'ConvexBeliefPropagator_MAP':
                     inference_type = ConvexBeliefPropagator
                     MAP_Convex = True
@@ -266,10 +282,12 @@ def main(arg):
 
 
 # ###############################*******Load files and plot****************###############################
-
+    MAP_inferences = []
+    Marginal_inferences = [MatrixBeliefPropagator]
     Eval = Evaluator_latent ( max_width, max_height )
 
-    inferences = ['ConvexBeliefPropagator_MAP',MatrixTRBeliefPropagator,ConvexBeliefPropagator,MatrixBeliefPropagator, MaxProductBeliefPropagator,MaxProductLinearProgramming]
+    # inferences = ['ConvexBeliefPropagator_MAP',MatrixTRBeliefPropagator,ConvexBeliefPropagator,MatrixBeliefPropagator, MaxProductBeliefPropagator,MaxProductLinearProgramming]
+    inferences = Marginal_inferences + MAP_inferences
     for inference_type in inferences:
         if inference_type == 'ConvexBeliefPropagator_MAP':
             inference_type = ConvexBeliefPropagator
@@ -285,7 +303,7 @@ def main(arg):
         result_file.write ( "\n" )
         for file in os.listdir ( saved_path_inference ):
             if file.endswith ( ".txt" ):
-                # f = open ( saved_path_inference + '/' + file ,'rb' )
+                # f = open ( saved_path_inference + '/' + file ,'r' )
                 # u = pickle._Unpickler ( f )
                 # u.encoding = 'latin1'
                 # read_dic = u.load ( )
