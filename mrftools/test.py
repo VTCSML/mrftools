@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 
 
 def learn_image(saved_path, data_path, learn_method, inference_type, models, labels, num_states, names, images, num_training_images, max_iter, max_height,
-                max_width, weights,optm,loss_augmented = False, regularizer = [0, 1], num_testing_images=1, MAP_Convex = False):
+                max_width, weights,optm,noise,loss_augmented = False, regularizer = [0, 1], num_testing_images=1, MAP_Convex = False):
 
     learner = learn_method(inference_type )
     learner.MAP_Convex_inference = MAP_Convex
@@ -118,6 +118,14 @@ def learn_image(saved_path, data_path, learn_method, inference_type, models, lab
     learner_dic['ave_error'] = ave_error
     learner_dic['testing_error'] = test_accuracy_list
     learner_dic['optimizer'] = optimizer_name
+
+    x = np.linspace ( -1, 1, 21 )
+    y = np.zeros ( 21 )
+    for i in range ( len ( x ) ):
+        mod_weight = new_weight + x[i] * noise
+        y[i] = learner.subgrad_obj(mod_weight)
+
+    learner_dic['neighbors'] = y
 
     return learner_dic
 
@@ -295,38 +303,6 @@ def test_errors():
     # plt.plot ( train_accuracy_list )
     # plt.show ( )
 
-
-def plot_local_optima(lnr_method,noise, model,saved_path_inference):
-    plt.clf()
-    for j in range ( 0, len ( lnr_method ) ):
-        m_dic = lnr_method[j]
-        new_weight = m_dic['final_weight']
-
-
-        x = np.linspace ( -1, 1, 21 )
-        y = np.zeros ( 21 )
-        for i in range ( len ( x ) ):
-            mod_weight = new_weight + x[i] * noise
-            model.set_weights ( mod_weight )
-            bp = MatrixBeliefPropagator ( model )
-            bp.infer ( display='off' )
-            y[i] = bp.compute_energy_functional ( )
-            if np.array_equal ( mod_weight, new_weight ):
-                x_s = x[i]
-                y_s = y[i]
-
-        ttl = m_dic['optimizer']
-        plt.plot ( x, y, label=ttl )
-        plt.plot ( x_s, y_s, 'r*' )
-
-
-    plt.ylabel ( 'objective' )
-    plt.legend ( loc='upper right' )
-
-    plt.title ( 'objective function trend for learner ' + m_dic['learner_name'] )
-    plt.savefig ( saved_path_inference + '/' + m_dic['learner_name'] )
-
-
 def plot_optmizer():
     # # # ###############################*******Initialization*********###############################
 
@@ -357,6 +333,7 @@ def plot_optmizer():
         num_states = 8
         initial_weights = pickle.load ( open ( 'initial_weights.txt', 'r' ) )
 
+    noise = 0.1 * np.random.randn ( len ( initial_weights ) )
     # # # ###############################*******Load Images and make some labes latent*********###############################
     loader = ImageLoader ( max_width, max_height )
     images, models, labels, names = loader.load_all_images_and_labels ( data_path + '/train', num_states,
@@ -398,7 +375,7 @@ def plot_optmizer():
                 lnr_dic = learn_image ( saved_path, data_path, learner_type, inference_type, models, labels, num_states,
                                         names,
                                         images, num_training_images,
-                                        max_iter, max_height, max_width, initial_weights, optm, loss_aug, regularizers,
+                                        max_iter, max_height, max_width, initial_weights, optm, noise ,loss_aug, regularizers,
                                         num_testing_images,
                                         MAP_Convex=MAP_Convex )
 
@@ -433,7 +410,7 @@ def plot_optmizer():
 
 
     # # # # # ###############################*******plot objective to check local optima*********###############################
-    noise = 0.1 * np.random.randn ( len ( initial_weights ) )
+
     for lnr in learners:
         kk = str ( lnr ).split ( '.' )
         learner_name = kk[len ( kk ) - 1][:-2]
@@ -442,20 +419,26 @@ def plot_optmizer():
             if mtd['learner_name'] == learner_name:
                 lnr_method.append ( mtd )
 
-        plot_local_optima(lnr_method,noise,models[0],saved_path_inference)
+        plt.clf ( )
+        for j in range ( 0, len ( lnr_method ) ):
+            m_dic = lnr_method[j]
+            x = np.linspace ( -1, 1, 21 )
+            y = m_dic['neighbors']
+
+            ttl = m_dic['optimizer']
+            plt.plot ( x, y, label=ttl )
+
+        plt.ylabel ( 'objective' )
+        plt.legend ( loc='upper right' )
+
+        plt.title ( 'objective function trend for learner ' + m_dic['learner_name'] )
+        plt.savefig ( saved_path_inference + '/' + m_dic['learner_name'] )
 
 
 
 def main(arg):
     # test_errors()
     plot_optmizer()
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
