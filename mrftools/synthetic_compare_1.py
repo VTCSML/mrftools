@@ -17,7 +17,7 @@ def main():
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	for num_cluster in num_cluster_range:
 		print('Simulating data...')
-		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(20000, num_cluster, 6, 7)
+		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(5000, num_cluster, 6, 7)
 		train_data = data[: len(data) - 201]
 		test_data = data[len(data) - 200 : len(data) - 1]
 		list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
@@ -34,7 +34,7 @@ def main():
 			spg.on_show_metrics()
 			# spg.on_verbose()
 			spg.on_plot_queue('../../../DataDump/pq_plot')
-			spg.setup_learning_parameters(edge_reg, max_iter_graft=50)
+			spg.setup_learning_parameters(edge_reg, max_iter_graft=500)
 			t = time.time()
 			learned_mn, final_active_set, suff_stats_list, recall, precision, iterations = spg.learn_structure(edge_num, edges=edges)
 			exec_time = time.time() - t

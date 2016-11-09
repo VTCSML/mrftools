@@ -54,7 +54,7 @@ class StructuredPriorityGraft():
         self.is_show_metrics = False
         self.is_plot_queue = False
         self.is_verbose = False
-        self.priority_increase_decay_factor = .5
+        self.priority_increase_decay_factor = .8
         self.priority_decrease_decay_factor = .99
         self.plot_path = '.'
 
@@ -251,14 +251,14 @@ class StructuredPriorityGraft():
                                 pass
                     return True, edge, iteration_activation
                 else:
-                    direct_penalty = 1 - gradient_norm/self.l1_coeff
-                    if self.method=='queue':
+                    direct_penalty = 1 - gradient_norm/self.edge_l1
+                    if self.method == 'queue':
                         direct_penalty = 0
                     tmp_list.append( (item[0], item[1] + direct_penalty) )# Store not activated edges in a temporary list
                     edge = item[0]
                     if self.method == 'structured':
-                        penalty1 = self.priority_decrease_decay_factor ** 1 * (1 - gradient_norm/self.edge_l1)
-                        penalty2 = self.priority_decrease_decay_factor ** 2 * (1 - gradient_norm/self.edge_l1)
+                        penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
+                        penalty2 = self.priority_decrease_decay_factor ** 2 * direct_penalty
                         neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
                         neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
                         curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
