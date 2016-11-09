@@ -30,6 +30,8 @@ def ada_grad(func, grad, x, args, callback):
 
     grad_sum = 0
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+        if callback:
+            callback(x)
         func(x, args)
         g = grad(x, args)
         grad_sum += g * g
@@ -39,10 +41,12 @@ def ada_grad(func, grad, x, args, callback):
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
 
-        grad_norm = np.sqrt(g.dot(g))
+        # grad_norm = np.sqrt(g.dot(g))
+
         t += 1
-        if callback:
-            callback(x)
+
+    if callback:
+        callback ( x )
     return x
 
 def rms_prop(func, grad, x, args, callback):
@@ -52,13 +56,15 @@ def rms_prop(func, grad, x, args, callback):
     max_iter = 10000
     grad_norm = np.inf
     x_change = np.inf
-    eta = 0.001
+    eta = 0.01
     gamma = 0.1
     eps = 1e-8
 
-    avg_sq_grad = np.ones(len(x))
+    avg_sq_grad = np.zeros(len(x))
     grad_sum = 0
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+        if callback:
+            callback(x)
         func(x, args)
         g = grad(x, args)
 
@@ -68,10 +74,12 @@ def rms_prop(func, grad, x, args, callback):
 
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
-        grad_norm = np.sqrt(g.dot(g))
+        # grad_norm = np.sqrt(g.dot(g))
+
         t += 1
-        if callback:
-            callback(x)
+
+    if callback:
+        callback ( x )
     return x
 
 def adam(func, grad, x, args, callback):
@@ -91,6 +99,8 @@ def adam(func, grad, x, args, callback):
     v = np.zeros(len(x))
 
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+        if callback:
+            callback(x)
         func(x, args)
         g = grad(x, args)
 
@@ -105,8 +115,8 @@ def adam(func, grad, x, args, callback):
         x_change = np.sqrt(change.dot(change))
 
         t += 1
-        if callback:
-            callback(x)
+    if callback:
+        callback ( x )
     return x
 
 import matplotlib.pyplot as plt
@@ -121,10 +131,11 @@ class WeightRecord(object):
         a = np.copy(x)
         if (self.weight_record.size) == 0:
             self.weight_record = a.reshape((1, a.size))
-            self.time_record = np.array([int(round(time.time() ))])
+            self.time_record = np.array([((time.time() ))])
         else:
             self.weight_record = np.vstack((self.weight_record,a))
-            self.time_record = np.vstack((self.time_record,int(round(time.time() ))))
+            self.time_record = np.vstack ( (self.time_record,  time.time ( ) ) )
+            # self.time_record = np.vstack((self.time_record,int(round(time.time() ))))
 
 
 class ObjectivePlotter(object):

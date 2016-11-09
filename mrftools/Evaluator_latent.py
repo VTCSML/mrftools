@@ -21,26 +21,22 @@ class Evaluator_latent(object):
             if i < num_images:
                 for key in weights.keys ( ):
                     w = weights[key]
-                    models[i].set_weights(w)
+                    models[0].set_weights(w)
                     bp = inference_type(models[i])
                     # bp.set_max_iter(max_iter)
                     bp.infer(display='off')
                     bp.load_beliefs()
                     beliefs = np.zeros ( (images[i].height, images[i].width) )
                     label_img = np.zeros ( (images[i].height, images[i].width) )
-                    er = 0
                     for x in range ( images[i].height ):
                         for y in range ( images[i].width ):
                             beliefs[x, y] = np.argmax(np.exp(bp.var_beliefs[(y, x)]))
-                            if beliefs[x, y] != labels[i][(y,x)]:
-                                er += 1
                             if (y, x) in labels[i]:
                                 label_img[x, y] = labels[i][(y,x)]
                             else:
                                 label_img[x, y] = -100
 
                     beliefs_dic[key] = beliefs
-                    print 'number of misclassified ' + str(er) + ' out of ' + str(images[i].height * images[i].width)
 
                 self.draw_results ( images[i], label_img, beliefs_dic, names[i], saved_path )
 
@@ -151,7 +147,6 @@ class Evaluator_latent(object):
 
     def create_img(self, label):
 
-
         color_dic = {0: [[160, 160, 160], 'gray=sky'], 1: [[153, 153, 0], 'dark green=tree'], 2: [[102, 0, 204], 'purple=road'],
                      3: [[0, 153, 76], 'green=grass'], 4: [[54, 145, 236], 'blue=water'], 5: [[213, 31, 31], 'dark red=building'],
                      6: [[153, 76, 0], 'brown=mountain'], 7: [[255, 153, 51], 'orange=foreground'], -100:[[255,255,255], 'white=latent']}
@@ -174,13 +169,13 @@ class Evaluator_latent(object):
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
             # obj_time = np.arange(100)
-            # obj_time = m_dic['time']
+            obj_time = m_dic['time']
             obj = m_dic['objective']
             ttl = m_dic['learner_name']
 
-            plt.plot( obj, '-', linewidth=2, label=ttl)
+            plt.plot( obj_time, obj, '-', linewidth=2, label=ttl)
 
-        plt.xlabel('time(seconds)')
+        plt.xlabel('time(second)')
         plt.ylabel('objective')
         plt.legend(loc='upper right')
 
@@ -196,7 +191,8 @@ class Evaluator_latent(object):
         plt.clf()
         for i in range(0,len(method_list)):
             m_dic = method_list[i]
-            # obj_time = m_dic['time']
+            obj_time = m_dic['time']
+            print obj_time
             # obj_time = np.arange ( 101 )
             if mode == 'train':
                 accuracy = m_dic['training_error']
@@ -204,18 +200,19 @@ class Evaluator_latent(object):
                 accuracy = m_dic['testing_error']
 
             ttl = m_dic['learner_name']
-            plt.plot(accuracy, '-', linewidth=2, label=ttl)
+            plt.ylim(-0.2,1)
+            plt.plot(obj_time,accuracy, '-', linewidth=2, label=ttl)
 
 
         if mode == 'train':
-            plt.xlabel ( 'time(seconds)' )
+            plt.xlabel ( 'time(second)' )
             plt.ylabel ( 'training error' )
             plt.legend ( loc='upper right' )
 
             plt.title ( 'training error trend' )
             plt.savefig ( path + '/training_error' )
         else:
-            plt.xlabel ( 'time(seconds)' )
+            plt.xlabel ( 'time(second)' )
             plt.ylabel ( 'test error' )
             plt.legend ( loc='upper right' )
 

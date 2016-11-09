@@ -45,7 +45,7 @@ class Learner(object):
 
         bp = ConvexBeliefPropagator ( model, default_counting_numbers )
         return
-        eporeir
+
 
 
     def add_data(self, labels, model):
@@ -130,11 +130,11 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
-    def learn(self, weights, callback_f=None):
+    def learn(self, weights, optimzer ,callback_f=None):
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
         # new_weights = res.x
-
-        res = adam(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
+        self.start = time.time()
+        res = optimzer(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
         # res = rms_prop(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
         new_weights = res
 
@@ -182,7 +182,7 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if self.start != 0 and time.time() - self.start > 100:
+        if self.start != 0 and time.time() - self.start > 10:
             print 'more than 100 sec...'
             grad = np.zeros ( len ( weights ) )
             return grad

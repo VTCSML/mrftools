@@ -15,7 +15,7 @@ class PrimalDual(PairedDual):
         super(PrimalDual, self).__init__(inference_type)
         self.bp_iter = 300
 
-    def learn(self, weights, callback_f=None):
+    def learn(self, weights, optimzer,callback_f=None):
         for bp in self.belief_propagators_q:
             bp.set_max_iter(self.bp_iter)
 
@@ -27,6 +27,6 @@ class PrimalDual(PairedDual):
         self.start = time.time ( )
         # res = rms_prop(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
         # res = ada_grad(self.dual_obj, self.subgrad_grad, weights, args= None, callback= callback_f)
-        res = adam ( self.dual_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
+        res = optimzer ( self.dual_obj, self.subgrad_grad, weights, args=None, callback=callback_f )
         new_weights = res
         return new_weights
