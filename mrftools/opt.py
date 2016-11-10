@@ -20,7 +20,7 @@ def sgd(func, grad, x, args, callback):
 
 def ada_grad(func, grad, x, args, callback):
     t = 1
-    g_tol = 1e-4
+    g_tol = 0.01
     x_tol = 1e-6
     eta = 0.1
     offset = 1.0
@@ -51,7 +51,7 @@ def ada_grad(func, grad, x, args, callback):
 
 def rms_prop(func, grad, x, args, callback):
     t = 1
-    g_tol = 1e-4
+    g_tol = 0.02
     x_tol = 1e-6
     max_iter = 10000
     grad_norm = np.inf
@@ -84,7 +84,7 @@ def rms_prop(func, grad, x, args, callback):
 
 def adam(func, grad, x, args, callback):
     t = 1
-    g_tol = 1e-2
+    g_tol = 1e-3
     x_tol = 1e-3
     max_iter = 10000
     grad_norm = np.inf

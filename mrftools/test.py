@@ -347,7 +347,8 @@ def plot_optmizer():
     learners = [Learner, EM, PairedDual, PrimalDual]
     # learners = [Learner]
     marginal_inferences = [MatrixBeliefPropagator]
-    optimizers = [adam, rms_prop, ada_grad]
+    # optimizers = [adam, rms_prop, ada_grad]
+    optimizers = [adam,ada_grad,rms_prop]
     # optimizers = [rms_prop]
     regularizers = [0, 0.0001]
     loss_aug = False
@@ -398,7 +399,6 @@ def plot_optmizer():
             obj_time = m_dic['time']
             obj = m_dic['objective']
             ttl = m_dic['optimizer']
-
             plt.plot ( obj_time, obj, '-', linewidth=2, label=ttl )
 
         plt.xlabel ( 'time(seconds)' )

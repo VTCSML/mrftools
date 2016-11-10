@@ -182,7 +182,7 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if self.start != 0 and time.time() - self.start > 10:
+        if self.start != 0 and time.time() - self.start > 100:
             print 'more than 100 sec...'
             grad = np.zeros ( len ( weights ) )
             return grad
