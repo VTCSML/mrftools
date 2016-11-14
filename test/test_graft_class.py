@@ -10,7 +10,6 @@ from Graft import Graft
 
 if __name__ == '__main__':
 	edge_reg = .075
-	method = 'naive'
 	print('Simulating data...')
 	model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(5000, 3, 6, 10)
 	print('EDGES')

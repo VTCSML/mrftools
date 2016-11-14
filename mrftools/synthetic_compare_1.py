@@ -7,12 +7,14 @@ from scipy import signal as sg
 from StructuredPriorityGraft import StructuredPriorityGraft
 from grafting_util import compute_likelihood
 import time
+from Graft import Graft
 
-METHODS = ['naive', 'structured', 'queue']
-METHOD_COLORS = {'structured':'-r', 'naive': '-b', 'queue':'-g'}
+METHODS = ['naive', 'structured', 'queue', 'graft']
+METHOD_COLORS = {'structured':'-r', 'naive': '-b', 'queue':'-g', 'graft':'-y'}
+
 
 def main():
-	edge_reg = .1
+	edge_reg = .075
 	num_cluster_range = range(3, 15, 1)
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	for num_cluster in num_cluster_range:
@@ -27,46 +29,58 @@ def main():
 		print(edges)
 		edge_num = len(edges)
 		num_attributes = len(variables)
-		recalls, precisions, sufficientstats = list(), list(), list()
-		for method in METHODS:
+		recalls, precisions, sufficientstats = dict(), dict(), dict()
+		for method in METHODS[:3]:
 			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
+			t = time.time()
 			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
 			spg.on_show_metrics()
 			# spg.on_verbose()
 			spg.on_plot_queue('../../../DataDump/pq_plot')
-			spg.setup_learning_parameters(edge_reg, max_iter_graft=500)
-			t = time.time()
+			spg.setup_learning_parameters(edge_reg, max_iter_graft=100)
 			learned_mn, final_active_set, suff_stats_list, recall, precision, iterations = spg.learn_structure(edge_num, edges=edges)
 			exec_time = time.time() - t
 			print('exec_time')
 			print(exec_time)
 			curr_likelihood = compute_likelihood(learned_mn, num_attributes, test_data)
-			recalls.append(recall)
-			precisions.append(precision)
-			sufficientstats.append(suff_stats_list)
+			recalls[method] = recall
+			precisions[method] = precision
+			sufficientstats[method] = suff_stats_list
+
+		print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
+		t = time.time()
+		grafter = Graft(variables, num_states, max_num_states, data, list_order)
+		grafter.on_show_metrics()
+		# grafter.on_verbose()
+		grafter.setup_learning_parameters(edge_reg)
+		learned_mn, final_active_set, suff_stats_list, recall, precision = grafter.learn_structure(edge_num, edges)
+		exec_time = time.time() - t
+		print('exec_time')
+		print(exec_time)
+		recalls['graft'] = recall
+		precisions['graft'] = precision
+		sufficientstats['graft'] = suff_stats_list
 
 		for i in range(len(METHODS)):
-			plt.plot(recalls[i], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
+			plt.plot(recalls[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
 		plt.legend(loc='best')
 		plt.title('Recall')
 		plt.savefig('../../../DataDump/recall_precision_1/Recall_' + str(len(variables)) +'Nodes_MRF.png')
 		plt.close()
 
 		for i in range(len(METHODS)):
-			plt.plot(precisions[i], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
+			plt.plot(precisions[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
 		plt.legend(loc='best')
 		plt.title('Precision')
 		plt.savefig('../../../DataDump/recall_precision_1/Precision_' + str(len(variables)) +'Nodes_MRF.png')
 		plt.close()
 
 		for i in range(len(METHODS)):
-			plt.plot(sufficientstats[i], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
+			plt.plot(sufficientstats[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
 		plt.legend(loc='best')
 		plt.title('Sufficient Stats')
 		plt.savefig('../../../DataDump/recall_precision_1/SufficientStats_' + str(len(variables)) +'Nodes_MRF.png')
 		plt.close()
-
-
 
 		# 	plt.figure(1)
 		# 	plt.plot(recall, METHOD_COLORS[method], label=method, linewidth=5)

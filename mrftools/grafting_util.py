@@ -109,8 +109,6 @@ def new_strcutured_priority_mean_gradient_test(bps, search_space, pq, data, l1_c
                             copy_search_space.remove(res_edge)
                         except:
                             pass
-                    print('curr_resulting_edges_1')
-                    print(curr_resulting_edges_1)
                     resulting_edges.extend(curr_resulting_edges_1)
                     resulting_edges.extend(curr_resulting_edges_2)
     return False, (0, 0), [], [], 0

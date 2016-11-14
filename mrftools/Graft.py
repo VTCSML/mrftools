@@ -43,8 +43,6 @@ class Graft():
         self.search_space = [self.mn.search_space[i] for i in list_order]
         self.data = data
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
-        for edge in self.search_space:
-            self.sufficient_stats[edge], self.padded_sufficient_stats[edge] = self.get_sufficient_stats_per_edge(self.mn, edge)
         self.l1_coeff = 0
         self.l2_coeff = 0
         self.node_l1 = 0
@@ -55,6 +53,7 @@ class Graft():
         self.edge_regularizers, self.node_regularizers = dict(), dict()
         self.is_show_metrics = False
         self.is_verbose = False
+        self.monitor_mn = False
 
     def setup_learning_parameters(self, edge_l1, node_l1=0, l1_coeff=0, l2_coeff=0, max_iter_graft=500, zero_threshold=.05):
         """
@@ -66,6 +65,13 @@ class Graft():
         self.edge_l1 = edge_l1
         self.max_iter_graft = max_iter_graft
         self.zero_threshold = zero_threshold
+
+    def on_monitor_mn(self):
+        """
+        Enable monitoring Markrov net
+        """
+        self.monitor_mn = True
+        self.mn_snapshots = dict()
 
     def on_show_metrics(self):
         self.is_show_metrics = True
@@ -79,12 +85,24 @@ class Graft():
         Main function for grafting
         """
         # INITIALIZE VARIABLES
+        if self.monitor_mn:
+            exec_time_origin = time.time()
+
+        self.aml_optimize = self.setup_grafting_learner()
+
+        if self.monitor_mn:
+            learned_mn = self.aml_optimize.belief_propagators[0].mn
+            learned_mn.load_factors_from_matrices()
+            exec_time = time.time() - exec_time_origin
+            self.mn_snapshots[exec_time] = learned_mn
+
+
+        for edge in self.search_space:
+            self.sufficient_stats[edge], self.padded_sufficient_stats[edge] = self.get_sufficient_stats_per_edge(self.mn, edge)
         if self.is_show_metrics:
             recall, precision, suff_stats_list = list(), list(), list()
 
         np.random.seed(0)
-
-        self.aml_optimize = self.setup_grafting_learner()
         vector_length_per_var = self.max_num_states
         vector_length_per_edge = self.max_num_states ** 2
         len_search_space = len(self.search_space)
@@ -95,6 +113,12 @@ class Graft():
 
         while is_activated_edge and len(self.active_set) < num_edges:
             while (self.search_space and is_activated_edge) and len(self.active_set) < num_edges: # Stop if all edges are added or no edge is added at the previous iteration
+
+                if self.monitor_mn:
+                    learned_mn = self.aml_optimize.belief_propagators[0].mn
+                    learned_mn.load_factors_from_matrices()
+                    exec_time = time.time() - exec_time_origin
+                    self.mn_snapshots[exec_time] = learned_mn
 
                 self.active_set.append(activated_edge)
                 if self.is_verbose:
@@ -119,6 +143,12 @@ class Graft():
             self.aml_optimize = self.setup_grafting_learner()
             weights_opt = self.aml_optimize.learn(np.zeros(self.aml_optimize.weight_dim), 2500, self.edge_regularizers, self.node_regularizers)
             is_activated_edge, activated_edge = self.activation_test()
+
+            if self.monitor_mn:
+                learned_mn = self.aml_optimize.belief_propagators[0].mn
+                learned_mn.load_factors_from_matrices()
+                exec_time = time.time() - exec_time_origin
+                self.mn_snapshots[exec_time] = learned_mn
 
         if self.is_show_metrics and is_activated_edge:
             self.update_metrics(edges, recall, precision, suff_stats_list)

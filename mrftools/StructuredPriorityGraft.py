@@ -57,6 +57,8 @@ class StructuredPriorityGraft():
         self.priority_increase_decay_factor = .8
         self.priority_decrease_decay_factor = .99
         self.plot_path = '.'
+        self.monitor_mn = False
+        self.mn_snapshots = dict()
 
     def set_priority_factors(priority_increase_decay_factor, priority_decrease_decay_factor):
         """
@@ -64,6 +66,13 @@ class StructuredPriorityGraft():
         """
         self.priority_increase_decay_factor = priority_increase_decay_factor
         self.priority_decrease_decay_factor = priority_decrease_decay_factor
+
+
+    def on_monitor_mn(self):
+        """
+        Enable monitoring Markrov net
+        """
+        self.monitor_mn = True
 
     def setup_learning_parameters(self, edge_l1, node_l1=0, l1_coeff=0, l2_coeff=0, max_iter_graft=500, zero_threshold=.05):
         """
@@ -91,6 +100,17 @@ class StructuredPriorityGraft():
         Main function for grafting
         """
         # INITIALIZE VARIABLES
+        if self.monitor_mn:
+            exec_time_origin = time.time()
+
+        self.aml_optimize = self.setup_grafting_learner(len(self.data))
+
+        if self.monitor_mn:
+            learned_mn = self.aml_optimize.belief_propagators[0].mn
+            learned_mn.load_factors_from_matrices()
+            exec_time = time.time() - exec_time_origin
+            self.mn_snapshots[exec_time] = learned_mn
+
         if self.is_plot_queue:
             columns, rows, values = list(), list(), list()
             loop_num = 0
@@ -100,17 +120,23 @@ class StructuredPriorityGraft():
 
         np.random.seed(0)
 
-        self.aml_optimize = self.setup_grafting_learner(len(self.data))
         vector_length_per_var = self.max_num_states
         vector_length_per_edge = self.max_num_states ** 2
         len_search_space = len(self.search_space)
         weights_opt = self.aml_optimize.learn(np.random.randn(self.aml_optimize.weight_dim), self.max_iter_graft, self.edge_regularizers, self.node_regularizers)
         ## GRADIENT TEST
+
         is_activated_edge, activated_edge, iter_number = self.activation_test()
 
         while is_activated_edge and len(self.active_set) < num_edges:
             while ((len(self.pq) > 0) and is_activated_edge) and len(self.active_set) < num_edges: # Stop if all edges are added or no edge is added at the previous iteration
                 
+                if self.monitor_mn:
+                    learned_mn = self.aml_optimize.belief_propagators[0].mn
+                    learned_mn.load_factors_from_matrices()
+                    exec_time = time.time() - exec_time_origin
+                    self.mn_snapshots[exec_time] = learned_mn
+
                 if self.is_plot_queue:
                     loop_num = self.update_plot_info(loop_num, columns, rows, values, pq_history, edges)
 
@@ -137,6 +163,12 @@ class StructuredPriorityGraft():
             self.aml_optimize = self.setup_grafting_learner(len(self.data))
             weights_opt = self.aml_optimize.learn(np.zeros(self.aml_optimize.weight_dim), 2500, self.edge_regularizers, self.node_regularizers)
             is_activated_edge, activated_edge, iter_number = self.activation_test()
+
+            if self.monitor_mn:
+                learned_mn = self.aml_optimize.belief_propagators[0].mn
+                learned_mn.load_factors_from_matrices()
+                exec_time = time.time() - exec_time_origin
+                self.mn_snapshots[exec_time] = learned_mn
 
         if self.is_show_metrics and is_activated_edge:
             self.update_metrics(edges, recall, precision, suff_stats_list, iterations, iter_number)
@@ -205,6 +237,7 @@ class StructuredPriorityGraft():
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
         copy_search_space = copy.deepcopy(self.search_space)
+        original_pq = copy.deepcopy(self.pq)
         while len(self.pq)>0:
             item = self.pq.popitem()# Get edges by order of priority
             edge = item[0]
@@ -224,36 +257,40 @@ class StructuredPriorityGraft():
                 activate = gradient_norm > self.edge_l1
                 if activate:
                     self.search_space.remove(item[0])
-                    [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
-                    edge = item[0]
-                    if self.method == 'structured':
-                        reward1 = self.priority_increase_decay_factor ** 1 * (1 - gradient_norm/self.edge_l1)
-                        reward2 = self.priority_increase_decay_factor ** 2 * (1 - gradient_norm/self.edge_l1)
-                        neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
-                        neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
-                        curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
-                                      list(itertools.product([edge[0]], neighbors_2)) +
-                                      list(itertools.product([edge[1]], neighbors_1)) if
-                                      x < y and (x, y) in self.search_space]))
-                        curr_resulting_edges_2 = list(set([(x, y) for (x, y) in
-                                      list(itertools.product(neighbors_1, neighbors_2)) +
-                                      list(itertools.product(neighbors_2, neighbors_1)) if
-                                      x < y and (x, y) in self.search_space]))
-                        for res_edge in curr_resulting_edges_1:
-                            try:
-                                self.pq.updateitem(res_edge, self.pq[res_edge] + reward1)
-                            except:
-                                pass
-                        for res_edge in curr_resulting_edges_2:
-                            try:
-                                self.pq.updateitem(res_edge, self.pq[res_edge] + reward2)
-                            except:
-                                pass
+                    if self.method == 'queue':
+                        _ = original_pq.pop(edge)
+                        self.pq = original_pq
+                    else:
+                        [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
+                        edge = item[0]
+                        if self.method == 'structured':
+                            reward1 = self.priority_increase_decay_factor ** 1 * (1 - gradient_norm/self.edge_l1)
+                            reward2 = self.priority_increase_decay_factor ** 2 * (1 - gradient_norm/self.edge_l1)
+                            neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
+                            neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
+                            curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
+                                          list(itertools.product([edge[0]], neighbors_2)) +
+                                          list(itertools.product([edge[1]], neighbors_1)) if
+                                          x < y and (x, y) in self.search_space]))
+                            curr_resulting_edges_2 = list(set([(x, y) for (x, y) in
+                                          list(itertools.product(neighbors_1, neighbors_2)) +
+                                          list(itertools.product(neighbors_2, neighbors_1)) if
+                                          x < y and (x, y) in self.search_space]))
+                            for res_edge in curr_resulting_edges_1:
+                                try:
+                                    self.pq.updateitem(res_edge, self.pq[res_edge] + reward1)
+                                except:
+                                    pass
+                            for res_edge in curr_resulting_edges_2:
+                                try:
+                                    self.pq.updateitem(res_edge, self.pq[res_edge] + reward2)
+                                except:
+                                    pass
                     return True, edge, iteration_activation
                 else:
-                    direct_penalty = 1 - gradient_norm/self.edge_l1
                     if self.method == 'queue':
-                        direct_penalty = 0
+                        pass
+                    direct_penalty = 1 - gradient_norm/self.edge_l1
                     tmp_list.append( (item[0], item[1] + direct_penalty) )# Store not activated edges in a temporary list
                     edge = item[0]
                     if self.method == 'structured':
@@ -298,7 +335,7 @@ class StructuredPriorityGraft():
         plt.title(self.method + ' Ground truth')
         # plt.colorbar()
         plt.axis('off')
-        file_name = self.method + str(len(self.variables)) +'_Nodes.png'
+        file_name = 'truth_' + self.method + str(len(self.variables)) +'_Nodes.png'
         plt.savefig(os.path.join(self.plot_path, file_name))
         plt.close()
 
@@ -333,7 +370,7 @@ class StructuredPriorityGraft():
         plt.title(self.method + ' Synthetic truth')
         # plt.colorbar()
         plt.axis('off')
-        file_name = self.method + str(len(self.variables)) +'_Nodes.png'
+        file_name = 'synth_' + self.method + str(len(self.variables)) +'_Nodes.png'
         plt.savefig(os.path.join(self.plot_path, file_name))
         plt.close()
 
