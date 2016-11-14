@@ -195,12 +195,12 @@ class Learner(object):
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
-            grad += 0.5 * self.edges_group_regularizers * (curr_reg / 2 * np.sqrt(curr_reg.dot(curr_reg)))
+            grad += 0.5 * self.edges_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
 
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            grad += 0.5 * self.var_group_regularizers * (curr_reg / 2 * np.sqrt(curr_reg.dot(curr_reg)))
+            grad += 0.5 * self.var_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
 
         return grad
 
