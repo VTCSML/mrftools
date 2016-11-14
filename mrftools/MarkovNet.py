@@ -147,8 +147,15 @@ class MarkovNet(object):
         self.message_to_map = csc_matrix((np.ones(len(to_rows)), (to_rows, to_cols)),
                                          (2 * self.num_edges, len(self.variables)))
 
+        self.message_from_map = csc_matrix((np.ones(len(from_rows)), (from_rows, from_cols)),
+                                         (2 * self.num_edges, len(self.variables)))
+
         self.message_to = np.zeros(2 * self.num_edges, dtype=np.intp)
         self.message_to[to_rows] = to_cols
 
         self.message_from = np.zeros(2 * self.num_edges, dtype=np.intp)
         self.message_from[from_rows] = from_cols
+
+        self.reverse_mat = np.zeros((2*self.num_edges, 2*self.num_edges))
+        self.reverse_mat[:self.num_edges, self.num_edges:] = 1
+        self.reverse_mat[self.num_edges:, :self.num_edges] = 1
