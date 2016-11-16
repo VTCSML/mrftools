@@ -1,5 +1,6 @@
 try:
     import autograd.numpy as np
+    from autograd.core import primitive
 except ImportError:
     import numpy as np
 
@@ -74,8 +75,12 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         message_mat_reverse = np.dot(self.message_mat, self.mn.reverse_mat)
 
         adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
+        #message_mat_reverse = np.hstack((self.message_mat[:, self.mn.num_edges:], self.message_mat[:, :self.mn.num_edges]))
+
+        #adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
 
         adjusted_message_prod /= self.edge_counting_numbers
+        #adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
         adjusted_message_prod += sparse_dot(self.belief_mat, self.mn.message_from_map.T)
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1)) * self.edge_counting_numbers
@@ -116,10 +121,12 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
-            adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
-                                    - np.nan_to_num(np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                    self.message_mat[:, :self.mn.num_edges])) /
-                                                    self.edge_counting_numbers)
+
+            adjusted_message_prod = sparse_dot(self.belief_mat, self.mn.message_from_map.T)
+            message_mat_reverse = np.dot(self.message_mat, self.mn.reverse_mat)
+            adjusted_message_prod -= message_mat_reverse
+
+            adjusted_message_prod /= self.edge_counting_numbers
 
             to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape(
                 (self.mn.max_states, 1, self.mn.num_edges))

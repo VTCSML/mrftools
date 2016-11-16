@@ -3,6 +3,7 @@ import time
 from _hashlib import new
 try:
     import autograd.numpy as np
+    from autograd.core import primitive
 except ImportError:
     import numpy as np
 from scipy.optimize import minimize, check_grad

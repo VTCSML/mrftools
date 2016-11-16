@@ -3,7 +3,7 @@ try:
     import autograd.numpy as np
 except ImportError:
     import numpy as np
-from scipy.sparse import csc_matrix, dok_matrix
+from scipy.sparse import csc_matrix, dia_matrix, csr_matrix, kron, dok_matrix
 
 class MarkovNet(object):
     """Object containing the definition of a pairwise Markov net."""
@@ -156,6 +156,6 @@ class MarkovNet(object):
         self.message_from = np.zeros(2 * self.num_edges, dtype=np.intp)
         self.message_from[from_rows] = from_cols
 
-        self.reverse_mat = np.zeros((2*self.num_edges, 2*self.num_edges))
-        self.reverse_mat[:self.num_edges, self.num_edges:] = 1
-        self.reverse_mat[self.num_edges:, :self.num_edges] = 1
+        data = np.array(np.ones((1, 2 * self.num_edges))).repeat(2,axis=0)
+        offsets = np.array([-self.num_edges, self.num_edges])
+        self.reverse_mat = dia_matrix((data, offsets), shape=(2 * self.num_edges, 2 * self.num_edges)).toarray()

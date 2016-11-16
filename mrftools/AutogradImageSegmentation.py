@@ -28,7 +28,7 @@ class AutogradImageSegmentation(object):
         self.initialization_flag = True
 
         self.inference_type = ConvexBeliefPropagator
-        self.max_iter = 9
+        self.max_iter = 3
         self.l2regularization = 1.0
         self.models = []
         self.labels = []
