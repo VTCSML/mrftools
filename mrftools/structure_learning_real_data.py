@@ -20,7 +20,7 @@ def main():
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	for num_cluster in num_cluster_range:
 		print('Simulating data...')
-		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(5000, num_cluster, 6, 7)
+		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(5000, num_cluster, 6, 9)
 		print('EDGES')
 		print(edges)
 		edge_num = len(edges)

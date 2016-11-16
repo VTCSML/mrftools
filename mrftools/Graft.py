@@ -53,7 +53,8 @@ class Graft():
         self.edge_regularizers, self.node_regularizers = dict(), dict()
         self.is_show_metrics = False
         self.is_verbose = False
-        self.monitor_mn = False
+        self.is_monitor_mn = False
+        self.is_converged = False
 
     def setup_learning_parameters(self, edge_l1, node_l1=0, l1_coeff=0, l2_coeff=0, max_iter_graft=500, zero_threshold=.05):
         """
@@ -70,7 +71,7 @@ class Graft():
         """
         Enable monitoring Markrov net
         """
-        self.monitor_mn = True
+        self.is_monitor_mn = True
         self.mn_snapshots = dict()
 
     def on_show_metrics(self):
@@ -85,12 +86,12 @@ class Graft():
         Main function for grafting
         """
         # INITIALIZE VARIABLES
-        if self.monitor_mn:
+        if self.is_monitor_mn:
             exec_time_origin = time.time()
 
         self.aml_optimize = self.setup_grafting_learner()
 
-        if self.monitor_mn:
+        if self.is_monitor_mn:
             learned_mn = self.aml_optimize.belief_propagators[0].mn
             learned_mn.load_factors_from_matrices()
             exec_time = time.time() - exec_time_origin
@@ -114,7 +115,7 @@ class Graft():
         while is_activated_edge and len(self.active_set) < num_edges:
             while (self.search_space and is_activated_edge) and len(self.active_set) < num_edges: # Stop if all edges are added or no edge is added at the previous iteration
 
-                if self.monitor_mn:
+                if self.is_monitor_mn:
                     learned_mn = self.aml_optimize.belief_propagators[0].mn
                     learned_mn.load_factors_from_matrices()
                     exec_time = time.time() - exec_time_origin
@@ -140,15 +141,18 @@ class Graft():
                 is_activated_edge, activated_edge = self.activation_test()
 
             #Outerloop
-            self.aml_optimize = self.setup_grafting_learner()
-            weights_opt = self.aml_optimize.learn(np.zeros(self.aml_optimize.weight_dim), 2500, self.edge_regularizers, self.node_regularizers)
+            weights_opt = self.aml_optimize.learn(np.random.randn(self.aml_optimize.weight_dim), 2500, self.edge_regularizers, self.node_regularizers)
             is_activated_edge, activated_edge = self.activation_test()
 
-            if self.monitor_mn:
+            if self.is_monitor_mn:
                 learned_mn = self.aml_optimize.belief_propagators[0].mn
                 learned_mn.load_factors_from_matrices()
                 exec_time = time.time() - exec_time_origin
                 self.mn_snapshots[exec_time] = learned_mn
+
+
+        if is_activated_edge == False:
+                self.is_converged = True
 
         if self.is_show_metrics and is_activated_edge:
             self.update_metrics(edges, recall, precision, suff_stats_list)
@@ -171,6 +175,8 @@ class Graft():
 
         learned_mn = self.aml_optimize.belief_propagators[0].mn
         learned_mn.load_factors_from_matrices()
+
+
 
         if self.is_show_metrics:
             self.print_metrics(recall, precision)
@@ -224,7 +230,8 @@ class Graft():
             map_vec.append(edge)
         max_ind = np.array(gradient_vec).argmax(axis=0)
         max_grad = max(gradient_vec)
-        if max_grad >= self.edge_l1:
+        length_normalizer = float(1)  / ( len(bp.mn.unary_potentials[edge[0]])  * len(bp.mn.unary_potentials[edge[1]] ))
+        if max_grad > length_normalizer * self.edge_l1:
             is_activated = True
             activated_edge = map_vec[max_ind]
             self.search_space.remove(activated_edge)

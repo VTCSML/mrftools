@@ -14,7 +14,8 @@ METHOD_COLORS = {'structured':'-r', 'naive': '-b', 'queue':'-g', 'graft':'-y'}
 
 
 def main():
-	edge_reg = .065
+	edge_reg = 4
+	len_data = 50000
 	num_cluster_range = range(2, 15, 1)
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	for num_cluster in num_cluster_range:
@@ -22,15 +23,15 @@ def main():
 		time_likelihoods = dict()
 		sorted_timestamped_mn = dict()
 		print('Simulating data...')
-		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(100000, num_cluster, 6, 7)
-		train_data = data[: len(data) - 1001]
-		test_data = data[len(data) - 1000 : len(data) - 1]
+		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(len_data, num_cluster, 6, 10)
+		train_data = data[: int(.8 * len_data)]
+		test_data = data[int(.8 * len_data) : len_data]
 		list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
 		shuffle(list_order)
 
 		print('EDGES')
 		print(edges)
-		edge_num = len(edges) + 5
+		edge_num = len(edges) + 15
 		num_attributes = len(variables)
 		recalls, precisions, sufficientstats, mn_snapshots = dict(), dict(), dict(), dict()
 		for method in METHODS:
@@ -38,7 +39,7 @@ def main():
 			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
 			spg.on_show_metrics()
 			# spg.on_verbose()
-			# spg.on_plot_queue('../../../DataDump/pq_plot')
+			spg.on_plot_queue('../../../DataDump/pq_plot')
 			spg.setup_learning_parameters(edge_reg, max_iter_graft=500)
 			spg.on_monitor_mn()
 			t = time.time()
@@ -46,6 +47,8 @@ def main():
 			exec_time = time.time() - t
 			print('exec_time')
 			print(exec_time)
+			print('Converged')
+			print(spg.is_converged)
 			mn_snapshots[method] = spg.mn_snapshots
 
 		print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
@@ -75,11 +78,12 @@ def main():
 
 		# step_size = .1
 
-		step_size = float(max_time) / 100
+		step_size = float(max_time) / 25
 
-		time_range = np.arange(0,max_time,step_size)
+		time_range = np.arange(0,max_time + step_size,step_size)
 		print('Getting likelihoods')
 		for method in METHODS:
+			print('>' + method)
 			curr_likelihoods = list()
 			method_sorted_timestamped_mn = sorted_timestamped_mn[method]
 			for t in time_range:

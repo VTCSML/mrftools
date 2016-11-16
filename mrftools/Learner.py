@@ -171,12 +171,16 @@ class Learner(object):
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
-            objec += 0.5 * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+            # print('learn edge length')
+            # print( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            objec += length_normalizer * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            objec += 0.5 * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+            length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            objec += length_normalizer * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         return objec
 
@@ -195,12 +199,14 @@ class Learner(object):
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
-            grad += 0.5 * self.edges_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
+            length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            grad += length_normalizer * self.edges_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
 
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            grad += 0.5 * self.var_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
+            length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            grad += length_normalizer * self.var_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
 
         return grad
 
@@ -225,12 +231,14 @@ class Learner(object):
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
-            objec += 0.5 * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+            length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            objec += length_normalizer * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            objec += 0.5 * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+            length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
+            objec += length_normalizer * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         return objec
 
