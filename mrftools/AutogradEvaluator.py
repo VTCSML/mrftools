@@ -53,7 +53,7 @@ class AutogradEvaluator(object):
         for i in range(len(images)):
             if i < num_images:
                 models[i].set_weights(weights)
-                bp = inference_type(models[i], labels[i])
+                bp = inference_type(models[i])
                 bp.set_max_iter(max_iter)
                 bp.infer(display='off')
                 bp.load_beliefs()

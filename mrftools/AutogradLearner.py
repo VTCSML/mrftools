@@ -10,61 +10,55 @@ from opt import *
 
 class AutogradLearner(Learner):
 
-    def __init__(self, inference_type, ais):
+    def __init__(self, inference_type, ais = None):
         super(AutogradLearner, self).__init__(inference_type)
 
         self.initialization_flag = True
-        n = 500
+        n = 800
         self.dual_objective_list = np.zeros(n)
         self.primal_objective_list = np.zeros(n)
         self.inconsistency_list = np.zeros(n)
         self.training_error_list = np.zeros(n)
         self.testing_error_list = np.zeros(n)
         self.i = 0
-        self.calculate_dual_gradient()
-        self.calculate_primal_gradient()
         self.ais = ais
-
-    def calculate_dual_gradient(self):
-        self.dual_gradient = grad(self.dual_obj)
-
-    def calculate_primal_gradient(self):
-        self.primal_gradient = grad(self.subgrad_obj)
 
     def learn(self, weights, callback_f=None):
 
-        n = 500
+        n = 800
         self.dual_objective_list = np.zeros(n)
         self.primal_objective_list = np.zeros(n)
         self.inconsistency_list = np.zeros(n)
         self.training_error_list = np.zeros(n)
         self.testing_error_list = np.zeros(n)
         self.i = 0
-        # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.primal_gradient, callback=self.f)
-        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.primal_gradient)
-        new_weights = res.x
+        primal_gradient = grad(self.subgrad_obj)
+        # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=primal_gradient, callback=self.f)
+        # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=primal_gradient)
+        new_weights = ada_grad(self.subgrad_obj, primal_gradient, weights, 0, callback=self.f)
+        # new_weights = res.x
 
-        # plt.subplot(511)
-        # plt.plot(self.dual_objective_list)
-        # plt.ylabel('dual objective')
-        # plt.xlabel('number of minimization iterations')
-        # plt.subplot(512)
-        # plt.plot(self.primal_objective_list)
-        # plt.ylabel('primal objective')
-        # plt.xlabel('number of minimization iterations')
+        plt.subplot(411)
+        plt.plot(self.dual_objective_list)
+        plt.ylabel('dual objective')
+        plt.xlabel('number of minimization iterations')
+        plt.subplot(412)
+        plt.plot(self.primal_objective_list)
+        plt.ylabel('primal objective')
+        plt.xlabel('number of minimization iterations')
         # plt.subplot(513)
         # plt.plot(self.inconsistency_list)
         # plt.ylabel('inconsistency')
         # plt.xlabel('number of minimization iterations')
-        # plt.subplot(514)
-        # plt.plot(self.training_error_list)
-        # plt.ylabel('training error')
-        # plt.xlabel('number of minimization iterations')
-        # plt.subplot(515)
-        # plt.plot(self.testing_error_list)
-        # plt.ylabel('testing error')
-        # plt.xlabel('number of minimization iterations')
-        # plt.show()
+        plt.subplot(413)
+        plt.plot(self.training_error_list)
+        plt.ylabel('training error')
+        plt.xlabel('number of minimization iterations')
+        plt.subplot(414)
+        plt.plot(self.testing_error_list)
+        plt.ylabel('testing error')
+        plt.xlabel('number of minimization iterations')
+        plt.show()
 
         return new_weights
 
@@ -79,8 +73,9 @@ class AutogradLearner(Learner):
         self.testing_error_list = np.zeros(n)
         self.i = 0
 
-        # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.dual_gradient, callback=self.f)
-        res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=self.dual_gradient)
+        dual_gradient = grad(self.dual_obj)
+        res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=dual_gradient, callback=self.f)
+        # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=dual_gradient)
         new_weights = res.x
 
         # plt.subplot(511)
@@ -111,18 +106,15 @@ class AutogradLearner(Learner):
 
 
     def dual_obj(self, weights, options=None):
-        # if self.tau_q is None or not self.fully_observed:
-        #     self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-
+        if self.tau_q is None or not self.fully_observed:
+            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        # self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        # print term_q
-        # print np.dot(self.tau_q, weights)
-        # term_q = np.dot(self.tau_q, weights)
-        self.term_q_p = term_p - term_q
+        # term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+        term_q = np.dot(self.tau_q, weights)
+        self.term_q_p = np.abs(term_p - term_q)
 
 
         objec = 0.0
@@ -135,26 +127,32 @@ class AutogradLearner(Learner):
 
 
     def f(self, weights):
-        # print "-----------"
-
         a = self.dual_obj(weights)
-        # print"--------"
+        print "callback:"
+        for x in self.belief_propagators:
+            x.display = 'full'
+
         b = self.subgrad_obj(weights)
 
-        c = sum([x.compute_inconsistency() for x in self.belief_propagators]) / len(self.belief_propagators)
+        for x in self.belief_propagators:
+            x.display = 'off'
+        # c = sum([x.compute_inconsistency() for x in self.belief_propagators]) / len(self.belief_propagators)
 
+        print b
 
         self.dual_objective_list[self.i] = a
         self.primal_objective_list[self.i] = b
-        self.inconsistency_list[self.i] = c
+        # assert b > 0, "primal lower than 0"
+        # self.inconsistency_list[self.i] = c
 
 
 
         train_errors, test_errors = self.ais.evaluating2(weights)
         self.training_error_list[self.i] = train_errors
+        print train_errors
         self.testing_error_list[self.i] = test_errors
         self.i += 1
-        # print "----"
+
 
 
 

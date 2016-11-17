@@ -17,13 +17,14 @@ from Inference import Inference
 class MatrixBeliefPropagator(Inference):
     """Object that can run belief propagation on a MarkovNet."""
 
-    def __init__(self, markov_net, labels):
+    def __init__(self, markov_net, labels = None):
         """Initialize belief propagator for markov_net."""
         self.mn = markov_net
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
         self.labels = labels
         self.temp = 1
+        self.display = 'off'
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -35,12 +36,13 @@ class MatrixBeliefPropagator(Inference):
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.lables_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
-        self.max_iter = 300000
+        self.max_iter = 300
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
         self.disallow_impossible_states()
-        self.build_lables_mat()
+        if labels is not None:
+            self.build_lables_mat()
 
     def build_lables_mat(self):
         for var, label in self.labels.items():
@@ -128,6 +130,7 @@ class MatrixBeliefPropagator(Inference):
         return disagreement
 
     def infer(self, tolerance = 1e-8, display = 'iter'):
+
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
@@ -137,33 +140,9 @@ class MatrixBeliefPropagator(Inference):
                 energy_func = self.compute_energy_functional()
                 disagreement = self.compute_inconsistency()
                 dual_obj = self.compute_dual_objective()
-                if self.temp == 1:
-                    # print type(energy_func)
-                    # print type(disagreement)
-                    # print type(dual_obj)
-                    print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
-                    self.temp += 1
-                else:
-                    # energy_func = energy_func.value
-                    # print type(dual_obj)
-                    # dual_obj = dual_obj.value
-                    # print type(dual_obj)
-                    # print dual_obj
-                    # # change = change.value
-                    # # disagreement = disagreement.value
-                    # print type(energy_func)
-                    # print energy_func
-                    # # print type(disagreement)
-                    #
-                    # # print type(iteration)
-                    # print type(change)
-                    # print change
-                    print(
-                    "Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (
-                    iteration, change, disagreement, energy_func, dual_obj))
-
+                print("Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (iteration, change, disagreement, energy_func, dual_obj))
             elif display == "iter":
-                print("Iteration %d, change in messages %f." % (iteration, change))
+                print("Iteration %d, change in messages %s." % (iteration, change))
             iteration += 1
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
@@ -197,9 +176,12 @@ class MatrixBeliefPropagator(Inference):
 
     def compute_energy(self):
         """Compute the log-linear energy. Assume that the beliefs have been computed and are fresh."""
-        energy = np.sum(np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]) * np.exp(self.pair_belief_tensor)) + \
+        # energy = np.sum(np.exp(np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:])) * np.exp(self.pair_belief_tensor)) + \
+        #          np.sum(np.exp(np.nan_to_num(self.mn.unary_mat)) * np.exp(self.belief_mat))
+
+        energy = np.sum(np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]) * np.exp(
+            self.pair_belief_tensor)) + \
                  np.sum(np.nan_to_num(self.mn.unary_mat) * np.exp(self.belief_mat))
-        # print self.belief_mat
 
         return energy
 
@@ -220,7 +202,10 @@ class MatrixBeliefPropagator(Inference):
         """Compute the energy functional."""
         self.compute_beliefs()
         self.compute_pairwise_beliefs()
-        return self.compute_energy() + self.compute_bethe_entropy()
+        a = self.compute_energy()
+        b = self.compute_bethe_entropy()
+        print "Energy: %s, Entropy: %s" % (a,b)
+        return a + b
 
     def compute_dual_objective(self):
         """Compute the value of the BP Lagrangian."""
