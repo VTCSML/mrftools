@@ -70,13 +70,15 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         """Update all messages between variables using belief division.
         Return the change in messages from previous iteration."""
         self.compute_beliefs()
+        adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack(
+            (self.message_mat[:, self.mn.num_edges:], self.message_mat[:, :self.mn.num_edges]))
 
-        message_mat_reverse = np.dot(self.message_mat, self.mn.reverse_mat)
-
-        adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
+        # message_mat_reverse = np.dot(self.message_mat, self.mn.reverse_mat)
+        # adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
 
         adjusted_message_prod /= self.edge_counting_numbers
-        adjusted_message_prod += sparse_dot(self.belief_mat, self.mn.message_from_map.T)
+        adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
+        # adjusted_message_prod += sparse_dot(self.belief_mat, self.mn.message_from_map.T)
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1)) * self.edge_counting_numbers
         messages = np.nan_to_num(messages - messages.max(0))

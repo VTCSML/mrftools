@@ -114,7 +114,7 @@ class AutogradLearner(Learner):
         term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
         # term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
         term_q = np.dot(self.tau_q, weights)
-        self.term_q_p = np.abs(term_p - term_q)
+        self.term_q_p = term_p - term_q
 
 
         objec = 0.0
