@@ -124,6 +124,7 @@ class StructuredPriorityGraft():
         vector_length_per_var = self.max_num_states
         vector_length_per_edge = self.max_num_states ** 2
         len_search_space = len(self.search_space)
+
         weights_opt = self.aml_optimize.learn(np.random.randn(self.aml_optimize.weight_dim), self.max_iter_graft, self.edge_regularizers, self.node_regularizers)
         ## GRADIENT TEST
 
@@ -151,12 +152,29 @@ class StructuredPriorityGraft():
                 self.mn.set_edge_factor(activated_edge, np.zeros((len(self.mn.unary_potentials[activated_edge[0]]), len(self.mn.unary_potentials[activated_edge[1]]))))
                 self.aml_optimize = self.setup_grafting_learner(len(self.data))
                 self.aml_optimize.belief_propagators[0].mn.update_edge_tensor()
+
+                #REINITIALIZE NEW VECTOR
+                tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
+                unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
                 for edge in self.active_set:
-                    unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
                     self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
-                
+                    try:
+                        tmp_weights_opt[self.edge_regularizers[edge]] = weights_opt[old_edge_regularizers[edge]]
+                    except:
+                        pass
+                for node in self.variables:
+                    self.node_regularizers[node] = unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]]
+                    try:
+                        tmp_weights_opt[self.node_regularizers[node]] = weights_opt[old_node_regularizers[node]]
+                    except:
+                        pass
+                old_edge_regularizers = copy.deepcopy(self.edge_regularizers)
+                old_node_regularizers = copy.deepcopy(self.node_regularizers)
+
+
                 #OPTIMIZE
-                tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(vector_length_per_edge))) # NEED To REORGANIZE THE WEIGHT VECTOR 
+                # tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(vector_length_per_edge))) # NEED To REORGANIZE THE WEIGHT VECTOR 
+                
                 weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers)
                 
                 ## GRADIENT TEST
@@ -164,7 +182,7 @@ class StructuredPriorityGraft():
 
 
             #Outerloop
-            weights_opt = self.aml_optimize.learn(np.random.randn(self.aml_optimize.weight_dim), 2500, self.edge_regularizers, self.node_regularizers)
+            weights_opt = self.aml_optimize.learn(weights_opt, 2500, self.edge_regularizers, self.node_regularizers)
             is_activated_edge, activated_edge, iter_number = self.activation_test()
 
 
