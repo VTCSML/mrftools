@@ -14,16 +14,20 @@ METHOD_COLORS = {'structured':'-r', 'naive': '-b', 'queue':'-g', 'graft':'-y'}
 
 
 def main():
-	edge_reg = 4
-	len_data = 50000
+	edge_reg = .5
+	len_data = 5000
 	num_cluster_range = range(2, 15, 1)
+
+	MNs, Ts = dict(), dict()
+
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	for num_cluster in num_cluster_range:
 		METHODS = ['naive', 'structured', 'queue']
 		time_likelihoods = dict()
 		sorted_timestamped_mn = dict()
+		edge_likelihoods = dict()
 		print('Simulating data...')
-		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(len_data, num_cluster, 6, 10)
+		model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(len_data, num_cluster, 5, 5)
 		train_data = data[: int(.8 * len_data)]
 		test_data = data[int(.8 * len_data) : len_data]
 		list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
@@ -31,7 +35,7 @@ def main():
 
 		print('EDGES')
 		print(edges)
-		edge_num = len(edges) + 15
+		edge_num = len(edges) + 10
 		num_attributes = len(variables)
 		recalls, precisions, sufficientstats, mn_snapshots = dict(), dict(), dict(), dict()
 		for method in METHODS:
@@ -40,7 +44,7 @@ def main():
 			spg.on_show_metrics()
 			# spg.on_verbose()
 			spg.on_plot_queue('../../../DataDump/pq_plot')
-			spg.setup_learning_parameters(edge_reg, max_iter_graft=500)
+			spg.setup_learning_parameters(edge_reg, max_iter_graft=300)
 			spg.on_monitor_mn()
 			t = time.time()
 			learned_mn, final_active_set, suff_stats_list, recall, precision, iterations = spg.learn_structure(edge_num, edges=edges)
@@ -55,7 +59,7 @@ def main():
 		grafter = Graft(variables, num_states, max_num_states, data, list_order)
 		grafter.on_show_metrics()
 		# grafter.on_verbose()
-		grafter.setup_learning_parameters(edge_reg, max_iter_graft=500)
+		grafter.setup_learning_parameters(edge_reg, max_iter_graft=300)
 		grafter.on_monitor_mn()
 		t = time.time()
 		learned_mn, final_active_set, suff_stats_list, recall, precision = grafter.learn_structure(edge_num, edges)
@@ -67,14 +71,19 @@ def main():
 
 		time_stamps = list()
 
+		max_time = 0
 		for method in METHODS:
-			time_stamps.extend(list(mn_snapshots[method].keys()))
+			print(method)
+			print(max(list(mn_snapshots[method].keys())))
+			if max_time < max(list(mn_snapshots[method].keys())):
+				max_time = max(list(mn_snapshots[method].keys()))
 			timestamped_mn_vec = mn_snapshots[method].items()
 			timestamped_mn_vec.sort(key=lambda x: x[0])
 			sorted_timestamped_mn[method] = timestamped_mn_vec
 
+			MNs[method] = [x[1] for x in timestamped_mn_vec]
+			Ts[method] = [x[0] for x in timestamped_mn_vec]
 
-		max_time = max(time_stamps)
 
 		# step_size = .1
 
@@ -95,15 +104,49 @@ def main():
 					curr_likelihoods.append(min(curr_likelihoods))
 			time_likelihoods[method] = curr_likelihoods
 
-		print('PLOTTING likelihoods')
+
+
+		for method in METHODS:
+			print('>' + method)
+			curr_likelihoods = list()
+			for mn in MNs[method]:
+					curr_likelihoods.append(compute_likelihood(mn, num_attributes, test_data))
+			edge_likelihoods[method] = curr_likelihoods
+
+
+
+		print('PLOTTING time VS nllikelihoods')
 		for i in range(len(METHODS)):
-			plt.plot(time_range, time_likelihoods[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)  
+			plt.plot(time_range, time_likelihoods[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)
 		plt.legend(loc='best')
 		plt.title('Likelihoods')
 		plt.xlabel('time')
 		plt.ylabel('likelihood')
-		plt.savefig('../../../DataDump/likelihoods/likelihoods_' + str(len(variables)) +'Nodes_MRF.png')
+		plt.savefig('../../../DataDump/likelihoods/timeVSlikelihoods_' + str(len(variables)) +'Nodes_MRF.png')
 		plt.close()
+
+
+		print('PLOTTING NUM oF edges activated Vs nllikelihood')
+		for i in range(len(METHODS)):
+			plt.plot(edge_likelihoods[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)
+		plt.legend(loc='best')
+		plt.title('Likelihoods')
+		plt.xlabel('NUM oF edges activated')
+		plt.ylabel('likelihood')
+		plt.savefig('../../../DataDump/likelihoods/EdgesVSlikelihoods_' + str(len(variables)) +'Nodes_MRF.png')
+		plt.close()
+
+
+		print('PLOTTING NUM of edges activated VS time')
+		for i in range(len(METHODS)):
+			plt.plot(Ts[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)
+		plt.legend(loc='best')
+		plt.title('Likelihoods')
+		plt.xlabel('NUM oF edges activated')
+		plt.ylabel('time')
+		plt.savefig('../../../DataDump/likelihoods/EdgesVStime_' + str(len(variables)) +'Nodes_MRF.png')
+		plt.close()
+
 
 
 

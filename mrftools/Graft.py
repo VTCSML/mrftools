@@ -230,7 +230,7 @@ class Graft():
             map_vec.append(edge)
         max_ind = np.array(gradient_vec).argmax(axis=0)
         max_grad = max(gradient_vec)
-        length_normalizer = float(1)  / ( len(bp.mn.unary_potentials[edge[0]])  * len(bp.mn.unary_potentials[edge[1]] ))
+        length_normalizer = float(1) / (len(bp.mn.unary_potentials[edge[0]]) * len(bp.mn.unary_potentials[edge[1]]))
         if max_grad > length_normalizer * self.edge_l1:
             is_activated = True
             activated_edge = map_vec[max_ind]

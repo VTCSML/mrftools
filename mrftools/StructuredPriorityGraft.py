@@ -156,7 +156,7 @@ class StructuredPriorityGraft():
                     self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
                 
                 #OPTIMIZE
-                tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(vector_length_per_edge)))
+                tmp_weights_opt = np.concatenate((weights_opt, np.random.randn(vector_length_per_edge))) # NEED To REORGANIZE THE WEIGHT VECTOR 
                 weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers)
                 
                 ## GRADIENT TEST
