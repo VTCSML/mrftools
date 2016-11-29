@@ -24,19 +24,16 @@ class AutogradLearner_new(Learner):
         self.ais = ais
 
     def objective(self, weights, options=None):
-        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
         term_p = sum([x.compute_univariate_logistic_loss() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_univariate_logistic_loss() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        self.term_q_p = term_p - term_q
+
 
         objec = 0.0
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
-        objec += self.term_q_p
-        # objec += term_p
+        objec += term_p
 
         return objec
 

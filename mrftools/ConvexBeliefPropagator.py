@@ -135,10 +135,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
             self.pair_belief_tensor = beliefs
 
-    def compute_univariate_logistic_loss(self):
-        self.compute_beliefs()
-        loss = - np.sum(np.nan_to_num(self.belief_mat) * self.lables_mat)
-        return loss
+
 
 
     # def compute_univariate_logistic_loss_anytime(self, tolerance=1e-8, display='iter'):

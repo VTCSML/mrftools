@@ -18,8 +18,8 @@ class AutogradImageSegmentation(object):
         self.d_unary = 65
         self.num_states = 2
         self.d_edge = 11
-        self.max_height = 20
-        self.max_width = 20
+        self.max_height = 100
+        self.max_width = 100
         self.num_training_images = 1
         self.num_testing_images = 0
         self.inc = True
@@ -51,7 +51,7 @@ class AutogradImageSegmentation(object):
 
         self.images, self.models, self.labels, self.names = loader.load_all_images_and_labels(self.path+'/test/train', 2, self.num_training_images)
 
-        self.learner = AutogradLearner(self.inference_type, self)
+        self.learner = AutogradLearner_new(self.inference_type, self)
 
         self.learner.set_regularization(0.0, 1.0)
 
@@ -181,9 +181,9 @@ def main():
     primal_weights = ais.learn_primal()
     ais.evaluating(primal_weights)
     # #
-    ais.learner.tau_q = None
-    dual_weights = ais.learn_dual()
-    ais.evaluating(dual_weights)
+    # ais.learner.tau_q = None
+    # dual_weights = ais.learn_dual()
+    # ais.evaluating(dual_weights)
 
 
 

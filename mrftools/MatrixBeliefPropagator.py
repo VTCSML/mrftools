@@ -35,19 +35,19 @@ class MatrixBeliefPropagator(Inference):
         self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
-        self.lables_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
+        self.labels_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.max_iter = 300
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
         self.disallow_impossible_states()
         if labels is not None:
-            self.build_lables_mat()
+            self.build_labels_mat()
 
-    def build_lables_mat(self):
+    def build_labels_mat(self):
         for var, label in self.labels.items():
             i = self.mn.var_index[var]
-            self.lables_mat[label, i] = 1
+            self.labels_mat[label, i] = 1
 
     def set_max_iter(self, max_iter):
         self.max_iter = max_iter
@@ -217,6 +217,11 @@ class MatrixBeliefPropagator(Inference):
     def set_messages(self, messages):
         assert(np.all(self.message_mat.shape == messages.shape))
         self.message_mat = messages
+
+    def compute_univariate_logistic_loss(self):
+        self.compute_beliefs()
+        loss = - np.sum(np.nan_to_num(self.belief_mat) * self.labels_mat)
+        return loss
 
 @primitive
 def logsumexp(matrix, dim = None):

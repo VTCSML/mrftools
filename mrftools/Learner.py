@@ -37,7 +37,7 @@ class Learner(object):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
          unary variables. Features should be a dictionary containing the feature vectors for the unary variables."""
         self.models.append(model)
-        self.belief_propagators.append(self.inference_type(model))
+        self.belief_propagators.append(self.inference_type(model, labels = labels))
 
         if self.weight_dim is None:
             self.weight_dim = model.weight_dim
@@ -65,11 +65,9 @@ class Learner(object):
 
     def do_inference(self, belief_propagators):
         for bp in belief_propagators:
-            print "<<<<<<<"
             if self.initialization_flag == True:
                 bp.initialize_messages()
-            bp.infer(display = 'full')
-            print ">>>>>>>"
+            bp.infer(display = 'off')
     def set_inference_truncation(self, bp_iter):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(bp_iter)
