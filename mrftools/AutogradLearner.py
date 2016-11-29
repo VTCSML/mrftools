@@ -74,8 +74,8 @@ class AutogradLearner(Learner):
         self.i = 0
 
         dual_gradient = grad(self.dual_obj)
-        res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=dual_gradient, callback=self.f)
-        # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=dual_gradient)
+        # res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=dual_gradient, callback=self.f)
+        res = minimize(self.dual_obj, weights, method='L-BFGS-B', jac=dual_gradient)
         new_weights = res.x
 
         # plt.subplot(511)
@@ -104,54 +104,32 @@ class AutogradLearner(Learner):
 
         return new_weights
 
-
-    def dual_obj(self, weights, options=None):
-        if self.tau_q is None or not self.fully_observed:
-            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        # self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-
-        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        # term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        term_q = np.dot(self.tau_q, weights)
-        self.term_q_p = term_p - term_q
-
-
-        objec = 0.0
-        # add regularization penalties
-        objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
-        objec += self.term_q_p
-
-        return objec
-
-
-    def f(self, weights):
-        a = self.dual_obj(weights)
-        print "callback:"
-        for x in self.belief_propagators:
-            x.display = 'full'
-
-        b = self.subgrad_obj(weights)
-
-        for x in self.belief_propagators:
-            x.display = 'off'
-        # c = sum([x.compute_inconsistency() for x in self.belief_propagators]) / len(self.belief_propagators)
-
-        print b
-
-        self.dual_objective_list[self.i] = a
-        self.primal_objective_list[self.i] = b
-        # assert b > 0, "primal lower than 0"
-        # self.inconsistency_list[self.i] = c
-
-
-
-        train_errors, test_errors = self.ais.evaluating2(weights)
-        self.training_error_list[self.i] = train_errors
-        print train_errors
-        self.testing_error_list[self.i] = test_errors
-        self.i += 1
+    # def f(self, weights):
+    #     a = self.dual_obj(weights)
+    #     print "callback:"
+    #     for x in self.belief_propagators:
+    #         x.display = 'full'
+    #
+    #     b = self.subgrad_obj(weights)
+    #
+    #     for x in self.belief_propagators:
+    #         x.display = 'off'
+    #     # c = sum([x.compute_inconsistency() for x in self.belief_propagators]) / len(self.belief_propagators)
+    #
+    #     print b
+    #
+    #     self.dual_objective_list[self.i] = a
+    #     self.primal_objective_list[self.i] = b
+    #     # assert b > 0, "primal lower than 0"
+    #     # self.inconsistency_list[self.i] = c
+    #
+    #
+    #
+    #     train_errors, test_errors = self.ais.evaluating2(weights)
+    #     self.training_error_list[self.i] = train_errors
+    #     print train_errors
+    #     self.testing_error_list[self.i] = test_errors
+    #     self.i += 1
 
 
 

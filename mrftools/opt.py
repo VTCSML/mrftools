@@ -51,7 +51,7 @@ class WeightRecord(object):
             self.weight_record = a.reshape((1, a.size))
             self.time_record = np.array([int(round(time.time() * 1000))])
         else:
-            self.weight_record = np.vstack((self.weight_record,a))
+            self.weight_record = np.vstack((self.weight_record, a))
             self.time_record = np.vstack((self.time_record,int(round(time.time() * 1000))))
 
 
