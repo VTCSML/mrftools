@@ -51,7 +51,7 @@ class AutogradImageSegmentation(object):
 
         self.images, self.models, self.labels, self.names = loader.load_all_images_and_labels(self.path+'/test/train', 2, self.num_training_images)
 
-        self.learner = AutogradLearner_new(self.inference_type, self)
+        self.learner = AutogradLearner(self.inference_type, self)
 
         self.learner.set_regularization(0.0, 1.0)
 

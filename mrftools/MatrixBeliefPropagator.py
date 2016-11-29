@@ -25,6 +25,8 @@ class MatrixBeliefPropagator(Inference):
         self.labels = labels
         self.temp = 1
         self.display = 'off'
+        self.mode = 'final'
+        self.loss = 0
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -37,6 +39,7 @@ class MatrixBeliefPropagator(Inference):
         self.conditioning_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.labels_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
         self.max_iter = 300
+        self.error_list = np.zeros(self.max_iter)
         self.fully_conditioned = False
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
@@ -51,6 +54,7 @@ class MatrixBeliefPropagator(Inference):
 
     def set_max_iter(self, max_iter):
         self.max_iter = max_iter
+        self.error_list = np.zeros(self.max_iter)
 
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
@@ -102,8 +106,7 @@ class MatrixBeliefPropagator(Inference):
         """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
         self.compute_beliefs()
 
-        adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                                     self.message_mat[:, :self.mn.num_edges]))
+        adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:], self.message_mat[:, :self.mn.num_edges]))
         adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1))
@@ -129,11 +132,15 @@ class MatrixBeliefPropagator(Inference):
 
         return disagreement
 
-    def infer(self, tolerance = 1e-8, display = 'iter'):
-
+    def infer(self, tolerance = 1e-8, display = 'iter', evaluating = False):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
+        if self.mode == 'anytime':
+            loss = 0
+            if evaluating == True:
+                error_list = np.zeros(self.max_iter)
+
         while change > tolerance and iteration < self.max_iter:
             change = self.update_messages()
             if display == "full":
@@ -143,9 +150,33 @@ class MatrixBeliefPropagator(Inference):
                 print("Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (iteration, change, disagreement, energy_func, dual_obj))
             elif display == "iter":
                 print("Iteration %d, change in messages %s." % (iteration, change))
+
+
+            if self.mode == 'anytime':
+                temp = self.compute_univariate_logistic_loss()
+                loss = loss + temp
+                if evaluating == True and isinstance(temp, float):
+                    self.compute_beliefs()
+                    belief_mat = np.exp(self.belief_mat)
+                    predicted = np.round(belief_mat)
+                    error = abs(predicted - self.labels_mat)
+                    a = sum(sum(error))
+                    b = np.size(self.belief_mat)
+                    accuracy = np.true_divide(a, b)
+                    error_list[iteration] = accuracy
+
             iteration += 1
+
+        if evaluating == True:
+            self.error_list = error_list
+            print self.error_list
+
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
+
+        if self.mode == 'anytime':
+            self.loss = loss
+
 
     def load_beliefs(self):
         self.compute_beliefs()

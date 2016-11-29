@@ -47,40 +47,42 @@ class AutogradLearner_new(Learner):
 
         gradient = grad(self.objective)
 
-        res = minimize(self.objective, weights, method='L-BFGS-B', jac=gradient)
-        new_weights = res.x
+        # res = minimize(self.objective, weights, method='L-BFGS-B', jac=gradient)
+        # new_weights = res.x
+
+        new_weights = ada_grad(self.objective, gradient, weights, 0, callback=None)
 
         return new_weights
 
     def objective_anytime(self, weights, options=None):
 
-        term_p = sum([x.compute_univariate_logistic_loss() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_univariate_logistic_loss() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        self.term_q_p = term_p - term_q
+        for x in self.belief_propagators:
+            x.mode = 'anytime'
+
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+        term_p = sum([x.loss for x in self.belief_propagators]) / len(self.belief_propagators)
 
         objec = 0.0
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
-        objec += self.term_q_p
-        # objec += term_p
-
+        objec += term_p
+        print "objective: %s" % objec
         return objec
 
-    # def learn_anytime(self, weights, callback_f=None):
-    #     n = 500
-    #     self.objective_list = np.zeros(n)
-    #     self.inconsistency_list = np.zeros(n)
-    #     self.training_error_list = np.zeros(n)
-    #     self.testing_error_list = np.zeros(n)
-    #     self.i = 0
-    #
-    #     gradient = grad(self.objective)
-    #
-    #     res = minimize(self.objective_anytime, weights, method='L-BFGS-B', jac=gradient)
-    #     new_weights = res.x
-    #
-    #     return new_weights
+    def learn_anytime(self, weights, callback_f=None):
+        n = 500
+        self.objective_list = np.zeros(n)
+        self.inconsistency_list = np.zeros(n)
+        self.training_error_list = np.zeros(n)
+        self.testing_error_list = np.zeros(n)
+        self.i = 0
+        gradient = grad(self.objective_anytime)
+        # res = minimize(self.objective_anytime, weights, method='L-BFGS-B', jac=gradient)
+        # new_weights = res.x
+        new_weights = ada_grad(self.objective_anytime, gradient, weights, 0, callback=None)
+
+        return new_weights
 
     def f(self, weights):
         a = self.objective(weights)

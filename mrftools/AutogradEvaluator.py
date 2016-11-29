@@ -42,21 +42,24 @@ class AutogradEvaluator(object):
 
                 self.draw_results(images[i], label_img, beliefs_dic)
 
-    def evaluate_training_images(self, images, models, labels, names, weights, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final'):
+    def evaluate_training_images(self, images, models, labels, names, weights, num_images, inference_type, max_iter= 300, inc='false', plot = 'true', display='final', mode='final'):
         np.set_printoptions(precision=10)
-        loader = ImageLoader(self.max_width, self.max_height)
-        # images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
-
         average_errors = 0
         total_inconsistency = 0
 
         for i in range(len(images)):
             if i < num_images:
                 models[i].set_weights(weights)
-                bp = inference_type(models[i])
+                bp = inference_type(models[i], labels = labels[i])
+                bp.mode = mode
                 bp.set_max_iter(max_iter)
-                bp.infer(display='off')
+                bp.infer(display='off', evaluating = True)
                 bp.load_beliefs()
+
+                # print bp.loss_list
+                # plt.subplot(111)
+                # plt.plot(bp.loss_list)
+                # plt.show()
 
                 beliefs = np.zeros((images[i].height, images[i].width))
                 label_img = np.zeros((images[i].height, images[i].width))
@@ -100,19 +103,19 @@ class AutogradEvaluator(object):
 
         return average_errors
 
-    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final'):
+    def evaluate_testing_images(self, directory, weights, num_states, num_images, inference_type, max_iter= 300, inc= False, plot = True, display = 'final', mode = 'final'):
         np.set_printoptions(precision=10)
         loader = ImageLoader(self.max_width, self.max_height)
 
         images, models, labels, names = loader.load_all_images_and_labels(directory, num_states, num_images)
         if inc == True:
             average_errors, total_inconsistency = self.evaluate_training_images(images, models, labels, names, weights, num_images, inference_type,
-                                     max_iter, inc, plot)
+                                     max_iter, inc, plot, mode = mode)
             return average_errors, total_inconsistency
 
 
         average_errors = self.evaluate_training_images(self, images, models, labels, names, weights, num_images, inference_type,
-                                 max_iter, inc, plot)
+                                 max_iter, inc, plot, mode = mode)
 
         return average_errors
 
