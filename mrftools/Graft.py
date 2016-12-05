@@ -29,7 +29,6 @@ class Graft():
     """
     Structured priority grafting class
     """
-
     def __init__(self, variables, num_states, max_num_states, data, list_order):
         """
         Initialize StructuredPriorityGraft class
@@ -259,13 +258,15 @@ class Graft():
         """
         Filter out near zero edges
         """
+        bp = self.aml_optimize.belief_propagators[0]
         self.aml_optimize.belief_propagators[0].mn.update_edge_tensor()
         unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
         final_active_set = list()
         for edge in self.active_set:
+            length_normalizer = float(1) / (len(bp.mn.unary_potentials[edge[0]]) * len(bp.mn.unary_potentials[edge[1]]))
             i = self.aml_optimize.belief_propagators[0].mn.edge_index[edge]
             edge_weights = self.aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:self.aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :self.aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
-            if np.sqrt(edge_weights.dot(edge_weights))  > self.zero_threshold:
+            if length_normalizer * np.sqrt(edge_weights.dot(edge_weights))  > self.zero_threshold:
                 final_active_set.append(edge)
         return final_active_set
 

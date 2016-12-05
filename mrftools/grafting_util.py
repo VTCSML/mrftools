@@ -411,7 +411,7 @@ def get_max_mean_gradient(bps, data_length, curr_search_space, edges_data_sum):
     curr_search_space.remove(activated_edge)
     return activated_edge, max_grad, curr_search_space
 
-def compute_likelihood(mn, num_nodes, data):
+def compute_likelihood(mn, variables, data):
     """
     Functionality:
     1 - Compute the likelihood for the learned MRF
@@ -420,7 +420,7 @@ def compute_likelihood(mn, num_nodes, data):
     unary_potentials_copy = copy.deepcopy(mn.unary_potentials)
     for instance in data:
         likelihood_instance = 0
-        for curr_node in range(num_nodes):
+        for curr_node in variables:
             inner_exp = copy.deepcopy(unary_potentials_copy[curr_node])
             curr_node_potential = copy.deepcopy(unary_potentials_copy[curr_node])
             likelihood_instance_node = curr_node_potential[instance[curr_node]]

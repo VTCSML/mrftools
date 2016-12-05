@@ -37,8 +37,10 @@ class StructuredPriorityGraft():
         self.max_num_states = max_num_states
         self.mn = MarkovNet()
         self.mn.initialize_unary_factors(variables, num_states)
-        # self.search_space = self.mn.search_space
-        self.search_space = [self.mn.search_space[i] for i in list_order]
+        if list_order == None:
+            self.search_space = self.mn.search_space
+        else:
+            self.search_space = [self.mn.search_space[i] for i in list_order]
         self.data = data
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
         self.pq = initialize_priority_queue(self.search_space)
@@ -50,7 +52,7 @@ class StructuredPriorityGraft():
         self.zero_threshold = 1e-2
         self.max_iter_graft = 500
         self.active_set = []
-        self.edge_regularizers, self.node_regularizers = dict(), dict()
+        self.edge_regularizers, self.node_regularizers, self.mn_snapshots = dict(), dict(), dict()
         self.is_show_metrics = False
         self.is_plot_queue = False
         self.is_verbose = False
@@ -58,7 +60,6 @@ class StructuredPriorityGraft():
         self.priority_decrease_decay_factor = .95
         self.plot_path = '.'
         self.is_monitor_mn = False
-        self.mn_snapshots = dict()
         self.is_converged = False
 
     def set_priority_factors(priority_increase_decay_factor, priority_decrease_decay_factor):
@@ -443,13 +444,15 @@ class StructuredPriorityGraft():
         """
         Filter out near zero edges
         """
+        bp = self.aml_optimize.belief_propagators[0]
         self.aml_optimize.belief_propagators[0].mn.update_edge_tensor()
         unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
         final_active_set = list()
         for edge in self.active_set:
+            length_normalizer = float(1) / (len(bp.mn.unary_potentials[edge[0]]) * len(bp.mn.unary_potentials[edge[1]]))
             i = self.aml_optimize.belief_propagators[0].mn.edge_index[edge]
             edge_weights = self.aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:self.aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :self.aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
-            if np.sqrt(edge_weights.dot(edge_weights))  > self.zero_threshold:
+            if length_normalizer * np.sqrt(edge_weights.dot(edge_weights))  > self.zero_threshold:
                 final_active_set.append(edge)
         return final_active_set
 
