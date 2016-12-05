@@ -27,6 +27,7 @@ class MatrixBeliefPropagator(Inference):
         self.display = 'off'
         self.mode = 'final'
         self.loss = 0
+        self.belief_list = list()
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -136,10 +137,20 @@ class MatrixBeliefPropagator(Inference):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
-        if self.mode == 'anytime':
-            loss = 0
-            if evaluating == True:
-                error_list = np.zeros(self.max_iter)
+        # if self.mode == 'anytime':
+        loss = 0
+        # loss = np.zeros(self.max_iter)
+        if evaluating == True:
+            error_list = np.zeros(self.max_iter)
+
+        n = np.true_divide(self.max_iter, 3)
+        n_list = list()
+
+        n_list.append(int(1 * n)-1)
+        n_list.append(np.int(2 * n)-1)
+        n_list.append(np.int(3 * n)-1)
+
+        self.belief_list = list()
 
         while change > tolerance and iteration < self.max_iter:
             change = self.update_messages()
@@ -152,29 +163,41 @@ class MatrixBeliefPropagator(Inference):
                 print("Iteration %d, change in messages %s." % (iteration, change))
 
 
-            if self.mode == 'anytime':
-                temp = self.compute_univariate_logistic_loss()
-                loss = loss + temp
-                if evaluating == True and isinstance(temp, float):
-                    self.compute_beliefs()
-                    belief_mat = np.exp(self.belief_mat)
-                    predicted = np.round(belief_mat)
-                    error = abs(predicted - self.labels_mat)
-                    a = sum(sum(error))
-                    b = np.size(self.belief_mat)
-                    accuracy = np.true_divide(a, b)
-                    error_list[iteration] = accuracy
+            # if self.mode == 'anytime':
+            temp = self.compute_univariate_logistic_loss()
+            # sum
+            # if iteration == 0 or iteration == 1:
+            loss = loss + temp
+            # max
+            # if isinstance(temp, float):
+            #     loss[iteration] = temp
+
+            if evaluating == True and isinstance(temp, float):
+                self.compute_beliefs()
+                belief_mat = np.exp(self.belief_mat)
+                if iteration in n_list:
+                    belief_dict = self.load_beliefs_anytime(belief_mat)
+                    self.belief_list.append(belief_dict)
+                predicted = np.round(belief_mat)
+                error = abs(predicted - self.labels_mat)
+                a = sum(sum(error))
+                b = np.size(self.belief_mat)
+                # accuracy = np.true_divide(a, b)
+                # error_list[iteration] = accuracy
+                error_list[iteration] = a
 
             iteration += 1
 
+        # if self.mode == 'anytime' and evaluating == True:
         if evaluating == True:
             self.error_list = error_list
-            print self.error_list
 
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
 
         if self.mode == 'anytime':
+            loss = np.true_divide(loss, iteration)
+            # loss = logsumexp(loss)
             self.loss = loss
 
 
@@ -194,6 +217,12 @@ class MatrixBeliefPropagator(Inference):
             self.pair_beliefs[(var, neighbor)] = belief
 
             self.pair_beliefs[(neighbor, var)] = belief.T
+
+    def load_beliefs_anytime(self, belief_mat):
+        var_beliefs = dict()
+        for (var, i) in self.mn.var_index.items():
+            var_beliefs[var] = belief_mat[:len(self.mn.unary_potentials[var]), i]
+        return var_beliefs
 
     def compute_bethe_entropy(self):
         """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""

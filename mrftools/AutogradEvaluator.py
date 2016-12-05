@@ -14,9 +14,8 @@ class AutogradEvaluator(object):
         self.max_width = max_width
         self.max_height = max_height
 
-    def plot_images(self, images, models, labels, names, weights, num_states, num_images, inference_type, max_iter= 300):
+    def plot_images(self, images, models, labels, weights, num_images, inference_type, max_iter= 300):
         np.set_printoptions(precision=10)
-        loader = ImageLoader(self.max_width, self.max_height)
 
         beliefs_dic = {}
 
@@ -46,7 +45,8 @@ class AutogradEvaluator(object):
         np.set_printoptions(precision=10)
         average_errors = 0
         total_inconsistency = 0
-
+        total_error = np.zeros(max_iter)
+        total_pixels = 0
         for i in range(len(images)):
             if i < num_images:
                 models[i].set_weights(weights)
@@ -54,12 +54,9 @@ class AutogradEvaluator(object):
                 bp.mode = mode
                 bp.set_max_iter(max_iter)
                 bp.infer(display='off', evaluating = True)
+                total_error += bp.error_list
+                total_pixels += 2 * images[i].height * images[i].width
                 bp.load_beliefs()
-
-                # print bp.loss_list
-                # plt.subplot(111)
-                # plt.plot(bp.loss_list)
-                # plt.show()
 
                 beliefs = np.zeros((images[i].height, images[i].width))
                 label_img = np.zeros((images[i].height, images[i].width))
@@ -67,6 +64,7 @@ class AutogradEvaluator(object):
                 baseline = 0
                 num_latent = 0
 
+                bp.load_beliefs()
                 for x in range(images[i].width):
                     for y in range(images[i].height):
                         beliefs[y, x] = np.exp(bp.var_beliefs[(x, y)][1])
@@ -78,11 +76,30 @@ class AutogradEvaluator(object):
                             num_latent += 1
 
 
+                # plot anytime images
+
+                real_belief_list = list()
+
+                for belief in bp.belief_list:
+                    belief_real = np.zeros((images[i].height, images[i].width))
+                    for x in range(images[i].width):
+                        for y in range(images[i].height):
+                            belief_real[y, x] = np.exp(belief[(x, y)][1])
+
+                    real_belief_list.append(belief_real)
+
+
+
                 error_rate = np.true_divide(errors, images[i].width * images[i].height - num_latent)
                 baseline_rate = np.true_divide(baseline, images[i].width * images[i].height)
 
+
+
                 if plot == True:
-                    self.draw_results(images[i], label_img, beliefs)
+                    # if bp.mode == 'anytime':
+                    self.draw_results_anytime(images[i], label_img, real_belief_list)
+                    # else:
+                    #     self.draw_results(images[i], label_img, beliefs)
 
                 if display == 'full':
                     print("Results for the %dth image:" % (i + 1))
@@ -96,7 +113,12 @@ class AutogradEvaluator(object):
 
                 average_errors += error_rate
 
-            average_errors = np.true_divide(average_errors, i + 1)
+        average_errors = np.true_divide(average_errors, i + 1)
+        error_rate_list = total_error / total_pixels
+        print error_rate_list
+        # plt.subplot(111)
+        # plt.plot(bp.loss_list)
+        # plt.show()
         if inc == True:
             # print("Overall inconsistency: %f" % total_inconsistency)
             return average_errors, total_inconsistency
@@ -259,6 +281,22 @@ class AutogradEvaluator(object):
             plt.subplot(133)
             plt.imshow(beliefs, interpolation="nearest")
             plt.show()
+
+
+    def draw_results_anytime(self, image, label, belief_list):
+        plt.subplot(151)
+        plt.imshow(image, interpolation="nearest")
+        plt.subplot(152)
+        plt.imshow(label, interpolation="nearest")
+        plt.subplot(153)
+        plt.imshow(belief_list[0], interpolation="nearest")
+        plt.subplot(154)
+        plt.imshow(belief_list[1], interpolation="nearest")
+        plt.subplot(155)
+        plt.imshow(belief_list[2], interpolation="nearest")
+        plt.show()
+
+
 
 
     def evaluate_objective(self, method_list, path):

@@ -18,14 +18,14 @@ class AutogradImageSegmentation(object):
         self.d_unary = 65
         self.num_states = 2
         self.d_edge = 11
-        self.max_height = 10
-        self.max_width = 10
-        self.mode = 'anytime'
+        self.max_height = 40
+        self.max_width = 40
+        self.mode = 'final'
         self.num_training_images = 1
-        self.num_testing_images = 0
+        self.num_testing_images = 1
         self.inc = True
         self.path = os.path.abspath(os.path.join(os.path.dirname('settings.py'), os.path.pardir))
-        self.plot = False
+        self.plot = True
         self.initialization_flag = True
 
         self.inference_type = ConvexBeliefPropagator

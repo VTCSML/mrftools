@@ -35,6 +35,8 @@ class AutogradLearner_new(Learner):
         objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
         objec += term_p
 
+        print objec
+
         return objec
 
     def learn(self, weights, callback_f=None):
@@ -67,7 +69,7 @@ class AutogradLearner_new(Learner):
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
         objec += term_p
-        print "objective: %s" % objec
+        print objec
         return objec
 
     def learn_anytime(self, weights, callback_f=None):
@@ -78,8 +80,6 @@ class AutogradLearner_new(Learner):
         self.testing_error_list = np.zeros(n)
         self.i = 0
         gradient = grad(self.objective_anytime)
-        # res = minimize(self.objective_anytime, weights, method='L-BFGS-B', jac=gradient)
-        # new_weights = res.x
         new_weights = ada_grad(self.objective_anytime, gradient, weights, 0, callback=None)
 
         return new_weights
