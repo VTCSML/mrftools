@@ -109,31 +109,6 @@ class AutogradLearner(Learner):
 
         return new_weights
 
-
-    def dual_obj(self, weights, options=None):
-        # if self.tau_q is None or not self.fully_observed:
-        #     self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, self.models, True)
-
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, self.models, True)
-
-        term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
-        term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
-        # print term_q
-        # print np.dot(self.tau_q, weights)
-        # term_q = np.dot(self.tau_q, weights)
-        self.term_q_p = term_p - term_q
-
-
-        objec = 0.0
-        # add regularization penalties
-        objec += self.l1_regularization * np.sum(np.abs(weights))
-        objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
-        objec += self.term_q_p
-
-        return objec
-
-
     def f(self, weights):
         # print "-----------"
 

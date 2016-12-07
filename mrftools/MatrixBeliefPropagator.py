@@ -40,9 +40,10 @@ class MatrixBeliefPropagator(Inference):
         self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
 
         self.disallow_impossible_states()
-        self.build_lables_mat()
+        if labels:
+            self.build_lables_mat()
 
-    def build_lables_mat(self):
+    def build_labels_mat(self):
         for var, label in self.labels.items():
             i = self.mn.var_index[var]
             self.lables_mat[label, i] = 1

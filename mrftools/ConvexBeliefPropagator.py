@@ -8,7 +8,7 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
 class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
-    def __init__(self, markov_net, labels, counting_numbers=None):
+    def __init__(self, markov_net, counting_numbers=None, labels=None):
         super(ConvexBeliefPropagator, self).__init__(markov_net, labels)
 
         self.unary_counting_numbers = np.ones(len(self.mn.variables))
