@@ -113,9 +113,9 @@ class AutogradLearner(Learner):
     def dual_obj(self, weights, options=None):
         # if self.tau_q is None or not self.fully_observed:
         #     self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
-        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+        self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, self.models, True)
 
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, self.models, True)
 
         term_p = sum([x.compute_dual_objective() for x in self.belief_propagators]) / len(self.belief_propagators)
         term_q = sum([x.compute_dual_objective() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)

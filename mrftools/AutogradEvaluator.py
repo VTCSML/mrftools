@@ -52,11 +52,13 @@ class AutogradEvaluator(object):
 
         for i in range(len(images)):
             if i < num_images:
-                models[i].set_weights(weights)
+                feature_mat = models[i].feature_mat
+                edge_feature_mat = models[i].edge_feature_mat
+                unary_mat, edge_pot_tensor = models[i].set_weights(weights, feature_mat, edge_feature_mat)
                 bp = inference_type(models[i], labels[i])
                 bp.set_max_iter(max_iter)
-                bp.infer(display='off')
-                bp.load_beliefs()
+                message_mat = bp.infer(unary_mat, edge_pot_tensor, display='off')
+                bp.load_beliefs(unary_mat, message_mat)
 
                 beliefs = np.zeros((images[i].height, images[i].width))
                 label_img = np.zeros((images[i].height, images[i].width))

@@ -94,7 +94,7 @@ class Learner(object):
 
     def subgrad_obj(self, weights, options=None):
         if self.tau_q is None or not self.fully_observed:
-            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
+            self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, self.models, True)
         return self.objective(weights)
 
     # def subgrad_grad(self, weights, options=None):
@@ -119,15 +119,38 @@ class Learner(object):
         for bp in belief_propagators:
             bp.mn.set_weights(weight_vector)
 
-    def calculate_tau(self, weights, belief_propagators, should_infer=True):
-        self.set_weights(weights, belief_propagators)
-        if should_infer:
-            self.do_inference(belief_propagators)
+    #@primitive
+    def calculate_tau(self, weights, belief_propagators, models, should_infer=True):
+        marginal_sum = 0
+        for i in range(len(belief_propagators)):
+            feature_mat = models[i].feature_mat
+            edge_feature_mat = models[i].edge_feature_mat
+            unary_mat, edge_pot_tensor = belief_propagators[i].mn.set_weights(weights, feature_mat, edge_feature_mat)
+            if should_infer:
+                if self.initialization_flag == True:
+                    belief_propagators[i].initialize_messages()
+                    message_mat = belief_propagators[i].infer(unary_mat, edge_pot_tensor, display = 'off')
 
-        return self.get_feature_expectations(belief_propagators)
+            marginal_sum += belief_propagators[i].get_feature_expectations(unary_mat, message_mat)
+
+        return marginal_sum / len(belief_propagators)
+
+    #def make_grad_calculate_tau(ans, weights, belief_propagators, should_infer=True):
+
+    #     def gradient_product(g):
+    #         return .....
+    #
+    #     return gradient_product
+    #
+    # try:
+    #     calculate_tau.defgrad(make_grad_calculate_tau)
+    #
+    # except AttributeError:
+    #     pass
+
 
     def objective(self, weights, options=None):
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, self.models, True)
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
@@ -147,7 +170,7 @@ class Learner(object):
         return objec
 
     def gradient(self, weights, options=None):
-        self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
+        self.tau_p = self.calculate_tau(weights, self.belief_propagators, self.models, False)
 
         grad = np.zeros(len(weights))
 

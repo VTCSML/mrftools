@@ -67,30 +67,30 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
                                (np.nan_to_num(self.belief_mat) * np.exp(self.belief_mat)))
         return entropy
 
-    def update_messages(self):
+    def update_messages(self, unary_mat, edge_pot_tensor, message_mat):
         """Update all messages between variables using belief division.
         Return the change in messages from previous iteration."""
-        self.compute_beliefs()
+        belief_mat = self.compute_beliefs(unary_mat, message_mat)
 
-        message_mat_reverse = np.dot(self.message_mat, self.mn.reverse_mat)
+        message_mat_reverse = sparse_dot(message_mat, self.mn.reverse_mat)
 
-        adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
+        adjusted_message_prod = edge_pot_tensor - message_mat_reverse
         #message_mat_reverse = np.hstack((self.message_mat[:, self.mn.num_edges:], self.message_mat[:, :self.mn.num_edges]))
 
         #adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
 
         adjusted_message_prod /= self.edge_counting_numbers
         #adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
-        adjusted_message_prod += sparse_dot(self.belief_mat, self.mn.message_from_map.T)
+        adjusted_message_prod += sparse_dot(belief_mat, self.mn.message_from_map.T)
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1)) * self.edge_counting_numbers
         messages = np.nan_to_num(messages - messages.max(0))
 
-        change = np.sum(np.abs(messages - self.message_mat))
+        change = np.sum(np.abs(messages - message_mat))
 
         self.message_mat = messages
 
-        return change
+        return change, self.message_mat
 
     def _compute_dual_penalty(self):
         numerator = self.edge_counting_numbers
@@ -107,23 +107,24 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
     def compute_dual_objective(self):
         return self.compute_energy_functional() + self._compute_dual_penalty()
 
-    def compute_beliefs(self):
+    def compute_beliefs(self, unary_mat, message_mat):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
-            self.belief_mat = self.mn.unary_mat + self.conditioning_mat
-            self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
+            self.belief_mat = unary_mat + self.conditioning_mat
+            self.belief_mat += sparse_dot(message_mat, self.mn.message_to_map)
 
             self.belief_mat /= self.unary_coefficients.T
             log_z = logsumexp(self.belief_mat, 0)
 
             self.belief_mat = self.belief_mat - log_z
+        return self.belief_mat
 
     def compute_pairwise_beliefs(self):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
 
             adjusted_message_prod = sparse_dot(self.belief_mat, self.mn.message_from_map.T)
-            message_mat_reverse = np.dot(self.message_mat, self.mn.reverse_mat)
+            message_mat_reverse = sparse_dot(self.message_mat, self.mn.reverse_mat)
             adjusted_message_prod -= message_mat_reverse
 
             adjusted_message_prod /= self.edge_counting_numbers
@@ -145,6 +146,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         loss = - np.sum(np.nan_to_num(self.belief_mat) * self.lables_mat)
         return loss
 
+np.reshape.defgrad(lambda ans, x, shape, order=None: lambda g: np.reshape(g, np.shape(x), order=order))
 
     # def compute_univariate_logistic_loss_anytime(self, tolerance=1e-8, display='iter'):
     #     """Run belief propagation until messages change less than tolerance."""

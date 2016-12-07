@@ -71,6 +71,7 @@ class MarkovNet(object):
     def set_unary_mat(self, unary_mat):
         assert np.array_equal(self.unary_mat.shape, unary_mat.shape)
         self.unary_mat = unary_mat
+        return unary_mat
 
 
     def set_edge_tensor(self, edge_tensor):
@@ -95,7 +96,8 @@ class MarkovNet(object):
         i = 0
         for var in self.variables:
             potential = self.unary_potentials[var]
-            self.unary_mat[0:len(potential), i] = potential
+
+            self.unary_mat[:, i] = potential
             self.var_index[var] = i
             self.var_list.append(var)
             self.degrees[i] = len(self.neighbors[var])
@@ -158,4 +160,4 @@ class MarkovNet(object):
 
         data = np.array(np.ones((1, 2 * self.num_edges))).repeat(2,axis=0)
         offsets = np.array([-self.num_edges, self.num_edges])
-        self.reverse_mat = dia_matrix((data, offsets), shape=(2 * self.num_edges, 2 * self.num_edges)).toarray()
+        self.reverse_mat = dia_matrix((data, offsets), shape=(2 * self.num_edges, 2 * self.num_edges))

@@ -52,6 +52,7 @@ class MatrixBeliefPropagator(Inference):
 
     def initialize_messages(self):
         self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
+        return self.message_mat
 
     def condition(self, var, state):
         i = self.mn.var_index[var]
@@ -62,7 +63,7 @@ class MatrixBeliefPropagator(Inference):
 
         if np.all(self.conditioned):
             # compute beliefs and set flag to never recompute them
-            self.compute_beliefs()
+            self.compute_beliefs(self.mn.unary_mat, self.message_mat)
             self.compute_pairwise_beliefs()
             self.fully_conditioned = True
 
@@ -127,12 +128,13 @@ class MatrixBeliefPropagator(Inference):
 
         return disagreement
 
-    def infer(self, tolerance = 1e-8, display = 'iter'):
+    def infer(self, unary_mat, edge_pot_tensor, tolerance = 1e-8, display = 'iter'):
         """Run belief propagation until messages change less than tolerance."""
         change = np.inf
         iteration = 0
+        message_mat = self.initialize_messages()
         while change > tolerance and iteration < self.max_iter:
-            change = self.update_messages()
+            change, message_mat = self.update_messages(unary_mat, edge_pot_tensor, message_mat)
             if display == "full":
                 energy_func = self.compute_energy_functional()
                 disagreement = self.compute_inconsistency()
@@ -168,8 +170,10 @@ class MatrixBeliefPropagator(Inference):
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
 
-    def load_beliefs(self):
-        self.compute_beliefs()
+        return message_mat
+
+    def load_beliefs(self, unary_mat, message_mat):
+        self.compute_beliefs(unary_mat, message_mat)
         self.compute_pairwise_beliefs()
 
         for (var, i) in self.mn.var_index.items():
@@ -203,8 +207,8 @@ class MatrixBeliefPropagator(Inference):
 
         return energy
 
-    def get_feature_expectations(self):
-        self.compute_beliefs()
+    def get_feature_expectations(self, unary_mat, message_mat):
+        self.compute_beliefs(unary_mat, message_mat)
         self.compute_pairwise_beliefs()
 
         summed_features = np.dot(self.mn.feature_mat, np.exp(self.belief_mat).T)
@@ -218,7 +222,7 @@ class MatrixBeliefPropagator(Inference):
 
     def compute_energy_functional(self):
         """Compute the energy functional."""
-        self.compute_beliefs()
+        self.compute_beliefs(self.mn.unary_mat, self.message_mat)
         self.compute_pairwise_beliefs()
         return self.compute_energy() + self.compute_bethe_entropy()
 
