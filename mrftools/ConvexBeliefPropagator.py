@@ -139,34 +139,3 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         self.compute_beliefs()
         loss = - np.sum(np.nan_to_num(self.belief_mat) * self.lables_mat)
         return loss
-
-
-    # def compute_univariate_logistic_loss_anytime(self, tolerance=1e-8, display='iter'):
-    #     """Run belief propagation until messages change less than tolerance."""
-    #     change = np.inf
-    #     iteration = 0
-    #     loss = 0
-    #     while change > tolerance and iteration < self.max_iter:
-    #         change = self.update_messages()
-    #         if display == "full":
-    #             energy_func = self.compute_energy_functional()
-    #             disagreement = self.compute_inconsistency()
-    #             dual_obj = self.compute_dual_objective()
-    #             if self.temp == 1:
-    #                 print(
-    #                 "Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (
-    #                 iteration, change, disagreement, energy_func, dual_obj))
-    #                 self.temp += 1
-    #             else:
-    #                 print(
-    #                     "Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (
-    #                         iteration, change, disagreement, energy_func, dual_obj))
-    #
-    #         elif display == "iter":
-    #             print("Iteration %d, change in messages %f." % (iteration, change))
-    #         iteration += 1
-    #         loss += self.compute_univariate_logistic_loss()
-    #     if display == 'final' or display == 'full' or display == 'iter':
-    #         print("Belief propagation finished in %d iterations." % iteration)
-    #
-    #     return loss

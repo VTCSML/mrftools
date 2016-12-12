@@ -24,7 +24,6 @@ class MatrixBeliefPropagator(Inference):
         self.pair_beliefs = dict()
         self.labels = labels
         self.temp = 1
-        self.display = 'off'
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -204,7 +203,6 @@ class MatrixBeliefPropagator(Inference):
         self.compute_pairwise_beliefs()
         a = self.compute_energy()
         b = self.compute_bethe_entropy()
-        print "Energy: %s, Entropy: %s" % (a,b)
         return a + b
 
     def compute_dual_objective(self):

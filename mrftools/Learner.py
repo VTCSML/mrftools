@@ -65,11 +65,9 @@ class Learner(object):
 
     def do_inference(self, belief_propagators):
         for bp in belief_propagators:
-            print "<<<<<<<"
             if self.initialization_flag == True:
                 bp.initialize_messages()
-            bp.infer(display = 'full')
-            print ">>>>>>>"
+            bp.infer(display = 'off')
     def set_inference_truncation(self, bp_iter):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(bp_iter)
@@ -95,7 +93,6 @@ class Learner(object):
 
     def subgrad_obj(self, weights, options=None):
         if self.tau_q is None or not self.fully_observed:
-            print "calculte_tau for q distribution:"
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
@@ -129,10 +126,8 @@ class Learner(object):
         return self.get_feature_expectations(belief_propagators)
 
     def objective(self, weights, options=None):
-        print "calculate_tau for p distribution:"
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        print "then compute energy functional for each bp in bp_p"
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
 
         # self.set_weights(weights, self.belief_propagators_q)
@@ -152,18 +147,9 @@ class Learner(object):
         # add regularization penalties
         objec += self.l1_regularization * np.sum(np.abs(weights))
         objec += 0.5 * self.l2_regularization * np.dot(weights, weights)
-        print "--------"
-        print objec
-        print term_p
-        print term_q
         # assert np.allclose(term_q, term_q1), "wrong"
 
         objec += self.term_q_p
-
-
-        print "--------"
-
-        print "done computing subgrad_obj: %s \n\n" % objec
         return objec
 
     def gradient(self, weights, options=None):
