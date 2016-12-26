@@ -103,7 +103,7 @@ try:
         def set_up_grid_learner(self, n, k, d):
             model, labels = self.create_grid_model(n, k, d)
 
-            learner = AutogradLearner(ConvexBeliefPropagator)
+            learner = AutogradLearner(ConvexBeliefPropagator, self)
             learner.add_data(labels, model)
             return learner
 
@@ -131,12 +131,15 @@ try:
             pairwise_weights = 0.5 * (pairwise_weights + np.transpose(pairwise_weights, [0, 2, 1]))
             weights = np.concatenate((unary_weights.ravel(), pairwise_weights.ravel()))
 
-            model.set_weights(weights)
+            feature_mat = model.feature_mat
+            edge_feature_mat = model.edge_feature_mat
+
+            unary_mat, edge_pot_tensor = model.set_weights(weights, feature_mat, edge_feature_mat)
 
             bp = ConvexBeliefPropagator(model)
             bp.set_max_iter(50)
-            bp.infer(display='off')
-            bp.load_beliefs()
+            message_mat = bp.infer(unary_mat, edge_pot_tensor, display='off')
+            bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
 
             labels = dict()
             for (var, beliefs) in bp.var_beliefs.items():

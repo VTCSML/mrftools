@@ -24,11 +24,14 @@ class AutogradEvaluator(object):
             if i < num_images:
                 for key in weights.keys():
                     w = weights[key]
-                    models[i].set_weights(w)
+                    feature_mat = models[i].feature_mat
+                    edge_feature_mat = models[i].edge_feature_mat
+                    unary_mat, edge_pot_tensor = models[i].set_weights(w, feature_mat, edge_feature_mat)
                     bp = inference_type(models[i])
                     bp.set_max_iter(max_iter)
-                    bp.infer(display='off')
-                    bp.load_beliefs()
+                    message_mat = bp.infer(unary_mat, edge_pot_tensor, display='off')
+                    bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
+
 
                     beliefs = np.zeros((images[i].height, images[i].width))
                     label_img = np.zeros((images[i].height, images[i].width))
@@ -58,7 +61,7 @@ class AutogradEvaluator(object):
                 bp = inference_type(models[i])
                 bp.set_max_iter(max_iter)
                 message_mat = bp.infer(unary_mat, edge_pot_tensor, display='off')
-                bp.load_beliefs(unary_mat, message_mat)
+                bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
 
                 beliefs = np.zeros((images[i].height, images[i].width))
                 label_img = np.zeros((images[i].height, images[i].width))
@@ -130,11 +133,13 @@ class AutogradEvaluator(object):
 
         for i in range(len(models)):
             if i < num_images:
-                models[i].set_weights(weights)
-                bp = inference_type(models[i], labels[i])
+                feature_mat = models[i].feature_mat
+                edge_feature_mat = models[i].edge_feature_mat
+                unary_mat, edge_pot_tensor = models[i].set_weights(weights, feature_mat, edge_feature_mat)
+                bp = inference_type(models[i])
                 bp.set_max_iter(max_iter)
-                bp.infer(display='off')
-                bp.load_beliefs()
+                message_mat = bp.infer(unary_mat, edge_pot_tensor, display='off')
+                bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
 
                 beliefs = np.zeros(dimension[i])
                 label_img = np.zeros(dimension[i])
@@ -195,11 +200,13 @@ class AutogradEvaluator(object):
 
         for i in range(len(models)):
             if i < num_images:
-                models[i].set_weights(weights)
-                bp = inference_type(models[i], labels[i])
+                feature_mat = models[i].feature_mat
+                edge_feature_mat = models[i].edge_feature_mat
+                unary_mat, edge_pot_tensor = models[i].set_weights(weights, feature_mat, edge_feature_mat)
+                bp = inference_type(models[i])
                 bp.set_max_iter(max_iter)
-                bp.infer(display='off')
-                bp.load_beliefs()
+                message_mat = bp.infer(unary_mat, edge_pot_tensor, display='off')
+                bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
 
                 beliefs = np.zeros(length[i])
                 label_img = np.zeros(length[i])

@@ -35,11 +35,12 @@ class TestIntegration(unittest.TestCase):
         # test inference with weights
 
         i = 1
-
-        models[i].set_weights(new_weights)
+        feature_mat = models[i].feature_mat
+        edge_feature_mat = models[i].edge_feature_mat
+        unary_mat, edge_pot_tensor = models[i].set_weights(weights, feature_mat, edge_feature_mat)
         bp = MatrixBeliefPropagator(models[i])
-        bp.infer(display='final')
-        bp.load_beliefs()
+        message_mat = bp.infer(unary_mat, edge_pot_tensor, display='final')
+        bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
 
         beliefs = np.zeros((images[i].height, images[i].width))
         label_img = np.zeros((images[i].height, images[i].width))
@@ -80,8 +81,11 @@ class TestIntegration(unittest.TestCase):
 
         new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
 
-        models[i].set_weights(new_weights)
-        models[i].load_factors_from_matrices()
+        feature_mat = models[i].feature_mat
+        edge_feature_mat = models[i].edge_feature_mat
+
+        unary_mat, edge_pot_tensor = models[i].set_weights(new_weights, feature_mat, edge_feature_mat)
+        models[i].load_factors_from_matrices(unary_mat, edge_pot_tensor)
 
         for inference_type in [BeliefPropagator, MatrixBeliefPropagator]:
 
@@ -134,8 +138,11 @@ class TestIntegration(unittest.TestCase):
 
         new_weights = 0.1 * np.random.randn(d_unary * num_states + d_edge * num_states ** 2)
 
-        models[i].set_weights(new_weights)
-        models[i].load_factors_from_matrices()
+        feature_mat = models[i].feature_mat
+        edge_feature_mat = models[i].edge_feature_mat
+
+        unary_mat, edge_pot_tensor = models[i].set_weights(new_weights, feature_mat, edge_feature_mat)
+        models[i].load_factors_from_matrices(unary_mat, edge_pot_tensor)
 
         model = models[i]
 
@@ -143,7 +150,7 @@ class TestIntegration(unittest.TestCase):
         bp.load_beliefs()
 
         mat_bp = MatrixBeliefPropagator(model)
-        mat_bp.load_beliefs()
+        mat_bp.load_beliefs(unary_mat, mat_bp.message_mat, edge_pot_tensor)
 
         for i in range(4):
             for var in sorted(bp.mn.variables):
@@ -172,8 +179,8 @@ class TestIntegration(unittest.TestCase):
 
             bp.update_messages()
             bp.load_beliefs()
-            mat_bp.update_messages()
-            mat_bp.load_beliefs()
+            change, message_mat = mat_bp.update_messages(unary_mat, edge_pot_tensor, mat_bp.message_mat)
+            mat_bp.load_beliefs(unary_mat, message_mat, edge_pot_tensor)
 
     def test_speed(self):
         d_unary = 65

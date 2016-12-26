@@ -17,7 +17,7 @@ from Inference import Inference
 class MatrixBeliefPropagator(Inference):
     """Object that can run belief propagation on a MarkovNet."""
 
-    def __init__(self, markov_net, labels):
+    def __init__(self, markov_net, labels = None):
         """Initialize belief propagator for markov_net."""
         self.mn = markov_net
         self.var_beliefs = dict()
@@ -64,8 +64,8 @@ class MatrixBeliefPropagator(Inference):
 
         if np.all(self.conditioned):
             # compute beliefs and set flag to never recompute them
-            self.compute_beliefs(self.mn.unary_mat, self.message_mat)
-            self.compute_pairwise_beliefs()
+            belief_mat = self.compute_beliefs(self.mn.unary_mat, self.message_mat)
+            self.compute_pairwise_beliefs(belief_mat, self.message_mat, self.mn.edge_pot_tensor)
             self.fully_conditioned = True
 
     def disallow_impossible_states(self):
@@ -73,47 +73,51 @@ class MatrixBeliefPropagator(Inference):
         for var, num_states in self.mn.num_states.items():
             self.condition(var, range(num_states))
 
-    def compute_beliefs(self):
+    def compute_beliefs(self, unary_mat, message_mat):
         """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
             self.belief_mat = self.mn.unary_mat + self.conditioning_mat
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
-            #self.belief_mat += self.mn.message_to_map.T.dot(self.message_mat.T).T
-
             self.belief_mat -= logsumexp(self.belief_mat, 0)
+        return self.belief_mat
 
-    def compute_pairwise_beliefs(self):
+    def compute_pairwise_beliefs(self, belief_mat, message_mat, edge_pot_tensor):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
-            adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
-                                    - np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                               self.message_mat[:, :self.mn.num_edges]))
+
+            adjusted_message_prod = sparse_dot(belief_mat, self.mn.message_from_map.T)
+            message_mat_reverse = sparse_dot(message_mat, self.mn.reverse_mat)
+            adjusted_message_prod -= message_mat_reverse
 
             to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape((self.mn.max_states, 1, self.mn.num_edges))
             from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape((1, self.mn.max_states, self.mn.num_edges))
 
-            beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
+            beliefs = edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
 
             beliefs -= logsumexp(beliefs, (0, 1))
 
             self.pair_belief_tensor = beliefs
 
-    def update_messages(self):
-        """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
-        self.compute_beliefs()
+            return self.pair_belief_tensor
 
-        adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                                     self.message_mat[:, :self.mn.num_edges]))
-        adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
+    def update_messages(self, unary_mat, edge_pot_tensor, message_mat):
+        """Update all messages between variables using belief division. Return the change in messages from previous iteration."""
+        belief_mat = self.compute_beliefs(unary_mat, message_mat)
+
+        message_mat_reverse = sparse_dot(message_mat, self.mn.reverse_mat)
+
+        adjusted_message_prod = edge_pot_tensor - message_mat_reverse
+
+        adjusted_message_prod += sparse_dot(belief_mat, self.mn.message_from_map.T)
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1))
         messages = np.nan_to_num(messages - messages.max(0))
 
-        change = np.sum(np.abs(messages - self.message_mat))
+        change = np.sum(np.abs(messages - message_mat))
 
         self.message_mat = messages
 
-        return change
+        return change, self.message_mat
 
     def _compute_inconsistency_vector(self):
         expanded_beliefs = np.exp(self.belief_mat[:, self.mn.message_to])
@@ -141,26 +145,9 @@ class MatrixBeliefPropagator(Inference):
                 disagreement = self.compute_inconsistency()
                 dual_obj = self.compute_dual_objective()
                 if self.temp == 1:
-                    # print type(energy_func)
-                    # print type(disagreement)
-                    # print type(dual_obj)
                     print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
                     self.temp += 1
                 else:
-                    # energy_func = energy_func.value
-                    # print type(dual_obj)
-                    # dual_obj = dual_obj.value
-                    # print type(dual_obj)
-                    # print dual_obj
-                    # # change = change.value
-                    # # disagreement = disagreement.value
-                    # print type(energy_func)
-                    # print energy_func
-                    # # print type(disagreement)
-                    #
-                    # # print type(iteration)
-                    # print type(change)
-                    # print change
                     print(
                     "Iteration %d, change in messages %s. Calibration disagreement: %s, energy functional: %s, dual obj: %s" % (
                     iteration, change, disagreement, energy_func, dual_obj))
@@ -173,17 +160,17 @@ class MatrixBeliefPropagator(Inference):
 
         return message_mat
 
-    def load_beliefs(self, unary_mat, message_mat):
-        self.compute_beliefs(unary_mat, message_mat)
-        self.compute_pairwise_beliefs()
+    def load_beliefs(self, unary_mat, message_mat, edge_pot_tensor):
+        belief_mat = self.compute_beliefs(unary_mat, message_mat)
+        pair_belief_tensor = self.compute_pairwise_beliefs(belief_mat, message_mat, edge_pot_tensor)
 
         for (var, i) in self.mn.var_index.items():
-            self.var_beliefs[var] = self.belief_mat[:len(self.mn.unary_potentials[var]), i]
+            self.var_beliefs[var] = belief_mat[:len(self.mn.unary_potentials[var]), i]
 
         for edge, i in self.mn.edge_index.items():
             (var, neighbor) = edge
 
-            belief = self.pair_belief_tensor[:len(self.mn.unary_potentials[var]),
+            belief = pair_belief_tensor[:len(self.mn.unary_potentials[var]),
                      :len(self.mn.unary_potentials[neighbor]), i]
 
             self.pair_beliefs[(var, neighbor)] = belief
@@ -204,17 +191,16 @@ class MatrixBeliefPropagator(Inference):
         """Compute the log-linear energy. Assume that the beliefs have been computed and are fresh."""
         energy = np.sum(np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]) * np.exp(self.pair_belief_tensor)) + \
                  np.sum(np.nan_to_num(self.mn.unary_mat) * np.exp(self.belief_mat))
-        # print self.belief_mat
 
         return energy
 
-    def get_feature_expectations(self, unary_mat, message_mat):
-        self.compute_beliefs(unary_mat, message_mat)
-        self.compute_pairwise_beliefs()
+    def get_feature_expectations(self, unary_mat, message_mat, edge_pot_tensor):
+        belief_mat = self.compute_beliefs(unary_mat, message_mat)
+        pair_belief_tensor = self.compute_pairwise_beliefs(belief_mat, message_mat, edge_pot_tensor)
 
-        summed_features = np.dot(self.mn.feature_mat, np.exp(self.belief_mat).T)
+        summed_features = np.dot(self.mn.feature_mat, np.exp(belief_mat).T)
 
-        summed_pair_features = np.dot(self.mn.edge_feature_mat, np.exp(self.pair_belief_tensor).reshape(
+        summed_pair_features = np.dot(self.mn.edge_feature_mat, np.exp(pair_belief_tensor).reshape(
             (self.mn.max_states**2, self.mn.num_edges)).T)
 
         marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
@@ -224,7 +210,7 @@ class MatrixBeliefPropagator(Inference):
     def compute_energy_functional(self):
         """Compute the energy functional."""
         self.compute_beliefs(self.mn.unary_mat, self.message_mat)
-        self.compute_pairwise_beliefs()
+        self.compute_pairwise_beliefs(self.belief_mat, self.message_mat, self.mn.edge_pot_tensor)
         return self.compute_energy() + self.compute_bethe_entropy()
 
     def compute_dual_objective(self):

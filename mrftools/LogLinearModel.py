@@ -92,7 +92,7 @@ class LogLinearModel(MarkovNet):
         unary_mat = self.set_unary_mat(np.dot(feature_mat.T, weight_mat).T)
         return unary_mat
 
-    def update_edge_tensor(self,edge_feature_mat, edge_weight_mat):
+    def update_edge_tensor(self, edge_feature_mat, edge_weight_mat):
         half_edge_tensor = np.dot(edge_feature_mat.T, edge_weight_mat).T.reshape(
             (self.max_states, self.max_states, self.num_edges))
 
@@ -166,13 +166,12 @@ class LogLinearModel(MarkovNet):
             padded_potential[:self.num_states[edge[0]], :self.num_states[edge[1]]] = potential
             self.edge_weight_mat[i, :] = padded_potential.ravel()
 
-    def load_factors_from_matrices(self):
-        self.update_unary_matrix()
-        self.update_edge_tensor()
+    def load_factors_from_matrices(self, unary_mat, edge_pot_tensor):
 
         for (var, i) in self.var_index.items():
-            self.set_unary_factor(var, self.unary_mat[:self.num_states[var], i].ravel())
+            self.set_unary_factor(var, unary_mat[:self.num_states[var], i].ravel())
 
         for edge, i in self.edge_index.items():
             self.set_edge_factor(edge,
-                         self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
+                         edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
+

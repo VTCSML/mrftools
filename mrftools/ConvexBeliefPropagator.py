@@ -71,16 +71,10 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         """Update all messages between variables using belief division.
         Return the change in messages from previous iteration."""
         belief_mat = self.compute_beliefs(unary_mat, message_mat)
-
         message_mat_reverse = sparse_dot(message_mat, self.mn.reverse_mat)
 
         adjusted_message_prod = edge_pot_tensor - message_mat_reverse
-        #message_mat_reverse = np.hstack((self.message_mat[:, self.mn.num_edges:], self.message_mat[:, :self.mn.num_edges]))
-
-        #adjusted_message_prod = self.mn.edge_pot_tensor - message_mat_reverse
-
         adjusted_message_prod /= self.edge_counting_numbers
-        #adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
         adjusted_message_prod += sparse_dot(belief_mat, self.mn.message_from_map.T)
 
         messages = np.squeeze(logsumexp(adjusted_message_prod, 1)) * self.edge_counting_numbers
@@ -119,12 +113,13 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
             self.belief_mat = self.belief_mat - log_z
         return self.belief_mat
 
-    def compute_pairwise_beliefs(self):
+
+    def compute_pairwise_beliefs(self, belief_mat, message_mat, edge_pot_tensor):
         """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
 
-            adjusted_message_prod = sparse_dot(self.belief_mat, self.mn.message_from_map.T)
-            message_mat_reverse = sparse_dot(self.message_mat, self.mn.reverse_mat)
+            adjusted_message_prod = sparse_dot(belief_mat, self.mn.message_from_map.T)
+            message_mat_reverse = sparse_dot(message_mat, self.mn.reverse_mat)
             adjusted_message_prod -= message_mat_reverse
 
             adjusted_message_prod /= self.edge_counting_numbers
@@ -134,12 +129,14 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
             from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape(
                 (1, self.mn.max_states, self.mn.num_edges))
 
-            beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] / \
+            beliefs = edge_pot_tensor[:, :, self.mn.num_edges:] / \
                       self.edge_counting_numbers[self.mn.num_edges:] + to_messages + from_messages
 
             beliefs -= logsumexp(beliefs, (0, 1))
 
             self.pair_belief_tensor = beliefs
+
+        return self.pair_belief_tensor
 
     def compute_univariate_logistic_loss(self):
         self.compute_beliefs()

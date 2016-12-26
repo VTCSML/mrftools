@@ -114,10 +114,12 @@ class Learner(object):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.initialize_messages()
 
-    def set_weights(self, weight_vector, belief_propagators):
+    def set_weights(self, weight_vector, belief_propagators, models):
         """Set weights of Markov net from vector using the order in self.potentials."""
-        for bp in belief_propagators:
-            bp.mn.set_weights(weight_vector)
+        for i in range(len(belief_propagators)):
+            feature_mat = models[i].feature_mat
+            edge_feature_mat = models[i].edge_feature_mat
+            unary_mat, edge_pot_tensor = belief_propagators[i].mn.set_weights(weight_vector, feature_mat, edge_feature_mat)
 
     #@primitive
     def calculate_tau(self, weights, belief_propagators, models, should_infer=True):
@@ -129,9 +131,9 @@ class Learner(object):
             if should_infer:
                 if self.initialization_flag == True:
                     belief_propagators[i].initialize_messages()
-                    message_mat = belief_propagators[i].infer(unary_mat, edge_pot_tensor, display = 'off')
+                    message_mat = belief_propagators[i].infer(unary_mat, edge_pot_tensor, display='off')
 
-            marginal_sum += belief_propagators[i].get_feature_expectations(unary_mat, message_mat)
+            marginal_sum += belief_propagators[i].get_feature_expectations(unary_mat, message_mat, edge_pot_tensor)
 
         return marginal_sum / len(belief_propagators)
 
@@ -154,7 +156,7 @@ class Learner(object):
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
-            self.set_weights(weights, self.belief_propagators_q)
+            self.set_weights(weights, self.belief_propagators_q, self.models)
             term_q = sum([x.compute_energy_functional() for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
         else:
             term_q = np.dot(self.tau_q, weights)
