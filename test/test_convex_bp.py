@@ -145,7 +145,7 @@ class TestConvexBP(unittest.TestCase):
         probs = {(0, 1): 0.75, (1, 2): 0.75, (2, 3): 0.75, (0, 3): 0.75, (0, 4): 1.0}
 
         trbp_mat = MatrixTRBeliefPropagator(mn, probs)
-        trbp_mat.infer(display='full')
+        trbp_mat.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
         trbp_mat.load_beliefs()
 
         counting_numbers = probs.copy()
@@ -156,8 +156,8 @@ class TestConvexBP(unittest.TestCase):
         counting_numbers[4] = 1.0 - 1.0
 
         cbp = ConvexBeliefPropagator(mn, counting_numbers)
-        cbp.infer(display='full')
-        cbp.load_beliefs()
+        message_mat = cbp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
+        cbp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         for i in mn.variables:
             print ("Convex unary marginal of %d: %s" % (i, repr(np.exp(cbp.var_beliefs[i]))))
@@ -193,8 +193,8 @@ class TestConvexBP(unittest.TestCase):
         mn = self.create_q_model()
 
         bp = MatrixBeliefPropagator(mn)
-        bp.infer(display='full')
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         counting_numbers = {(0, 1): 1.0,
                             (1, 2): 1.0,
@@ -208,8 +208,8 @@ class TestConvexBP(unittest.TestCase):
                             4: 1.0 - 1.0}
 
         cbp = ConvexBeliefPropagator(mn, counting_numbers)
-        cbp.infer(display='full')
-        cbp.load_beliefs()
+        message_mat = cbp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
+        cbp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         for i in mn.variables:
             print ("Convex unary marginal of %d: %s" % (i, repr(np.exp(cbp.var_beliefs[i]))))
@@ -264,7 +264,8 @@ class TestConvexBP(unittest.TestCase):
 
             print "%d\t%e\t%e\t%e" % (t, primal[t], dual[t], inconsistency[t])
 
-            bp.update_messages()
+            message_mat = bp.initialize_messages()
+            bp.update_messages(mn.unary_mat, mn.edge_pot_tensor, message_mat)
 
         assert np.allclose(primal[-1], dual[-1]), "Primal and dual are not close after %d iters" % max_iter
 
@@ -362,7 +363,7 @@ class TestConvexBP(unittest.TestCase):
         bp = ConvexBeliefPropagator(mn, counting_numbers)
         # bp = MatrixBeliefPropagator(mn)
         bp.set_max_iter(10)
-        bp.infer(display = "full", tolerance=1e-12)
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display = "full", tolerance=1e-12)
 
         # why does the dual objective go below the primal solution? numerical, or bug?
 
@@ -402,7 +403,7 @@ class TestConvexBP(unittest.TestCase):
         #     dual_penalty[i] = y[i] - primal[i]
 
 
-        bp.load_beliefs()
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
         # print np.exp(bp.var_beliefs[0])
         # print np.exp(bp.pair_beliefs[(0, 1)])
 
@@ -451,12 +452,13 @@ class TestConvexBP(unittest.TestCase):
 
         bp = ConvexBeliefPropagator(mn, counting_numbers)
 
-        bp.update_messages()
+        message_mat = bp.initialize_messages()
+        change, message_mat = bp.update_messages(mn.unary_mat, mn.edge_pot_tensor, message_mat)
         # bp.update_messages()
         # bp.infer(display='off')
 
-        bp.compute_beliefs()
-        bp.compute_pairwise_beliefs()
+        belief_mat = bp.compute_beliefs(mn.unary_mat, message_mat)
+        bp.compute_pairwise_beliefs(belief_mat, message_mat, mn.edge_pot_tensor)
         beliefs = bp.belief_mat
         pair_beliefs = bp.pair_belief_tensor
 

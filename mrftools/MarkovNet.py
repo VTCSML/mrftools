@@ -97,7 +97,7 @@ class MarkovNet(object):
         for var in self.variables:
             potential = self.unary_potentials[var]
 
-            self.unary_mat[:, i] = potential
+            self.unary_mat[0:len(potential), i] = potential
             self.var_index[var] = i
             self.var_list.append(var)
             self.degrees[i] = len(self.neighbors[var])

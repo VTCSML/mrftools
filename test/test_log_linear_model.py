@@ -89,14 +89,14 @@ class TestLogLinearModel(unittest.TestCase):
 
         bp = MatrixBeliefPropagator(mn)
 
-        bp.infer()
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         unconditional_marginals = bp.var_beliefs[4]
 
         bp.condition(0, 2)
-        bp.infer()
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         conditional_marginals = bp.var_beliefs[4]
 
@@ -108,14 +108,14 @@ class TestLogLinearModel(unittest.TestCase):
         mn.set_weight_matrix(np.random.randn(4, 4))
         mn.set_edge_weight_matrix(np.random.randn(d, 16))
 
-        bp.infer()
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         unconditional_marginals = bp.var_beliefs[4]
 
         bp.condition(0, 2)
-        bp.infer()
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         conditional_marginals = bp.var_beliefs[4]
 
@@ -144,8 +144,8 @@ class TestLogLinearModel(unittest.TestCase):
         bp.compute_pairwise_beliefs()
 
         bp_ind = MatrixBeliefPropagator(model)
-        bp_ind.infer(display='final')
-        bp_ind.load_beliefs()
+        message_mat = bp_ind.infer(model.unary_mat, model.edge_pot_tensor, display='final')
+        bp_ind.load_beliefs(model.unary_mat, message_mat, model.edge_pot_tensor)
 
         for i in range(len(num_states)):
             assert np.allclose(bp_ind.var_beliefs[i], bp.var_beliefs[i]), "unary beliefs disagree"

@@ -87,11 +87,11 @@ class TestIntegration(unittest.TestCase):
         unary_mat, edge_pot_tensor = models[i].set_weights(new_weights, feature_mat, edge_feature_mat)
         models[i].load_factors_from_matrices(unary_mat, edge_pot_tensor)
 
-        for inference_type in [BeliefPropagator, MatrixBeliefPropagator]:
+        for inference_type in [MatrixBeliefPropagator]:
 
             bp = inference_type(models[i])
-            bp.infer(display='full')
-            bp.load_beliefs()
+            message_mat = bp.infer(models[i].unary_mat, models[i].edge_pot_tensor, display='full')
+            bp.load_beliefs(models[i].unary_mat, message_mat, models[i].edge_pot_tensor)
 
             bf = BruteForce(models[i])
 

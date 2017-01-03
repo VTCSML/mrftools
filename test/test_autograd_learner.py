@@ -84,14 +84,14 @@ try:
             learner.set_inference_truncation(10)
 
             start = time.time()
-            obj = learner.subgrad_grad(weights)
+            obj = learner.subgrad_obj(weights)
             obj_time = time.time() - start
             print("Computing the objective took %f seconds" % obj_time)
 
-            start = time.time()
-            gradient = learner.subgrad_grad(weights)
-            grad_time = time.time() - start
-            print("Computing the standard gradient took %f seconds" % grad_time)
+            # start = time.time()
+            # gradient = learner.subgrad_grad(weights)
+            # grad_time = time.time() - start
+            # print("Computing the standard gradient took %f seconds" % grad_time)
 
             grad_fun = grad(learner.subgrad_obj)
 

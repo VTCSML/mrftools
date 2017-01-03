@@ -61,7 +61,7 @@ class TestConvexBP(unittest.TestCase):
         for inference_type in [ConvexBeliefPropagator]:
             bp = inference_type(mn)
             bp.set_max_iter(10000)
-            bp.infer(display = "full", tolerance=1e-12)
+            bp.infer(mn.unary_mat, mn.edge_pot_tensor, display = "full", tolerance=1e-12)
 
             messages = bp.message_mat.copy()
 
@@ -96,14 +96,14 @@ class TestConvexBP(unittest.TestCase):
             # bp.update_messages()
             # bp.update_messages()
             bp.set_max_iter(3000)
-            bp.infer(display='off', tolerance=1e-16)
+            message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='off', tolerance=1e-16)
 
-            bp.compute_beliefs()
-            bp.compute_pairwise_beliefs()
+            belief_mat = bp.compute_beliefs(mn.unary_mat, message_mat)
+            bp.compute_pairwise_beliefs(belief_mat, message_mat, mn.edge_pot_tensor)
 
-            bp.load_beliefs()
+            bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
-            beliefs = bp.belief_mat
+            beliefs = belief_mat
 
             def dual(belief_change):
                 bp.belief_mat = beliefs + belief_change.reshape(beliefs.shape)
@@ -120,20 +120,25 @@ class TestConvexBP(unittest.TestCase):
     def test_belief_independence(self):
         mn = self.create_q_model()
 
-        for inference_type in [ConvexBeliefPropagator, MatrixBeliefPropagator, MatrixTRBeliefPropagator]:
+        #for inference_type in [ConvexBeliefPropagator, MatrixBeliefPropagator, MatrixTRBeliefPropagator]:
+        for inference_type in [ConvexBeliefPropagator, MatrixBeliefPropagator]:
             bp = inference_type(mn)
 
-            bp.update_messages()
+            message_mat = bp.initialize_messages()
+            change, message_mat = bp.update_messages(mn.unary_mat, mn.edge_pot_tensor, message_mat)
+            belief_mat = bp.compute_beliefs(mn.unary_mat, message_mat)
+            pair_belief_tensor = bp.compute_pairwise_beliefs(belief_mat, message_mat, mn.edge_pot_tensor)
 
-            bp.compute_beliefs()
-            bp.compute_pairwise_beliefs()
-            old_beliefs = bp.belief_mat
-            old_pairwise_beliefs = bp.pair_belief_tensor
-            bp.compute_beliefs()
-            bp.compute_pairwise_beliefs()
-            assert np.allclose(old_beliefs, bp.belief_mat), \
+
+            old_beliefs = belief_mat
+            old_pairwise_beliefs = pair_belief_tensor
+
+            belief_mat = bp.compute_beliefs(mn.unary_mat, message_mat)
+            pair_belief_tensor = bp.compute_pairwise_beliefs(belief_mat, message_mat, mn.edge_pot_tensor)
+
+            assert np.allclose(old_beliefs, belief_mat), \
                 "Unary beliefs changed despite no change in messages"
-            assert np.allclose(old_pairwise_beliefs, bp.pair_belief_tensor), \
+            assert np.allclose(old_pairwise_beliefs, pair_belief_tensor), \
                 "Pair beliefs changed despite no change in messages"
 
 if __name__ == '__main__':

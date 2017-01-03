@@ -80,8 +80,9 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
     def test_exactness(self):
         mn = self.create_chain_model()
         bp = MatrixBeliefPropagator(mn)
-        bp.infer(display='full')
-        bp.load_beliefs()
+
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         bf = BruteForce(mn)
 
@@ -104,9 +105,9 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         mn = self.create_loop_model()
 
         bp = MatrixBeliefPropagator(mn)
-        bp.infer(display='full')
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
 
-        bp.load_beliefs()
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         for var in mn.variables:
             unary_belief = np.exp(bp.var_beliefs[var])
@@ -119,9 +120,9 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         mn = self.create_loop_model()
 
         bp = MatrixBeliefPropagator(mn)
-        bp.infer(display='full')
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
 
-        bp.load_beliefs()
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         for var in mn.variables:
             unary_belief = np.exp(bp.var_beliefs[var])
@@ -141,7 +142,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         slow_bp.set_max_iter(30000)
 
         t0 = time.time()
-        bp.infer(display='final')
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='final')
         t1 = time.time()
 
         bp_time = t1 - t0
@@ -157,7 +158,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         assert bp_time < slow_bp_time, "matrix form was slower than loop-based BP"
 
         # check marginals
-        bp.load_beliefs()
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
         slow_bp.compute_beliefs()
         slow_bp.compute_pairwise_beliefs()
 
@@ -176,16 +177,16 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
 
         bp.condition(2, 0)
 
-        bp.infer()
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         assert np.allclose(bp.var_beliefs[2][0], 0), "Conditioned variable was not set to correct state"
 
         beliefs0 = bp.var_beliefs[0]
 
         bp.condition(2, 1)
-        bp.infer()
-        bp.load_beliefs()
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
         beliefs1 = bp.var_beliefs[0]
 
         assert not np.allclose(beliefs0, beliefs1), "Conditioning var 2 did not change beliefs of var 0"
@@ -201,15 +202,15 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         bp = MatrixBeliefPropagator(mn)
 
         with np.errstate(all='raise'):
-            bp.infer()
-            bp.load_beliefs()
+            message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor)
+            bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
     def test_grid_consistency(self):
         mn = self.create_grid_model()
         bp = MatrixBeliefPropagator(mn)
-        bp.infer(display='full')
+        message_mat = bp.infer(mn.unary_mat, mn.edge_pot_tensor, display='full')
 
-        bp.load_beliefs()
+        bp.load_beliefs(mn.unary_mat, message_mat, mn.edge_pot_tensor)
 
         for var in mn.variables:
             unary_belief = np.exp(bp.var_beliefs[var])
@@ -224,7 +225,8 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         bp.load_beliefs()
 
         mat_bp = MatrixBeliefPropagator(model)
-        mat_bp.load_beliefs()
+        message_mat = mat_bp.initialize_messages()
+        mat_bp.load_beliefs(model.unary_mat, message_mat, model.edge_pot_tensor)
 
         for i in range(4):
             for var in sorted(bp.mn.variables):
@@ -253,5 +255,5 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
 
             bp.update_messages()
             bp.load_beliefs()
-            mat_bp.update_messages()
-            mat_bp.load_beliefs()
+            change, message_mat = mat_bp.update_messages(model.unary_mat, model.edge_pot_tensor, message_mat)
+            mat_bp.load_beliefs(model.unary_mat, message_mat, model.edge_pot_tensor)
