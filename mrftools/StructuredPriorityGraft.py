@@ -56,7 +56,7 @@ class StructuredPriorityGraft():
         self.is_show_metrics = False
         self.is_plot_queue = False
         self.is_verbose = False
-        self.priority_increase_decay_factor = .8
+        self.priority_increase_decay_factor = .9
         self.priority_decrease_decay_factor = .95
         self.plot_path = '.'
         self.is_monitor_mn = False
@@ -150,7 +150,7 @@ class StructuredPriorityGraft():
                 if self.is_show_metrics:
                     self.update_metrics(edges, recall, precision, suff_stats_list, iterations, iter_number)
                 
-                self.mn.set_edge_factor(activated_edge, np.zeros((len(self.mn.unary_potentials[activated_edge[0]]), len(self.mn.unary_potentials[activated_edge[1]]))))
+                self.mn.set_edge_factor(activated_edge, np.random.randn(len(self.mn.unary_potentials[activated_edge[0]]), len(self.mn.unary_potentials[activated_edge[1]])))
                 self.aml_optimize = self.setup_grafting_learner(len(self.data))
                 self.aml_optimize.belief_propagators[0].mn.update_edge_tensor()
 
@@ -181,8 +181,9 @@ class StructuredPriorityGraft():
                 ## GRADIENT TEST
                 is_activated_edge, activated_edge, iter_number = self.activation_test()
 
-
+                # print(activated_edge)
             #Outerloop
+            # print('--------------------OUTERLOOP')
             weights_opt = self.aml_optimize.learn(weights_opt, 2500, self.edge_regularizers, self.node_regularizers)
             is_activated_edge, activated_edge, iter_number = self.activation_test()
 
@@ -195,6 +196,10 @@ class StructuredPriorityGraft():
 
         if is_activated_edge == False:
                 self.is_converged = True
+
+
+        # print('WEIGHTS')
+        # print(weights_opt)
 
         if self.is_show_metrics and is_activated_edge:
             self.update_metrics(edges, recall, precision, suff_stats_list, iterations, iter_number)
@@ -448,10 +453,14 @@ class StructuredPriorityGraft():
         self.aml_optimize.belief_propagators[0].mn.update_edge_tensor()
         unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
         final_active_set = list()
+        # print('REMOVING ZERO EDGES')
         for edge in self.active_set:
+            # print('EDGE')
+            # print(edge)
             length_normalizer = float(1) / (len(bp.mn.unary_potentials[edge[0]]) * len(bp.mn.unary_potentials[edge[1]]))
             i = self.aml_optimize.belief_propagators[0].mn.edge_index[edge]
             edge_weights = self.aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:self.aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :self.aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
+            # print(np.sqrt(edge_weights.dot(edge_weights)))
             if length_normalizer * np.sqrt(edge_weights.dot(edge_weights))  > self.zero_threshold:
                 final_active_set.append(edge)
         return final_active_set

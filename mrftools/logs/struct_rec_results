@@ -1,0 +1,1925 @@
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:115: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:125: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+================================= ///////////////////START//////////////// ========================================= 
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5}
+6
+NUM VARIABLES
+40
+NUM EDGES
+39
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+31.4347826087
+SUFFICIENT STATS
+780
+Recall
+0.487179487179
+Precision
+0.826086956522
+exec_time
+44.9626979828
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+55.9130434783
+SUFFICIENT STATS
+780
+Recall
+0.487179487179
+Precision
+0.826086956522
+exec_time
+45.4209389687
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+368.130434783
+SUFFICIENT STATS
+780
+Recall
+0.487179487179
+Precision
+0.826086956522
+exec_time
+45.3896210194
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+780
+Recall
+0.333333333333
+Precision
+1.0
+exec_time
+60.5740811825
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2}
+6
+NUM VARIABLES
+44
+NUM EDGES
+43
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+36.1923076923
+SUFFICIENT STATS
+946
+Recall
+0.488372093023
+Precision
+0.807692307692
+exec_time
+55.17355299
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+65.3461538462
+SUFFICIENT STATS
+946
+Recall
+0.488372093023
+Precision
+0.807692307692
+exec_time
+55.248401165
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+477.576923077
+SUFFICIENT STATS
+946
+Recall
+0.488372093023
+Precision
+0.807692307692
+exec_time
+56.5875608921
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+946
+Recall
+0.0232558139535
+Precision
+1.0
+exec_time
+68.5764229298
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6}
+6
+NUM VARIABLES
+48
+NUM EDGES
+47
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+32.4848484848
+SUFFICIENT STATS
+1128
+Recall
+0.574468085106
+Precision
+0.818181818182
+exec_time
+69.0366048813
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+140.363636364
+SUFFICIENT STATS
+1128
+Recall
+0.574468085106
+Precision
+0.818181818182
+exec_time
+70.5050201416
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+543.96969697
+SUFFICIENT STATS
+1128
+Recall
+0.574468085106
+Precision
+0.818181818182
+exec_time
+68.105396986
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+1128
+Recall
+0.617021276596
+Precision
+0.805555555556
+exec_time
+107.694638968
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4}
+6
+NUM VARIABLES
+52
+NUM EDGES
+51
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+44.1666666667
+SUFFICIENT STATS
+1326
+Recall
+0.509803921569
+Precision
+0.866666666667
+exec_time
+76.8260960579
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+162.4
+SUFFICIENT STATS
+1326
+Recall
+0.509803921569
+Precision
+0.866666666667
+exec_time
+77.1317470074
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+550.766666667
+SUFFICIENT STATS
+1326
+Recall
+0.509803921569
+Precision
+0.866666666667
+exec_time
+78.0009489059
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+1326
+Recall
+0.490196078431
+Precision
+0.961538461538
+exec_time
+109.053482771
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3}
+6
+NUM VARIABLES
+56
+NUM EDGES
+55
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+44.1764705882
+SUFFICIENT STATS
+1540
+Recall
+0.509090909091
+Precision
+0.823529411765
+exec_time
+92.846585989
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+112.176470588
+SUFFICIENT STATS
+1540
+Recall
+0.509090909091
+Precision
+0.823529411765
+exec_time
+92.0757601261
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+779.029411765
+SUFFICIENT STATS
+1540
+Recall
+0.509090909091
+Precision
+0.823529411765
+exec_time
+95.8601918221
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+1540
+Recall
+0.109090909091
+Precision
+0.857142857143
+exec_time
+113.490098
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5}
+6
+NUM VARIABLES
+60
+NUM EDGES
+59
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+36.8541666667
+SUFFICIENT STATS
+1770
+Recall
+0.610169491525
+Precision
+0.75
+exec_time
+126.581681013
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+143.166666667
+SUFFICIENT STATS
+1770
+Recall
+0.610169491525
+Precision
+0.75
+exec_time
+131.379687071
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+772.145833333
+SUFFICIENT STATS
+1770
+Recall
+0.610169491525
+Precision
+0.75
+exec_time
+135.008043051
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+1770
+Recall
+0.830508474576
+Precision
+0.731343283582
+exec_time
+341.74008584
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5}
+6
+NUM VARIABLES
+64
+NUM EDGES
+63
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+38.5769230769
+SUFFICIENT STATS
+2016
+Recall
+0.666666666667
+Precision
+0.807692307692
+exec_time
+128.079427958
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+154.865384615
+SUFFICIENT STATS
+2016
+Recall
+0.666666666667
+Precision
+0.807692307692
+exec_time
+128.572078943
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+913.596153846
+SUFFICIENT STATS
+2016
+Recall
+0.666666666667
+Precision
+0.807692307692
+exec_time
+136.62955904
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+2016
+Recall
+0.15873015873
+Precision
+1.0
+exec_time
+146.60639596
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6}
+6
+NUM VARIABLES
+68
+NUM EDGES
+67
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+49.6136363636
+SUFFICIENT STATS
+2278
+Recall
+0.582089552239
+Precision
+0.886363636364
+exec_time
+137.327755213
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+86.9545454545
+SUFFICIENT STATS
+2278
+Recall
+0.582089552239
+Precision
+0.886363636364
+exec_time
+141.515990019
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+1270.61363636
+SUFFICIENT STATS
+2278
+Recall
+0.582089552239
+Precision
+0.886363636364
+exec_time
+141.942793846
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+2278
+Recall
+0.746268656716
+Precision
+0.909090909091
+exec_time
+223.009332895
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6}
+6
+NUM VARIABLES
+72
+NUM EDGES
+71
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+52.3541666667
+SUFFICIENT STATS
+2556
+Recall
+0.56338028169
+Precision
+0.833333333333
+exec_time
+165.518646002
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+86.0416666667
+SUFFICIENT STATS
+2556
+Recall
+0.56338028169
+Precision
+0.833333333333
+exec_time
+167.001403093
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+1177.08333333
+SUFFICIENT STATS
+2556
+Recall
+0.56338028169
+Precision
+0.833333333333
+exec_time
+166.011250973
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+2556
+Recall
+0.12676056338
+Precision
+1.0
+exec_time
+190.519183874
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6}
+6
+NUM VARIABLES
+76
+NUM EDGES
+75
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+37.3815789474
+SUFFICIENT STATS
+2850
+Recall
+0.666666666667
+Precision
+0.657894736842
+exec_time
+242.856522083
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+235.776315789
+SUFFICIENT STATS
+2850
+Recall
+0.666666666667
+Precision
+0.657894736842
+exec_time
+244.255808115
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+1377.09210526
+SUFFICIENT STATS
+2850
+Recall
+0.666666666667
+Precision
+0.657894736842
+exec_time
+235.599926949
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+2850
+Recall
+0.493333333333
+Precision
+0.90243902439
+exec_time
+254.648376942
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4}
+6
+NUM VARIABLES
+80
+NUM EDGES
+79
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+46.5074626866
+SUFFICIENT STATS
+3160
+Recall
+0.670886075949
+Precision
+0.791044776119
+exec_time
+209.113138914
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+403.537313433
+SUFFICIENT STATS
+3160
+Recall
+0.670886075949
+Precision
+0.791044776119
+exec_time
+217.358497858
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+1786.46268657
+SUFFICIENT STATS
+3160
+Recall
+0.670886075949
+Precision
+0.791044776119
+exec_time
+225.72607398
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+3160
+Recall
+0.367088607595
+Precision
+1.0
+exec_time
+237.213600874
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5}
+6
+NUM VARIABLES
+84
+NUM EDGES
+83
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+53.1846153846
+SUFFICIENT STATS
+3486
+Recall
+0.602409638554
+Precision
+0.769230769231
+exec_time
+225.353483915
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+439.8
+SUFFICIENT STATS
+3486
+Recall
+0.602409638554
+Precision
+0.769230769231
+exec_time
+241.234961033
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+1895.52307692
+SUFFICIENT STATS
+3486
+Recall
+0.602409638554
+Precision
+0.769230769231
+exec_time
+245.46153903
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+3486
+Recall
+0.614457831325
+Precision
+0.927272727273
+exec_time
+317.985575914
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4}
+6
+NUM VARIABLES
+88
+NUM EDGES
+87
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+50.2236842105
+SUFFICIENT STATS
+3828
+Recall
+0.597701149425
+Precision
+0.684210526316
+exec_time
+268.086565971
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+438.434210526
+SUFFICIENT STATS
+3828
+Recall
+0.597701149425
+Precision
+0.684210526316
+exec_time
+277.334695816
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+2047.35526316
+SUFFICIENT STATS
+3828
+Recall
+0.597701149425
+Precision
+0.684210526316
+exec_time
+294.569274902
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+3828
+Recall
+0.195402298851
+Precision
+1.0
+exec_time
+275.303364038
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5}
+6
+NUM VARIABLES
+92
+NUM EDGES
+91
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+56.904109589
+SUFFICIENT STATS
+4186
+Recall
+0.648351648352
+Precision
+0.808219178082
+exec_time
+275.999797106
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+392.410958904
+SUFFICIENT STATS
+4186
+Recall
+0.648351648352
+Precision
+0.808219178082
+exec_time
+292.642218828
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+2245.21917808
+SUFFICIENT STATS
+4186
+Recall
+0.648351648352
+Precision
+0.808219178082
+exec_time
+307.775872946
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+4186
+Recall
+0.659340659341
+Precision
+0.952380952381
+exec_time
+355.999887943
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3}
+6
+NUM VARIABLES
+96
+NUM EDGES
+95
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+63.2083333333
+SUFFICIENT STATS
+4560
+Recall
+0.578947368421
+Precision
+0.763888888889
+exec_time
+307.964857101
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+315.819444444
+SUFFICIENT STATS
+4560
+Recall
+0.578947368421
+Precision
+0.763888888889
+exec_time
+314.242347956
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+2330.91666667
+SUFFICIENT STATS
+4560
+Recall
+0.578947368421
+Precision
+0.763888888889
+exec_time
+349.980193138
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+4560
+Recall
+0.431578947368
+Precision
+0.953488372093
+exec_time
+352.448632956
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5}
+6
+NUM VARIABLES
+100
+NUM EDGES
+99
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+61.85
+SUFFICIENT STATS
+4950
+Recall
+0.565656565657
+Precision
+0.7
+exec_time
+331.017920971
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+529.740740741
+SUFFICIENT STATS
+4950
+Recall
+0.565656565657
+Precision
+0.691358024691
+exec_time
+346.644728899
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+2077.92682927
+SUFFICIENT STATS
+4950
+Recall
+0.565656565657
+Precision
+0.682926829268
+exec_time
+384.720961094
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+4950
+Recall
+0.686868686869
+Precision
+0.819277108434
+exec_time
+504.561720133
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3}
+6
+NUM VARIABLES
+104
+NUM EDGES
+103
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+73.1571428571
+SUFFICIENT STATS
+5356
+Recall
+0.504854368932
+Precision
+0.742857142857
+exec_time
+347.70878005
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+349.985714286
+SUFFICIENT STATS
+5356
+Recall
+0.504854368932
+Precision
+0.742857142857
+exec_time
+349.722535133
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+2719.52857143
+SUFFICIENT STATS
+5356
+Recall
+0.504854368932
+Precision
+0.742857142857
+exec_time
+380.758066893
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+5356
+Recall
+0.407766990291
+Precision
+0.976744186047
+exec_time
+405.663144112
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5}
+6
+NUM VARIABLES
+108
+NUM EDGES
+107
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+56.8514851485
+SUFFICIENT STATS
+5778
+Recall
+0.663551401869
+Precision
+0.70297029703
+exec_time
+432.916661024
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+722.356435644
+SUFFICIENT STATS
+5778
+Recall
+0.663551401869
+Precision
+0.70297029703
+exec_time
+471.973371029
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+2903.0990099
+SUFFICIENT STATS
+5778
+Recall
+0.663551401869
+Precision
+0.70297029703
+exec_time
+514.810105085
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+5778
+Recall
+0.542056074766
+Precision
+0.950819672131
+exec_time
+466.694977999
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3}
+6
+NUM VARIABLES
+112
+NUM EDGES
+111
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+59.0384615385
+SUFFICIENT STATS
+6216
+Recall
+0.63963963964
+Precision
+0.682692307692
+exec_time
+451.085343122
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+776.596153846
+SUFFICIENT STATS
+6216
+Recall
+0.63963963964
+Precision
+0.682692307692
+exec_time
+497.31871295
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+3257.20192308
+SUFFICIENT STATS
+6216
+Recall
+0.63963963964
+Precision
+0.682692307692
+exec_time
+537.944647074
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+6216
+Recall
+0.630630630631
+Precision
+0.843373493976
+exec_time
+582.28954196
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4}
+6
+NUM VARIABLES
+116
+NUM EDGES
+115
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+74.6206896552
+SUFFICIENT STATS
+6670
+Recall
+0.652173913043
+Precision
+0.862068965517
+exec_time
+459.037461996
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+632.126436782
+SUFFICIENT STATS
+6670
+Recall
+0.652173913043
+Precision
+0.862068965517
+exec_time
+484.687505007
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+3185.72413793
+SUFFICIENT STATS
+6670
+Recall
+0.652173913043
+Precision
+0.862068965517
+exec_time
+547.391343117
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+6670
+Recall
+0.434782608696
+Precision
+1.0
+exec_time
+510.522511959
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5}
+6
+NUM VARIABLES
+120
+NUM EDGES
+119
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+62.4122807018
+SUFFICIENT STATS
+7140
+Recall
+0.655462184874
+Precision
+0.684210526316
+exec_time
+599.216840982
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+772.342105263
+SUFFICIENT STATS
+7140
+Recall
+0.655462184874
+Precision
+0.684210526316
+exec_time
+636.38416481
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+3592.46491228
+SUFFICIENT STATS
+7140
+Recall
+0.655462184874
+Precision
+0.684210526316
+exec_time
+722.324685097
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+7140
+Recall
+0.647058823529
+Precision
+0.895348837209
+exec_time
+682.140963078
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5, 120: 2, 121: 5, 122: 4, 123: 5}
+6
+NUM VARIABLES
+124
+NUM EDGES
+123
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+69.7706422018
+SUFFICIENT STATS
+7626
+Recall
+0.626016260163
+Precision
+0.706422018349
+exec_time
+560.569972992
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+488.733944954
+SUFFICIENT STATS
+7626
+Recall
+0.626016260163
+Precision
+0.706422018349
+exec_time
+617.990061045
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+3534.65137615
+SUFFICIENT STATS
+7626
+Recall
+0.626016260163
+Precision
+0.706422018349
+exec_time
+689.359144211
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+7626
+Recall
+0.552845528455
+Precision
+0.790697674419
+exec_time
+716.734303951
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5, 120: 2, 121: 5, 122: 4, 123: 5, 124: 2, 125: 2, 126: 2, 127: 5}
+6
+NUM VARIABLES
+128
+NUM EDGES
+127
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+79.2772277228
+SUFFICIENT STATS
+8128
+Recall
+0.582677165354
+Precision
+0.732673267327
+exec_time
+604.694730997
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+793.247524752
+SUFFICIENT STATS
+8128
+Recall
+0.582677165354
+Precision
+0.732673267327
+exec_time
+663.818394899
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+4263.73267327
+SUFFICIENT STATS
+8128
+Recall
+0.582677165354
+Precision
+0.732673267327
+exec_time
+759.875863075
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+8128
+Recall
+0.818897637795
+Precision
+0.675324675325
+exec_time
+1378.66788507
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5, 120: 2, 121: 5, 122: 4, 123: 5, 124: 2, 125: 2, 126: 2, 127: 5, 128: 4, 129: 5, 130: 2, 131: 6}
+6
+NUM VARIABLES
+132
+NUM EDGES
+131
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+68.0866141732
+SUFFICIENT STATS
+8646
+Recall
+0.656488549618
+Precision
+0.677165354331
+exec_time
+939.145682096
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+1046.58730159
+SUFFICIENT STATS
+8646
+Recall
+0.656488549618
+Precision
+0.68253968254
+exec_time
+1202.84360695
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+4403.58267717
+SUFFICIENT STATS
+8646
+Recall
+0.656488549618
+Precision
+0.677165354331
+exec_time
+980.616216898
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+8646
+Recall
+0.793893129771
+Precision
+0.727272727273
+exec_time
+2170.16260099
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5, 120: 2, 121: 5, 122: 4, 123: 5, 124: 2, 125: 2, 126: 2, 127: 5, 128: 4, 129: 5, 130: 2, 131: 6, 132: 2, 133: 2, 134: 4, 135: 5}
+6
+NUM VARIABLES
+136
+NUM EDGES
+135
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+83.8796296296
+SUFFICIENT STATS
+9180
+Recall
+0.562962962963
+Precision
+0.703703703704
+exec_time
+676.269456148
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+1085.32407407
+SUFFICIENT STATS
+9180
+Recall
+0.562962962963
+Precision
+0.703703703704
+exec_time
+762.986632824
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+4688.41666667
+SUFFICIENT STATS
+9180
+Recall
+0.562962962963
+Precision
+0.703703703704
+exec_time
+857.224107981
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+9180
+Recall
+0.592592592593
+Precision
+0.816326530612
+exec_time
+891.853053808
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5, 120: 2, 121: 5, 122: 4, 123: 5, 124: 2, 125: 2, 126: 2, 127: 5, 128: 4, 129: 5, 130: 2, 131: 6, 132: 2, 133: 2, 134: 4, 135: 5, 136: 4, 137: 5, 138: 2, 139: 2}
+6
+NUM VARIABLES
+140
+NUM EDGES
+139
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+81.3193277311
+SUFFICIENT STATS
+9730
+Recall
+0.618705035971
+Precision
+0.72268907563
+exec_time
+695.816124916
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+689.638655462
+SUFFICIENT STATS
+9730
+Recall
+0.618705035971
+Precision
+0.72268907563
+exec_time
+817.775276899
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+4801.50420168
+SUFFICIENT STATS
+9730
+Recall
+0.618705035971
+Precision
+0.72268907563
+exec_time
+941.223469973
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+9730
+Recall
+0.215827338129
+Precision
+1.0
+exec_time
+655.298490047
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48: 3, 49: 6, 50: 3, 51: 4, 52: 4, 53: 2, 54: 3, 55: 3, 56: 3, 57: 3, 58: 5, 59: 5, 60: 4, 61: 5, 62: 2, 63: 5, 64: 6, 65: 3, 66: 4, 67: 6, 68: 5, 69: 6, 70: 6, 71: 6, 72: 5, 73: 6, 74: 6, 75: 6, 76: 2, 77: 6, 78: 5, 79: 4, 80: 2, 81: 3, 82: 3, 83: 5, 84: 2, 85: 2, 86: 3, 87: 4, 88: 6, 89: 4, 90: 2, 91: 5, 92: 4, 93: 4, 94: 2, 95: 3, 96: 2, 97: 4, 98: 4, 99: 5, 100: 4, 101: 5, 102: 4, 103: 3, 104: 4, 105: 5, 106: 5, 107: 5, 108: 4, 109: 5, 110: 6, 111: 3, 112: 4, 113: 5, 114: 3, 115: 4, 116: 3, 117: 6, 118: 4, 119: 5, 120: 2, 121: 5, 122: 4, 123: 5, 124: 2, 125: 2, 126: 2, 127: 5, 128: 4, 129: 5, 130: 2, 131: 6, 132: 2, 133: 2, 134: 4, 135: 5, 136: 4, 137: 5, 138: 2, 139: 2, 140: 2, 141: 5, 142: 2, 143: 4}
+6
+NUM VARIABLES
+144
+NUM EDGES
+143
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+--------------------OUTERLOOP
+Average Selection iterations
+81.626984127
+SUFFICIENT STATS
+10296
+Recall
+0.608391608392
+Precision
+0.690476190476
+exec_time
+719.176222086
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+--------------------OUTERLOOP
+Average Selection iterations
+768.825396825
+SUFFICIENT STATS
+10296
+Recall
+0.608391608392
+Precision
+0.690476190476
+exec_time
+792.250299931
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+--------------------OUTERLOOP
+Average Selection iterations
+4933.8968254
+SUFFICIENT STATS
+10296
+Recall
+0.608391608392
+Precision
+0.690476190476
+exec_time
+960.957710981
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+10296
+Recall
+0.041958041958
+Precision
+1.0
+exec_time
+644.35381794
+Getting likelihoods
+>naive
+>structured
+>queue
+>graft
+>naive
+>structured
+>queue
+>graft
+PLOTTING time VS nllikelihoods
+PLOTTING NUM oF edges activated Vs nllikelihood
+PLOTTING NUM of edges activated VS time
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2, 45: 6, 46: 2, 47: 6, 48:

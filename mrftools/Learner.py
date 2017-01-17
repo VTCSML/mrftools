@@ -3,6 +3,7 @@ from _hashlib import new
 import numpy as np
 from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
+import math
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 
 class Learner(object):
@@ -55,7 +56,7 @@ class Learner(object):
 
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
-         unary ziables. Features should be a dictionary containing the feature vectors for the unary variables."""
+         unary viables. Features should be a dictionary containing the feature vectors for the unary variables."""
         self.models.append(model)
         self.belief_propagators.append(self.inference_type(model))
 
@@ -177,11 +178,13 @@ class Learner(object):
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            objec += self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+            length_normalizer = float(1) / len(self.belief_propagators[0].mn.unary_potentials[var])
+            objec += length_normalizer * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         return objec
 
     def gradient(self, weights, options=None):
+        # print('ITER')
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
 
         grad = np.zeros(len(weights))
@@ -196,13 +199,18 @@ class Learner(object):
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
+            # if math.isnan(np.sqrt(curr_reg.dot(curr_reg))):
+                # print(edge)
+                # print(self.edge_regularizers[edge])
+                # print(np.sqrt(curr_reg.dot(curr_reg)))
             length_normalizer = float(1)  / ( len(self.belief_propagators[0].mn.unary_potentials[edge[0]])  * len(self.belief_propagators[0].mn.unary_potentials[edge[1]] ))
             grad += length_normalizer * self.edges_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
 
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            grad += self.var_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
+            length_normalizer = float(1) / len(self.belief_propagators[0].mn.unary_potentials[var])
+            grad += length_normalizer * self.var_group_regularizers * (curr_reg / np.sqrt(curr_reg.dot(curr_reg)))
 
         return grad
 
@@ -233,7 +241,8 @@ class Learner(object):
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-            objec += self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
+            length_normalizer = float(1) / len(self.belief_propagators[0].mn.unary_potentials[var])
+            objec += length_normalizer * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         return objec
 

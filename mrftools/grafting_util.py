@@ -6,6 +6,7 @@ from pqdict import pqdict
 from ApproxMaxLikelihood import ApproxMaxLikelihood
 import time
 from random import shuffle
+from sklearn.metrics import accuracy_score
 
 
 def new_strcutured_priority_mean_gradient_test(bps, search_space, pq, data, l1_coeff, reassignmet, sufficient_stats, padded_sufficient_stats, max_num_states):
@@ -433,6 +434,46 @@ def compute_likelihood(mn, variables, data):
             likelihood_instance += likelihood_instance_node - logZ
         likelihood += likelihood_instance
     return - (float(likelihood) / float(len(data)))
+
+
+def compute_accuracy(mn, variables, data, variable, unobserved_state):
+    """
+    Functionality:
+    1 - Compute the likelihood for the learned MRF
+    """
+    likelihood = 0
+    unary_potentials_copy = copy.deepcopy(mn.unary_potentials)
+    results = []
+    true_states, predicted_states = list(), list()
+    for instance in data:
+        if instance[variable] != unobserved_state:
+            likelihoods = dict()
+            real_state = instance[variable]
+            for i in range(len(mn.unary_potentials[variable])):
+                instance[variable] = i
+                likelihood_instance = 0
+                for curr_node in variables:
+                    inner_exp = copy.deepcopy(unary_potentials_copy[curr_node])
+                    curr_node_potential = copy.deepcopy(unary_potentials_copy[curr_node])
+                    likelihood_instance_node = curr_node_potential[instance[curr_node]]
+                    curr_neighbors = list(mn.get_neighbors(curr_node))
+                    for neighbor in curr_neighbors:
+                        pair_pots = copy.deepcopy(mn.get_potential((curr_node, neighbor)))
+                        likelihood_instance_node += pair_pots[instance[curr_node], instance[neighbor]]
+                        inner_exp += pair_pots[:, instance[neighbor]]
+                    logZ = logsumexp(inner_exp)
+                    likelihood_instance += likelihood_instance_node - logZ
+                likelihoods[i] = likelihood_instance
+            # print('likelihoods')
+            # print(likelihoods)
+            likely_state = max(likelihoods.iteritems(), key=operator.itemgetter(1))[0]
+            if likely_state == real_state:
+                results.append(1)
+            else:
+                results.append(1)
+            predicted_states.append(likely_state)
+            true_states.append(real_state)
+    return accuracy_score(true_states, predicted_states) , true_states, predicted_states
 
 
 def initialize_priority_queue(search_space):

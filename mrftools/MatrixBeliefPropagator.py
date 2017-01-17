@@ -89,6 +89,10 @@ class MatrixBeliefPropagator(Inference):
                                                                          self.message_mat[:, :self.mn.num_edges]))
             adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
             messages = np.squeeze(logsumexp(adjusted_message_prod, 1))
+            #########################
+            if np.max(messages) > 100:
+                print(np.max(messages))
+            #########################
             messages = np.nan_to_num(messages - messages.max(0))
             change = np.sum(np.abs(messages - self.message_mat))
             self.message_mat = messages
