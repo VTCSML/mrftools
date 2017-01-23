@@ -55,6 +55,12 @@ class Graft():
         self.is_monitor_mn = False
         self.is_converged = False
 
+    def on_limit_sufficient_stats(self, max_sufficient_stats_ratio):
+        """
+        Reduce search space by selecting a random subset of edges
+        """
+        self.search_space = [self.mn.search_space[i] for i in sorted(random.sample(xrange(len(self.mn.search_space)), int(max_sufficient_stats_ratio * len(self.mn.search_space))))]
+
     def setup_learning_parameters(self, edge_l1, node_l1=0, l1_coeff=0, l2_coeff=0, max_iter_graft=500, zero_threshold=.05):
         """
         Set grafting parameters

@@ -1,0 +1,1295 @@
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:115: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:125: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+================================= ///////////////////START//////////////// ========================================= 
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.5681818182
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+490.928376913
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+88.25
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+483.929075003
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+432.272727273
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+480.679615974
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.727272727273
+Precision
+0.180790960452
+exec_time
+6842.34673715
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.3863636364
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+536.956146002
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+20.7272727273
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+582.948366165
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+455.409090909
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+540.227428913
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.785714285714
+exec_time
+725.477769136
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.0909090909
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+538.764425039
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+53.5681818182
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+519.989535093
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+370.977272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+542.94769311
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.720930232558
+exec_time
+881.686655045
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.1395348837
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+537.650428057
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+41.2790697674
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+562.471556902
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+416.093023256
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+523.116788149
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.316326530612
+exec_time
+3135.10098004
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.0434782609
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.5
+exec_time
+559.565150976
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+91.4
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+528.343127966
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+421.545454545
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+521.047544956
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.477272727273
+Precision
+0.75
+exec_time
+726.745696068
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+19.5217391304
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.5
+exec_time
+521.427019835
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+89.9090909091
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+486.206894875
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+392.511111111
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+509.976734877
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.418918918919
+exec_time
+2105.84644508
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.5581395349
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+518.78867197
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+129.488372093
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+568.824990988
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+505.489361702
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.489361702128
+exec_time
+572.079862833
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.727272727273
+Precision
+0.432432432432
+exec_time
+2103.64709306
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.3636363636
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+514.575111866
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+22.1818181818
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+575.415071011
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+433.454545455
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+527.99340415
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.0454545454545
+Precision
+1.0
+exec_time
+688.04639101
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.1162790698
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+544.760905027
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+17.9302325581
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+544.813999891
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+525.139534884
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+542.523486137
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.19375
+exec_time
+6989.20453405
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.6046511628
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+531.941328049
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+111.813953488
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+514.654787064
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+496.488372093
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+545.767359018
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.0454545454545
+Precision
+1.0
+exec_time
+695.572162151
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+20.8043478261
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.5
+exec_time
+566.610471964
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+73.0
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+544.37737298
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+455.333333333
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+580.655464888
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.0454545454545
+Precision
+1.0
+exec_time
+692.169257164
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+20.7111111111
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+542.508867979
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+39.5227272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+574.363703966
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+458.954545455
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+536.269179106
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.477272727273
+Precision
+0.75
+exec_time
+730.043069124
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.5454545455
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.5
+exec_time
+525.368156195
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+116.837209302
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+520.951786995
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+534.046511628
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+528.998687029
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.613636363636
+Precision
+0.771428571429
+exec_time
+788.955029011
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.0227272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+535.222131014
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+32.6382978723
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.489361702128
+exec_time
+642.678194046
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+445.727272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+577.701295137
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.785714285714
+exec_time
+732.574029922
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.0
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+526.951097012
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+109.139534884
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+528.509371996
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+528.674418605
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+526.684970856
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.386363636364
+Precision
+0.809523809524
+exec_time
+704.812429905
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.6046511628
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+524.030325174
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+139.302325581
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+519.331547022
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+427.488372093
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+520.193686008
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.795454545455
+Precision
+0.286885245902
+exec_time
+4020.41314888
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.9333333333
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+562.226526022
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+47.7884615385
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.442307692308
+exec_time
+557.698458195
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+461.021276596
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.489361702128
+exec_time
+565.054147005
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.818181818182
+Precision
+0.295081967213
+exec_time
+5003.05949497
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.7777777778
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.488888888889
+exec_time
+542.468791962
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+75.3023255814
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+527.110692978
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+481.976744186
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.511627906977
+exec_time
+525.857954979
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.704545454545
+exec_time
+909.24487114
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.3555555556
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+566.628183126
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+109.717391304
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.5
+exec_time
+557.726845026
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+498.613636364
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+551.626967907
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.43661971831
+exec_time
+1905.999403
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.8604651163
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+524.804676056
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+53.8372093023
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+562.428359985
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+538.162790698
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.53488372093
+exec_time
+539.390758038
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.5
+Precision
+0.785714285714
+exec_time
+723.581421137
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+21.6222222222
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.511111111111
+exec_time
+539.093289137
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+118.276595745
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.489361702128
+exec_time
+564.520961046
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+466.543478261
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.5
+exec_time
+556.966239929
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.704545454545
+Precision
+0.469696969697
+exec_time
+1898.66146398
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.0227272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+520.73380208
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+73.9545454545
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+524.821014166
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+414.159090909
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+526.383406162
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.363636363636
+Precision
+0.8
+exec_time
+699.607898951
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6, 9: 2, 10: 2, 11: 6, 12: 4, 13: 3, 14: 2, 15: 3, 16: 3, 17: 2, 18: 3, 19: 6, 20: 5, 21: 2, 22: 5, 23: 2, 24: 4, 25: 5, 26: 2, 27: 3, 28: 5, 29: 5, 30: 5, 31: 2, 32: 3, 33: 3, 34: 3, 35: 2, 36: 4, 37: 6, 38: 5, 39: 5, 40: 4, 41: 6, 42: 4, 43: 2, 44: 2}
+6
+NUM VARIABLES
+45
+NUM EDGES
+44
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+22.2727272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+548.077018023
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+84.8863636364
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+592.25068593
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+539.977272727
+SUFFICIENT STATS
+990
+Recall
+0.522727272727
+Precision
+0.522727272727
+exec_time
+591.353118896
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+990
+Recall
+0.431818181818
+Precision
+0.791666666667
+exec_time
+713.528429031
+======================================Simulating data...
+[0, 1, 

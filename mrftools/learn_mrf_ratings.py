@@ -15,7 +15,7 @@ FILES_LIST = ['../../../ratings/jester-data-1.xls', '../../../ratings/jester-dat
 def main():
 	edge_reg = 3
 	node_reg = 0
-	graft_iter = 1500
+	graft_iter = 250
 	edge_num = float('inf')
 	# edge_num = 250
 	num_states = dict()

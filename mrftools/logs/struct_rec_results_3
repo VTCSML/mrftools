@@ -2,3 +2,1422 @@
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:125: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+================================= ///////////////////START//////////////// ========================================= 
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.1191570759
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.68421052632
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+25.0147650242
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+8.68421052632
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.0284001827
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+51.2614901066
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.7
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+32.5201840401
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.65
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+30.5083827972
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+7.1
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+29.9435210228
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+78.3163900375
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.84210526316
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.0393779278
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+5.63157894737
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.5502209663
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+12.5789473684
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.1801850796
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+85.0663449764
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.75
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+32.7657690048
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.85
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+29.1024720669
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+8.2
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+27.57584095
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+91.8274898529
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+25.5849101543
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.31578947368
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+26.0863490105
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+9.52631578947
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+25.0735981464
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+0.625
+Precision
+0.714285714286
+exec_time
+24.0601100922
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.5239899158
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.63157894737
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+26.583687067
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+10.45
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+29.7367949486
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+88.7607870102
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.082182169
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.57894736842
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.3592789173
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+9.47368421053
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.3796820641
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+74.9120509624
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.84210526316
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+21.9050710201
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+6.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.1582579613
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+13.3157894737
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+25.4047029018
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.347826086957
+exec_time
+67.3348560333
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+25.8222661018
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.05263157895
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+27.3846981525
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+9.73684210526
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.6381361485
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+0.625
+Precision
+0.714285714286
+exec_time
+24.0158078671
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.84210526316
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.1178700924
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.84210526316
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+26.2828710079
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+11.8421052632
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.6677148342
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+51.6420109272
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.8
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+29.5052540302
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.5
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+30.2623810768
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+10.6
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+26.7988600731
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+119.298101902
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.2139399052
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.63157894737
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.472661972
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+7.21052631579
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.5791590214
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.363636363636
+exec_time
+61.1548950672
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.78947368421
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.7741229534
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.84210526316
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+29.2241230011
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+9.21052631579
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+21.9868228436
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+89.4163339138
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.73684210526
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.0695130825
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.21052631579
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+29.592097044
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+7.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.3251299858
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.666666666667
+exec_time
+27.5141198635
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.7281541824
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+2.8
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+31.6640000343
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+8.31578947368
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.6102721691
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+96.0727260113
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.73684210526
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.61627388
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.36842105263
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+26.9394299984
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+6.63157894737
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+26.574887991
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+108.20569396
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.9299719334
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+7.15789473684
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.7584760189
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+10.8421052632
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.4631960392
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+0.875
+Precision
+0.777777777778
+exec_time
+24.8358879089
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.625
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.333333333333
+exec_time
+35.4209759235
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.7
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+36.9495899677
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+9.4
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+30.9371678829
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.727272727273
+exec_time
+26.4016389847
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.5272500515
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+5.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.8406310081
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+9.0
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.6552870274
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.8
+exec_time
+25.2936639786
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.0150139332
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+5.68421052632
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+21.7060630322
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+11.3157894737
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.3676738739
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+0.5
+Precision
+1.0
+exec_time
+22.8966510296
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.8817200661
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+5.52631578947
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.1173291206
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+8.26315789474
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.654075861
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+67.1213679314
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.84210526316
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.1725809574
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.21052631579
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.4765179157
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+11.6315789474
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+22.6162688732
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+67.2218658924
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+26.3227510452
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+4.15789473684
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+28.3098828793
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+12.0
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+25.6501009464
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.727272727273
+exec_time
+26.2144949436
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.2403540611
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+3.45
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.4
+exec_time
+29.9289081097
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+12.2631578947
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+23.032282114
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.5
+exec_time
+38.2539448738
+======================================Simulating data...
+[0, 1, 2, 3, 4, 5, 6, 7, 8]
+{0: 6, 1: 2, 2: 5, 3: 5, 4: 5, 5: 3, 6: 5, 7: 4, 8: 6}
+6
+NUM VARIABLES
+9
+NUM EDGES
+8
+>>>>>>>>>>>>>>>>>>>>>METHOD: naive
+Average Selection iterations
+1.89473684211
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+24.9297709465
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+Average Selection iterations
+6.31578947368
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+21.2809700966
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+10.1578947368
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.421052631579
+exec_time
+21.774613142
+Converged
+True
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+36
+Recall
+1.0
+Precision
+0.285714285714
+exec_time
+96.747164011
+Traceback (most recent call last):
+  File "mn_time_evolution_stats.py", line 286, in <module>
+    main()
+  File "mn_time_evolution_stats.py", line 235, in main
+    plt.plot(time_range, mean_time_num_edges[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=1)
+  File "/home/walidch/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 3161, in plot
+    ret = ax.plot(*args, **kwargs)
+  File "/home/walidch/.local/lib/python2.7/site-packages/matplotlib/__init__.py", line 1819, in inner
+    return func(ax, *args, **kwargs)
+  File "/home/walidch/.local/lib/python2.7/site-packages/matplotlib/axes/_axes.py", line 1382, in plot
+    for line in self._get_lines(*args, **kwargs):
+  File "/home/walidch/.local/lib/python2.7/site-packages/matplotlib/axes/_base.py", line 381, in _grab_next_args
+    for seg in self._plot_args(remaining, kwargs):
+  File "/home/walidch/.local/lib/python2.7/site-packages/matplotlib/axes/_base.py", line 359, in _plot_args
+    x, y = self._xy_from_xy(x, y)
+  File "/home/walidch/.local/lib/python2.7/site-packages/matplotlib/axes/_base.py", line 219, in _xy_from_xy
+    raise ValueError("x and y must have same first dimension")
+ValueError: x and y must have same first dimension

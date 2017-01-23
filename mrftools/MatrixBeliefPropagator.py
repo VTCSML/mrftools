@@ -90,8 +90,8 @@ class MatrixBeliefPropagator(Inference):
             adjusted_message_prod += self.belief_mat[:, self.mn.message_from]
             messages = np.squeeze(logsumexp(adjusted_message_prod, 1))
             #########################
-            if np.max(messages) > 100:
-                print(np.max(messages))
+            # if np.max(messages) > 100:
+            #     print(np.max(messages))
             #########################
             messages = np.nan_to_num(messages - messages.max(0))
             change = np.sum(np.abs(messages - self.message_mat))
@@ -190,17 +190,27 @@ class MatrixBeliefPropagator(Inference):
         assert(np.all(self.message_mat.shape == messages.shape))
         self.message_mat = messages
 
+# def logsumexp(matrix, dim = None):
+#     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
+#     try:
+#        return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+#     except FloatingPointError:
+#         with np.errstate(over='raise', under='raise'):
+#             return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
+#     except:
+#          max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+#          with np.errstate(under='ignore', divide='ignore'):
+#              return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+
 def logsumexp(matrix, dim = None):
     """Compute log(sum(exp(matrix), dim)) in a numerically stable way."""
     try:
-       return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
-    except FloatingPointError:
         with np.errstate(over='raise', under='raise'):
             return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
     except:
-         max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
-         with np.errstate(under='ignore', divide='ignore'):
-             return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
+        max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))
+        with np.errstate(under='ignore', divide='ignore'):
+            return np.log(np.sum(np.exp(matrix - max_val), dim, keepdims=True)) + max_val
 
 def sparse_dot(full_matrix, sparse_matrix):
     return sparse_matrix.T.dot(full_matrix.T).T

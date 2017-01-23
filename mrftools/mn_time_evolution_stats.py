@@ -11,12 +11,13 @@ from Graft import Graft
 
 METHOD_COLORS = {'structured':'red', 'naive': 'blue', 'queue':'green', 'graft':'yellow'}
 
-test_num = '1'
+test_num = '2'
 
 def main():
 	edge_reg = 1
 	node_reg = 0
-	len_data = 200000
+	len_data = 10000
+	priority_graft_iter = 500
 	graft_iter = 2500
 	num_cluster_range = range(1, 500, 1)
 	T_likelihoods = dict()
@@ -42,13 +43,15 @@ def main():
 		max_time = 0
 
 
-		for iteration in range(25):
+		for iteration in range(1):
 
-			METHODS = ['naive', 'structured', 'queue']
+			# METHODS = ['naive', 'structured', 'queue']
+
+			METHODS = ['structured', 'naive']
 			sorted_timestamped_mn = dict()
 			edge_likelihoods = dict()
 			print('======================================Simulating data...')
-			model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(len_data, num_cluster, 8, 7)
+			model, variables, data, max_num_states, num_states, edges = generate_synthetic_data(len_data, num_cluster, 8, 8)
 			train_data = data[: int(.7 * len_data)]
 			test_data = data[int(.7 * len_data) : len_data]
 			list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
@@ -63,8 +66,11 @@ def main():
 
 			print('NUM EDGES')
 			print(len(edges))
-			# edge_num = float('inf')
-			edge_num = len(edges) + 20
+
+			print('EDGES')
+			print(edges)
+			edge_num = float('inf')
+			# edge_num = len(edges) + 20
 			num_attributes = len(variables)
 			recalls, precisions, sufficientstats, mn_snapshots = dict(), dict(), dict(), dict()
 			for method in METHODS:
@@ -73,7 +79,7 @@ def main():
 				spg.on_show_metrics()
 				# spg.on_verbose()
 				spg.on_plot_queue('../../../DataDump/pq_plot')
-				spg.setup_learning_parameters(edge_reg, max_iter_graft=graft_iter, node_l1=node_reg, zero_threshold=1e-3)
+				spg.setup_learning_parameters(edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg, zero_threshold=1e-3)
 				spg.on_monitor_mn()
 				t = time.time()
 				learned_mn, final_active_set, suff_stats_list, recall, precision, iterations = spg.learn_structure(edge_num, edges=edges)
@@ -137,7 +143,7 @@ def main():
 			for method in METHODS:
 				curr_recall, curr_precision, curr_num_edges = [0], [0], [0]
 				time_stamps = [x[0] for x in T_likelihoods[method]]
-				for t in time_range:
+				for t in time_range[1:]:
 					
 					try:
 						recall_val = next(x for x in enumerate(zip(time_stamps, recalls[method])) if x[0] > t)
@@ -250,10 +256,6 @@ def main():
 			# plt.plot(time_stamps, recalls[METHODS[i]], METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=4)
 
 			##################
-			print('TEST')
-			print(METHODS[i])
-			print(len(time_range))
-			print(len(mean_time_recall[METHODS[i]]))
 			plt.plot(time_range, mean_time_recall[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=1)
 			plt.fill_between(time_range, mean_time_recall[METHODS[i]] - std_time_recall[METHODS[i]], mean_time_recall[METHODS[i]] + std_time_recall[METHODS[i]], alpha=0.2, color=METHOD_COLORS[METHODS[i]], lw=2)
 			#################

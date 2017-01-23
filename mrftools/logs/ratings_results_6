@@ -1,0 +1,10 @@
+FETCHING DATA
+>parsing ../../../ratings/jester-data-1.xls
+>parsing ../../../ratings/jester-data-2.xls
+>parsing ../../../ratings/jester-data-3.xls
+Done!
+LEARNING MRF
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:115: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:125: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
