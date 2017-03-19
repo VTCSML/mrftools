@@ -3,13 +3,10 @@ FETCHING DATA!
 >parsing ../../../ratings/jester-data-2.xls
 >parsing ../../../ratings/jester-data-3.xls
 Done!
-Searching for opt params
-PARAMS
-0.06
-0.21
-Traceback (most recent call last):
-  File "real_data_experiments.py", line 76, in <module>
-    main()
-  File "real_data_experiments.py", line 45, in main
-    spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, None, method) # Initialize SPG class
-NameError: global name 'variables' is not defined
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:118: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:132: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+159.445607901
+======GRAFT NLL: 159.445607901
+======GRAFT Exec Time: 720.847001076 s

@@ -49,11 +49,13 @@ def compute_likelihood_1(mn, num_nodes, data):
 
 
 
-def compute_likelihood(mn, num_nodes, data):
+def compute_likelihood(mn, num_nodes, data, variables = None):
     """
     Functionality:
     1 - Compute the likelihood for the learned MRF
     """
+    if variables == None:
+        variables = range(num_nodes)
     # print(len( mn.edge_potentials))
     # print(mn.neighbors)
     data_copy = copy.deepcopy(data)
@@ -73,27 +75,27 @@ def compute_likelihood(mn, num_nodes, data):
         eliminated = []
         for curr_node in range(num_nodes):
             # eliminated.append(curr_node)
-            curr_node_potential = copy.deepcopy(unary_potentials_copy[curr_node])
+            curr_node_potential = copy.deepcopy(unary_potentials_copy[variables[curr_node]])
             # print(curr_node_potential[:])
             inner_exp = np.exp(curr_node_potential[:])
             # print(inner_exp)
             inner_exp_1 = curr_node_potential[:]
             ####################
-            likelihood_instance_node = np.exp(curr_node_potential[instance[curr_node]])
-            likelihood_instance_node_1 = copy.deepcopy(curr_node_potential[instance[curr_node]])
+            likelihood_instance_node = np.exp(curr_node_potential[instance[variables[curr_node]]])
+            likelihood_instance_node_1 = copy.deepcopy(curr_node_potential[instance[variables[curr_node]]])
             ####################
             # curr_neighbors = [x for x in list(mn.get_neighbors(curr_node)) if x not in eliminated]
-            curr_neighbors = list(mn.get_neighbors(curr_node)) 
+            curr_neighbors = list(mn.get_neighbors(variables[curr_node])) 
             has_neighbor = len(curr_neighbors) > 0
             # if has_neighbor:
             #     test_instances = copy.deepcopy(data_copy)
             for neighbor in curr_neighbors:
                 # new_test_instances = [x for x in test_instances if x[neighbor] == instance[neighbor]]
                 # test_instances = new_test_instances
-                pair_pots = copy.deepcopy(mn.get_potential((curr_node, neighbor)))
+                pair_pots = copy.deepcopy(mn.get_potential((variables[curr_node], neighbor)))
                 ####################
-                likelihood_instance_node = likelihood_instance_node * np.exp(copy.deepcopy(pair_pots[instance[curr_node], instance[neighbor]]))
-                likelihood_instance_node_1 = likelihood_instance_node_1 + copy.deepcopy(pair_pots[instance[curr_node], instance[neighbor]])
+                likelihood_instance_node = likelihood_instance_node * np.exp(copy.deepcopy(pair_pots[instance[variables[curr_node]], instance[neighbor]]))
+                likelihood_instance_node_1 = likelihood_instance_node_1 + copy.deepcopy(pair_pots[instance[variables[curr_node]], instance[neighbor]])
                 # print('////')
                 # print(inner_exp)
                 # print(np.exp(copy.deepcopy(pair_pots[:, instance[neighbor]])))

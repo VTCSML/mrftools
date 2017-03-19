@@ -43,7 +43,10 @@ class Graft():
         self.mn = MarkovNet()
         self.mn.initialize_unary_factors(variables, num_states)
         # self.search_space = self.mn.search_space
-        self.search_space = [self.mn.search_space[i] for i in list_order]
+        if list_order != None:
+            self.search_space = [self.mn.search_space[i] for i in list_order]
+        else:
+            self.search_space = self.mn.search_space
         self.data = data
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
         self.l1_coeff = 0
@@ -171,8 +174,10 @@ class Graft():
         vector_length_per_edge = self.max_num_states ** 2
         len_search_space = len(self.search_space)
 
+        objec = list()
+
         if self.is_show_metrics:
-            recall, precision, suff_stats_list, f1_score, objec  = [0,0], [0,0], [0,0], [0,0], []
+            recall, precision, suff_stats_list, f1_score = [0,0], [0,0], [0,0], [0,0]
 
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
         weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec)

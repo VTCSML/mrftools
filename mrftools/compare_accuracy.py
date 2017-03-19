@@ -24,7 +24,7 @@ def main():
 	graft_iter = 10000
 	T_likelihoods = dict()
 	zero_threshold = 1e-3
-	training_ratio = .7
+	training_ratio = .9
 	mrf_density = .01
 	edge_std = 2.5
 	node_std = .001
@@ -231,7 +231,7 @@ def main():
 		ax2 = ax1.twinx()
 		for i in range(len(METHODS)):
 			# ax1.plot(M_time_stamps[METHODS[i]], M_accuracies[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='accuracy_' +METHODS[i], linewidth=1)
-			ax1.plot(M_time_stamps[METHODS[i]], T_likelihoods[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='nll_' +METHODS[i], linewidth=1)
+			ax1.plot(M_time_stamps[METHODS[i]], T_likelihoods[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='nll_' + METHODS[i], linewidth=1)
 			ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', label='f1-score_'+METHODS[i])
 
 		# ax1.plot(M_time_stamps[METHODS[i]], real_model_nll * np.ones(len(M_time_stamps['graft'])), color='green', label='nll_real_model', linewidth=1)

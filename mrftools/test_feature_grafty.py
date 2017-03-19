@@ -27,6 +27,7 @@ def main():
 	training_ratio = .8
 	edge_std = 2.5
 	node_std = .0001
+	state_num = 4
 	min_precision = .1 # WORKS WITH MAX NUMBER OF EDGES
 	# num_nodes_range = [10]
 	num_nodes_range = range(10, 100, 10)

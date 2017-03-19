@@ -1,0 +1,204 @@
+================================= ///////////////////START//////////////// ========================================= 
+======================================Simulating data...
+> Creating model
+[[-10.42391853  15.22894876]
+ [ 16.91548959   4.06267984]]
+[-10.42391852667263, 15.228948763522885, 16.915489590876046, 4.0626798367484644]
+[[ 22.26223371  21.75487016]
+ [ 11.23957941  13.02530016]]
+[22.262233714867662, 21.75487015920228, 11.239579405575331, 13.025300156817389]
+[[ 19.84232545  19.61903879]
+ [  6.90138546   7.581578  ]]
+[19.842325445821764, 19.61903879027529, 6.9013854607363818, 7.5815779953973159]
+[[  5.92278255   6.49540559]
+ [ -0.02236288  16.21992285]]
+[5.922782545986772, 6.4954055871105094, -0.02236288039940959, 16.21992284665528]
+> Generating data
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+{0: 2, 1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2}
+2
+NUM VARIABLES
+10
+NUM EDGES
+4
+EDGES
+[(0, 7), (0, 8), (3, 7), (5, 8)]
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:118: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:132: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+tested edge
+(5, 6)
+[]
+ACTIVATED EDGE
+(5, 7)
+CURRENT ACTIVE SPACE
+[(5, 7)]
+tested edge
+(1, 9)
+[]
+tested edge
+(6, 9)
+[]
+ACTIVATED EDGE
+(2, 8)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8)]
+tested edge
+(5, 9)
+[(7, 9)]
+tested edge
+(0, 1)
+[]
+ACTIVATED EDGE
+(5, 8)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8)]
+ACTIVATED EDGE
+(0, 7)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7)]
+tested edge
+(1, 7)
+[(0, 1), (1, 5)]
+tested edge
+(2, 9)
+[(8, 9)]
+tested edge
+(4, 7)
+[(4, 5), (0, 4)]
+tested edge
+(1, 4)
+[]
+ACTIVATED EDGE
+(7, 8)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8)]
+tested edge
+(0, 2)
+[(2, 7), (0, 8)]
+tested edge
+(1, 2)
+[(1, 8)]
+tested edge
+(3, 6)
+[]
+tested edge
+(0, 9)
+[(7, 9)]
+ACTIVATED EDGE
+(0, 5)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8), (0, 5)]
+ACTIVATED EDGE
+(0, 3)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8), (0, 5), (0, 3)]
+tested edge
+(1, 3)
+[(0, 1)]
+tested edge
+(1, 6)
+[]
+tested edge
+(6, 8)
+[(5, 6), (2, 6), (6, 7)]
+ACTIVATED EDGE
+(3, 8)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8), (0, 5), (0, 3), (3, 8)]
+ACTIVATED EDGE
+(3, 7)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8), (0, 5), (0, 3), (3, 8), (3, 7)]
+ACTIVATED EDGE
+(3, 5)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8), (0, 5), (0, 3), (3, 8), (3, 7), (3, 5)]
+tested edge
+(3, 4)
+[(4, 5), (4, 7), (0, 4), (4, 8)]
+tested edge
+(2, 4)
+[(4, 8)]
+tested edge
+(0, 6)
+[(5, 6), (6, 7), (3, 6)]
+tested edge
+(3, 9)
+[(0, 9), (8, 9), (7, 9), (5, 9)]
+tested edge
+(4, 6)
+[]
+tested edge
+(4, 9)
+[]
+ACTIVATED EDGE
+(0, 8)
+CURRENT ACTIVE SPACE
+[(5, 7), (2, 8), (5, 8), (0, 7), (7, 8), (0, 5), (0, 3), (3, 8), (3, 7), (3, 5), (0, 8)]
+tested edge
+(2, 6)
+[(6, 8)]
+tested edge
+(6, 7)
+[(5, 6), (0, 6), (6, 8), (3, 6)]
+tested edge
+(1, 5)
+[(0, 1), (1, 8), (1, 3), (1, 7)]
+tested edge
+(1, 8)
+[(1, 2), (1, 5), (1, 3), (0, 1), (1, 7)]
+tested edge
+(3, 6)
+[(5, 6), (0, 6), (6, 7), (6, 8)]
+tested edge
+(5, 6)
+[(0, 6), (6, 7), (6, 8), (3, 6)]
+tested edge
+(0, 1)
+[(1, 5), (1, 8), (1, 3), (1, 7)]
+tested edge
+(0, 4)
+[(4, 5), (4, 7), (3, 4), (4, 8)]
+tested edge
+(4, 5)
+[(4, 7), (0, 4), (3, 4), (4, 8)]
+tested edge
+(4, 8)
+[(4, 5), (4, 7), (3, 4), (2, 4), (0, 4)]
+tested edge
+(7, 9)
+[(0, 9), (8, 9), (3, 9), (5, 9)]
+tested edge
+(8, 9)
+[(0, 9), (5, 9), (3, 9), (2, 9), (7, 9)]
+tested edge
+(1, 7)
+[(0, 1), (1, 5), (1, 8), (1, 3)]
+tested edge
+(5, 9)
+[(0, 9), (8, 9), (3, 9), (7, 9)]
+tested edge
+(4, 7)
+[(4, 5), (0, 4), (3, 4), (4, 8)]
+tested edge
+(0, 9)
+[(8, 9), (5, 9), (3, 9), (7, 9)]
+tested edge
+(2, 9)
+[(8, 9)]
+tested edge
+(1, 2)
+[(1, 8)]
+Average Selection iterations
+2.76923076923
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.363636363636
+F1-score
+0.533333333333

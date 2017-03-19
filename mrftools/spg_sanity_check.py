@@ -13,15 +13,14 @@ from Graft import Graft
 # METHODS = ['structured', 'naive', 'queue']
 METHODS = ['structured']
 def main():
-	edge_reg = 9e-4
-	zero_threshold = 1e-2
-	node_reg = 0
-	len_data = 100000
+	edge_reg = 0.05 #np.arange(0.01,0.25,0.05) 
+	node_reg = 0.075
+	len_data = 1000
 	priority_graft_iter = 2500
 	graft_iter = 2500
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 32
+	num_nodes = 10
 	T_likelihoods = dict()
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	print('======================================Simulating data...')
@@ -43,20 +42,20 @@ def main():
 	num_attributes = len(variables)
 	recalls, precisions, active_sets= dict(), dict(), dict()
 
-	print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
-	grafter = Graft(variables, num_states, max_num_states, data, list_order)
-	grafter.on_show_metrics()
-	# grafter.on_limit_sufficient_stats(suffstats_ratio)
-	# grafter.on_verbose()
-	grafter.setup_learning_parameters(edge_reg, max_iter_graft=graft_iter)
-	grafter.on_monitor_mn()
-	grafter.on_zero_treshold(zero_threshold=zero_threshold)
-	t = time.time()
-	learned_mn, final_active_set, suff_stats_list, recall, precision = grafter.learn_structure(edge_num, real_edges)
-	exec_time = time.time() - t
-	print('exec_time')
-	print(exec_time)
-	active_sets['graft'] = final_active_set
+	# print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
+	# grafter = Graft(variables, num_states, max_num_states, data, list_order)
+	# grafter.on_show_metrics()
+	# # grafter.on_limit_sufficient_stats(suffstats_ratio)
+	# # grafter.on_verbose()
+	# grafter.setup_learning_parameters(edge_reg, max_iter_graft=graft_iter)
+	# grafter.on_monitor_mn()
+	# grafter.on_zero_treshold(zero_threshold=zero_threshold)
+	# t = time.time()
+	# learned_mn, final_active_set, suff_stats_list, recall, precision = grafter.learn_structure(edge_num, real_edges)
+	# exec_time = time.time() - t
+	# print('exec_time')
+	# print(exec_time)
+	# active_sets['graft'] = final_active_set
 
 	################################### REMOVE THIS
 	edges = real_edges
@@ -64,27 +63,24 @@ def main():
 
 	for method in METHODS:
 		print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
+
+
 		spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
 		spg.on_show_metrics()
-		# spg.on_limit_sufficient_stats(suffstats_ratio)
-		spg.on_zero_treshold(zero_threshold=zero_threshold)
-		# spg.on_verbose()
-		# spg.on_plot_queue('../../../qplot')
-		spg.setup_learning_parameters(edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
+		spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 		spg.on_monitor_mn()
+		spg.on_verbose()
 		t = time.time()
-		learned_mn, final_active_set, suff_stats_list, recall, precision, iterations = spg.learn_structure(edge_num, edges=real_edges)
+		learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 		exec_time = time.time() - t
-		precisions[method] = precision
-		recalls[method] = recall
-		print('exec_time')
-		print(exec_time)
-		print('Converged')
-		print(spg.is_converged)
-		active_sets[method] = final_active_set
+		# precisions[method] = precision
+		# recalls[method] = recall
+		# time_stamps = sorted(list(spg.mn_snapshots.keys()))
+		# M_time_stamps[method] = time_stamps
+		# f1_scores[method] = f1_score
 
 
-	print('Missed edges')
-	print([x for x in active_sets['graft'] if x in real_edges and x not in active_sets['structured']])
+	# print('Missed edges')
+	# print([x for x in active_sets['graft'] if x in real_edges and x not in active_sets['structured']])
 if __name__ == '__main__':
 	main()

@@ -206,8 +206,9 @@ class StructuredPriorityGraft():
         old_node_regularizers = self.node_regularizers
         old_edge_regularizers = self.edge_regularizers
 
+        objec = list()
         if self.is_show_metrics:
-            recall, precision, suff_stats_list, self.total_iter_num, f1_score, objec = [0,0], [0,0], [0,0], [0,0], [0,0], []
+            recall, precision, suff_stats_list, self.total_iter_num, f1_score = [0,0], [0,0], [0,0], [0,0], [0,0]
             is_ss_at_70_regeistered = False
 
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
@@ -393,12 +394,15 @@ class StructuredPriorityGraft():
                         self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
                         if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
                             penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
-                            neighbors_1 = list(bp.mn.get_neighbors(edge[0]))
-                            neighbors_2 = list(bp.mn.get_neighbors(edge[1]))
+                            neighbors_0 = list(bp.mn.get_neighbors(edge[0]))
+                            neighbors_1 = list(bp.mn.get_neighbors(edge[1]))
                             curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
-                                          list(itertools.product([edge[0]], neighbors_2)) +
-                                          list(itertools.product([edge[1]], neighbors_1)) if
+                                          list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
+                                          list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
                                           x < y and (x, y) in self.search_space]))
+                            print('tested edge')
+                            print(edge)
+                            print(curr_resulting_edges_1)
                             for res_edge in curr_resulting_edges_1:
                                 # try:
                                 #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
@@ -407,10 +411,10 @@ class StructuredPriorityGraft():
                                 try:
                                     if res_edge in self.sufficient_stats:
                                         self.pq.updateitem(res_edge, (self.pq[res_edge] + direct_penalty) / 2)
-                                        print('structured reassignment')
+                                        # print('structured reassignment')
                                     else:
                                         self.pq.updateitem(res_edge, penalty1)
-                                        print('structured assignment virgin')
+                                        # print('structured assignment virgin')
                                 except:
                                     pass
 
@@ -509,7 +513,6 @@ class StructuredPriorityGraft():
         plt.savefig(os.path.join(self.plot_path, file_name))
         plt.close()
 
-
     def make_queue_plot_synthetic_truth(self, pq_history, final_active_set, loop_num, len_search_space):
         """
         Plot queue reorganization using learned truth edges
@@ -543,7 +546,6 @@ class StructuredPriorityGraft():
         file_name = 'synth_' + self.method + str(len(self.variables)) +'_Nodes.png'
         plt.savefig(os.path.join(self.plot_path, file_name))
         plt.close()
-
 
     def update_plot_info(self, loop_num, columns, rows, values, pq_history, edges):
         """
