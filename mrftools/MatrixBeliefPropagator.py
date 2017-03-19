@@ -171,6 +171,8 @@ class MatrixBeliefPropagator(Inference):
         summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(
             (self.mn.max_states**2, self.mn.num_edges)).T)
         marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
+        # print('marginals')
+        # print(marginals)
         return marginals
 
     def compute_energy_functional(self):

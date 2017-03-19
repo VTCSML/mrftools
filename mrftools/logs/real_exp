@@ -1,0 +1,15 @@
+FETCHING DATA!
+>parsing ../../../ratings/jester-data-1.xls
+>parsing ../../../ratings/jester-data-2.xls
+>parsing ../../../ratings/jester-data-3.xls
+Done!
+Searching for opt params
+PARAMS
+0.06
+0.21
+Traceback (most recent call last):
+  File "real_data_experiments.py", line 76, in <module>
+    main()
+  File "real_data_experiments.py", line 45, in main
+    spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, None, method) # Initialize SPG class
+NameError: global name 'variables' is not defined

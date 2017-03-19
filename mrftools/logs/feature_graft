@@ -1,0 +1,8 @@
+================================= ///////////////////START//////////////// =========================================
+======================================Simulating data...
+Traceback (most recent call last):
+  File "test_feature_grafty.py", line 316, in <module>
+    main()
+  File "test_feature_grafty.py", line 78, in main
+    model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(len_data, num_nodes, mrf_density=mrf_density, state_min=state_num, state_max=state_num, edge_std=edge_std, node_std = node_std)
+NameError: global name 'state_num' is not defined

@@ -21,7 +21,8 @@ class GibbsSampler(object):
         """Generate state according to the given weight"""
         r = random.uniform(0, 1)
         # Sum = sum(weight.values())
-        Sum = sum(weight)
+        Sum = sum(weight) # ALWAYS EQUAL TO 1 BUG????
+        # print(Sum) 
         rnd = r * Sum
         for i in range(len(weight)):
             rnd = rnd - weight[i]
@@ -38,15 +39,20 @@ class GibbsSampler(object):
             weight = self.mn.unary_potentials[var]
             weight = np.exp(weight - logsumexp(weight))
             self.unary_weights[var] = weight
-            self.states[var] = self.generate_state(self.unary_weights[var])
+            self.states[var] = self.generate_state(weight)
 
     def update_states(self):
         """Update the state of each node based on neighbor states."""
         for var in self.mn.variables:
+            # print('////')
+            # print(var)
             weight = self.mn.unary_potentials[var]
             for neighbor in self.mn.neighbors[var]:
+                # print('neighbor')
+                # print(neighbor)
                 weight = weight + self.mn.get_potential((var, neighbor))[:, self.states[neighbor]]
             weight = np.exp(weight - logsumexp(weight))
+            # print(weight)
             self.states[var] = self.generate_state(weight)
 
 

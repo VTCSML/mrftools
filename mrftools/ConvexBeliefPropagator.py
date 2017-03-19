@@ -16,7 +16,11 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
             default_counting_numbers[var] = 1
             for neighbor in markov_net.neighbors[var]:
                 if var < neighbor:
-                    default_counting_numbers[(var, neighbor)] = 1
+                    ##########
+                    # default_counting_numbers[(var, neighbor)] = 5
+                    #########
+
+                    default_counting_numbers[(var, neighbor)] = 1.5
 
         if counting_numbers:
             self._set_counting_numbers(counting_numbers)

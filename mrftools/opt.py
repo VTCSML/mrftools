@@ -1,11 +1,12 @@
 import numpy as np
+import copy
 
 def sgd(func, grad, x, args, callback):
     t = 1
     tolerance = 1e-8
     change = np.inf
 
-    max_iter = 200
+    max_iter = 100
 
     while change > tolerance and t < max_iter:
         old_x = x
@@ -19,8 +20,8 @@ def sgd(func, grad, x, args, callback):
 
 def ada_grad(func, grad, x, args, callback):
     t = 1
-    tolerance = 1e-8
-    max_iter = 500
+    tolerance = 1e-6
+    max_iter = 1500
     grad_norm = np.inf
 
     grad_sum = 0
@@ -36,7 +37,56 @@ def ada_grad(func, grad, x, args, callback):
             callback(x)
     return x
 
+def ada_grad_1(func, grad, x, zero_index, args, callback, tot_grad):
+    t = 1
+    tolerance = 1e-6
+    max_iter = 1500
+    grad_norm = np.inf
+    # print(zero_index)
+    # x[zero_index] = 0
+    # print('start')
+    # print(zero_index)
+    # tot_grad = np.zeros(len(x))
+    grad_sum = 0
+    g = grad(x, args)
+    # g[zero_index] = 0
+    # print('First gradient')
+    # print(g)
+    # print(np.sqrt(g.dot(g)))
+    while grad_norm > tolerance and t < max_iter:
+        x[zero_index] = 0
+        f = func(x, args)
+        # print(f)
+        old_x = x
+        g = grad(x, args)
+        full_grad = copy.deepcopy(g)
+        # print('///')
+        # print(g)
+        # g[zero_index] = 0
+        # print(g)
+        grad_norm = g * g
+        grad_sum += grad_norm
+        tot_grad += np.abs(g)
+        ##########
+        # x = x - 0.1 * g / (np.sqrt(grad_sum) + 0.001)
+        ###########
+        x = x - (0.1 /(tot_grad + 0.001)) * g
 
+        grad_norm = np.sqrt(g.dot(g))
+        t += 1
+        if callback:
+            callback(x)
+    # print(x)
+    tot_grad[zero_index] = 0
+    print('iter')
+    print(t)
+    # print('out')
+    # print(full_grad)
+    # print(f)
+    # print('Last gradient')
+    # print(g)
+    # print(np.sqrt(g.dot(g)))
+    return x, tot_grad
 import matplotlib.pyplot as plt
 import time
 
