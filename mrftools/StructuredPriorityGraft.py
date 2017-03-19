@@ -400,9 +400,9 @@ class StructuredPriorityGraft():
                                           list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
                                           list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
                                           x < y and (x, y) in self.search_space]))
-                            print('tested edge')
-                            print(edge)
-                            print(curr_resulting_edges_1)
+                            # print('tested edge')
+                            # print(edge)
+                            # print(curr_resulting_edges_1)
                             for res_edge in curr_resulting_edges_1:
                                 # try:
                                 #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)

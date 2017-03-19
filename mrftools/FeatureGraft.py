@@ -197,7 +197,7 @@ class FeatureGraft():
                 self.print_update(activated_feature, precision[-1])
 
             if self.is_synthetic and precision[-1] < self.precison_threshold and len(self.active_features) > 5:
-                return None, None, None, None, None, True
+                return learned_mn, self.active_set, recall, precision, f1_score, True
 
             weights_opt[self.zero_feature_indices] = 0
             weights_opt[activated_feature] = 0
