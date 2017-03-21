@@ -60,6 +60,7 @@ def main():
 
 	############################ LEARN USING SPG
 	for method in  METHODS: #choose method as either 'structured', 'naive' or 'queue'
+		print(method)
 		if method != 'structured':
 			edge_reg = [opt_edge_reg]
 			node_reg = [opt_node_reg]
@@ -96,7 +97,7 @@ def main():
 		method_time_stamps[method] = time_stamps
 		method_likelihoods = list()
 		for t in time_stamps:
-			nll = compute_likelihood(best_mn_snapshots[t], len(variables), test_data)
+			nll = compute_likelihood(best_mn_snapshots[t], len(variables), test_data, variables = variables)
 			method_likelihoods.append(nll)
 		ts_likelihoods[method] = method_likelihoods
 		ts_loss[method] = best_loss
@@ -122,7 +123,7 @@ def main():
 	method_time_stamps['graft'] = time_stamps
 	method_likelihoods = list()
 	for t in time_stamps:
-		nll = compute_likelihood(grafter.mn_snapshots[t], len(variables), test_data)
+		nll = compute_likelihood(grafter.mn_snapshots[t], len(variables), test_data, variables = variables)
 		method_likelihoods.append(nll)
 	ts_likelihoods['graft'] = method_likelihoods
 	ts_loss['graft'] = loss
