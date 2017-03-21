@@ -22,7 +22,7 @@ def main():
 	edge_num = 1 # Allowed max number of edges in the final network
 	data_train_ratio = .8
 
-	max_sufficient_stats_ratio = .5
+	max_sufficient_stats_ratio = .1
 
 
 	opt_edge_reg = edge_reg_range[0]
@@ -145,7 +145,7 @@ def main():
 	ax1.set_ylabel('Loss')
 	ax1.legend(loc='best', framealpha=0.5)
 	plt.title('Loss VS Time')
-	plt.savefig(folder_name + '/' + str(len(variables)) + '_loss_.png')
+	plt.savefig(folder_name + '/' + str(len(variables)) + '_Loss_.png')
 	plt.close()
 
 	### NLL VS Time
@@ -157,7 +157,7 @@ def main():
 	ax1.set_ylabel('NLL')
 	ax1.legend(loc='best', framealpha=0.5)
 	plt.title('NLL')
-	plt.savefig(folder_name + '/' + str(len(variables)) + '_loss_.png')
+	plt.savefig(folder_name + '/' + str(len(variables)) + '_NLL_.png')
 	plt.close()
 
 if __name__ == '__main__':
