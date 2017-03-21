@@ -180,9 +180,8 @@ class Graft():
             recall, precision, suff_stats_list, f1_score = [0,0], [0,0], [0,0], [0,0]
 
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-        weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec)
+        weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0])
         self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
-
         objec.extend(objec)
 
         if self.is_monitor_mn:
@@ -201,6 +200,12 @@ class Graft():
             if self.is_verbose:
                 self.print_update(activated_edge)
 
+
+            if self.is_synthetic and precision[-1] < self.precison_threshold and len(self.active_set) > 3:
+                learned_mn = self.aml_optimize.belief_propagators[0].mn
+                learned_mn.load_factors_from_matrices()
+                return learned_mn, None, suff_stats_list, recall, precision, f1_score, objec, True
+
             # draw_graph(active_set, variables)
             # self.mn.set_edge_factor(activated_edge, np.ones((len(self.mn.unary_potentials[activated_edge[0]]), len(self.mn.unary_potentials[activated_edge[1]]))))
             
@@ -212,7 +217,7 @@ class Graft():
             self.set_regularization_indices(unary_indices, pairwise_indices)
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge)
 
-            weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec)
+            weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0])
             self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
             if self.is_monitor_mn:
@@ -222,9 +227,6 @@ class Graft():
 
             if self.is_show_metrics and is_activated_edge:
                 self.update_metrics(edges, recall, precision, f1_score, suff_stats_list)
-
-            if self.is_synthetic and precision[-1] < self.precison_threshold and len(self.active_set) > 3:
-                return learned_mn, None, suff_stats_list, recall, precision, f1_score, objec, True
 
             is_activated_edge, activated_edge = self.activation_test()
 

@@ -18,7 +18,7 @@ np.set_printoptions(threshold=np.nan)
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
-folder_name = 'compare_loss_all'
+folder_name = 'compare_New_loss_queue'
 folder_num = 'l1_metrics'
 num_iterations = 1
 
@@ -33,7 +33,7 @@ def main():
 	node_std = .0001
 	state_num = 10
 	l2_coeff = 0
-	num_nodes_range = range(10, 100, 10)
+	num_nodes_range = range(5, 100, 10)
 	min_precision = .2
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1]
@@ -50,7 +50,7 @@ def main():
 		mrf_density = float(1)/(2 * num_nodes-1)
 		len_data = min(100000, num_nodes * 500)
 		# METHODS = ['naive', 'structured', 'queue']
-		METHODS = ['structured', 'queue', 'naive']
+		METHODS = ['structured', 'queue']
 		M_accuracies = dict()
 		sorted_timestamped_mn = dict()
 		edge_likelihoods = dict()
@@ -126,6 +126,11 @@ def main():
 						best_params = (node_reg, edge_reg)
 						time_stamps = sorted(list(best_mn_snapshots.keys()))
 						M_time_stamps[method] = time_stamps
+						print(len(time_stamps))
+						print(len(objec))
+						print('OPT PARAMS')
+						print(opt_edge_reg)
+						print(opt_node_reg)
 						print(best_params)
 						if f1_score[-1] >=.8:
 							print('OPT reached')
@@ -200,17 +205,22 @@ def main():
 								best_graph_snapshots = copy.deepcopy(spg.graph_snapshots)
 								f1_scores[method] = f1_score
 								objs[method] = objec
-					time_stamps = sorted(list(best_mn_snapshots.keys()))
-					M_time_stamps[method] = time_stamps
-					method_likelihoods = []
-					print('OPT PARAMS')
-					print(opt_edge_reg)
-					print(opt_node_reg)
+								time_stamps = sorted(list(best_mn_snapshots.keys()))
+								M_time_stamps[method] = time_stamps
+								method_likelihoods = []
+								print(len(time_stamps))
+								print(len(objec))
+								print('OPT PARAMS')
+								print(opt_edge_reg)
+								print(opt_node_reg)
 				plt.close()
 				j = 0
 				graph_folder = '../../../results_' + folder_name + '/spg_graphs_' + str(num_nodes) + '/'
-				os.mkdir(graph_folder)
-				for t in best_graph_snapshots.keys():
+				try:
+					os.mkdir(graph_folder)
+				except:
+					pass
+				for t in sorted(list(best_graph_snapshots.keys())):
 					j += 1
 					G = best_graph_snapshots[t]
 					pos = nx.shell_layout(G)
@@ -234,6 +244,8 @@ def main():
 				M_time_stamps[method] = time_stamps
 				f1_scores[method] = f1_score
 				objs[method] = objec
+				print(len(time_stamps))
+				print(len(objec))
 
 
 
@@ -257,13 +269,18 @@ def main():
 		time_stamps = sorted(list(grafter.mn_snapshots.keys()))
 		M_time_stamps['graft'] = time_stamps
 		method_likelihoods = []
+		print(len(time_stamps))
+		print(len(objec))
 
 
 		plt.close()
 		j = 0
 		graph_folder = '../../../results_' + folder_name + '/graft_graphs_' + str(num_nodes) +'/'
-		os.mkdir(graph_folder)
-		for t in grafter.graph_snapshots.keys():
+		try:
+			os.mkdir(graph_folder)
+		except:
+			pass
+		for t in sorted(list(grafter.graph_snapshots.keys())):
 			j += 1
 			G = grafter.graph_snapshots[t]
 			pos = nx.shell_layout(G)
@@ -315,14 +332,15 @@ def main():
 		fig, ax1 = plt.subplots()
 		ax2 = ax1.twinx()
 		for i in range(len(METHODS)):
-			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='loss_' + METHODS[i], linewidth=1)
-			ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', label='f1-score_'+METHODS[i])
-		ax1.set_xlabel('time')
-		ax1.set_ylabel('loss')
-		ax2.set_ylabel('f1_score')
-		ax1.legend(loc='best')
+			print(METHODS[i])
+			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
+			ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', label='F1-'+METHODS[i])
+		ax1.set_xlabel('Time')
+		ax1.set_ylabel('Loss')
+		ax2.set_ylabel('F1')
 		ax2.legend(loc=4, fancybox=True, framealpha=0.5)
-		plt.title('loss-precision')
+		ax1.legend(loc='best', framealpha=0.5)
+		plt.title('Loss-F1')
 		plt.xlabel('iterations')
 		plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_loss_.png')
 		plt.close()

@@ -136,7 +136,7 @@ class Learner(object):
 
 ###############################
 
-    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data_len, verbose=False, callback_f=None,  is_feature_graft=False, zero_feature_indices = None, loss = []):
+    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data_len, verbose=False, callback_f=None,  is_feature_graft=False, zero_feature_indices = None, loss = None, ss_test = None, search_space = None, len_data = None, bp =None, is_compute_real_loss =False):
         self.edge_regularizers = edge_regularizers
         self.var_regularizers = var_regularizers
         self.feature_graft = is_feature_graft
@@ -161,10 +161,23 @@ class Learner(object):
 
 
 
-        diff = self.tau_q - self.tau_p
-        diff_norm = np.sqrt(diff.dot(diff))/ len(diff)
-        # loss.append(diff_norm)
-        loss.append(self.objec / len(self.tau_p))
+        if is_compute_real_loss:
+            diff = self.tau_q - self.tau_p
+            diff_norm = diff.dot(diff)
+            # loss.append(diff_norm)
+            # loss.append(self.objec / len(self.tau_p))
+            bp.load_beliefs()
+            for edge in search_space:
+                edge_ss = ss_test[edge]
+                belief = bp.var_beliefs[edge[0]] + np.matrix(bp.var_beliefs[edge[1]]).T
+                # belief = belief - logsumexp(belief)
+                gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(edge_ss) / len_data).squeeze()
+                gradient_norm = gradient.dot(gradient)
+                diff_norm += gradient_norm
+            diff_norm = np.sqrt(diff_norm) / (len(diff) + len(search_space))
+            loss.append(diff_norm)
+        else:
+            loss.append(self.objec / len(self.tau_p))
 
 
         # if verbose:
@@ -187,7 +200,7 @@ class Learner(object):
         # # print(np.sqrt(diff.dot(diff))/ len(diff))
         # gradient_norm.append(diff_norm)
 
-        if self.feature_graft:
+        if self.feature_graft and is_compute_real_loss:
             new_weights[self.zero_feature_indices] = 0
             # print(self.curr_gradient)
             gradient_vec = np.zeros(len(self.curr_gradient))
@@ -196,6 +209,13 @@ class Learner(object):
             gradient_vec[self.zero_feature_indices] = self.curr_gradient[self.zero_feature_indices]
             activated_feature = np.array(np.abs(gradient_vec)).argmax(axis=0)
             max_grad = max(np.abs(gradient_vec))
+            diff = self.tau_q - self.tau_p
+            print(len(self.tau_p))
+            diff_norm = diff.dot(diff)
+            diff_norm = np.sqrt(diff_norm) / len(diff)
+            loss.append(diff_norm)
+
+
             # print(self.curr_gradient)
 
             # print('Data')

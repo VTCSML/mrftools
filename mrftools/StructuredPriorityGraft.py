@@ -47,6 +47,12 @@ class StructuredPriorityGraft():
             self.search_space = [self.mn.search_space[i] for i in list_order]
         self.initial_search_space = copy.deepcopy(self.search_space)
         self.data = data
+
+        self.sufficient_stats_test = dict()
+
+        # for edge in self.search_space:
+        #     self.sufficient_stats_test[edge], _ = self.get_sufficient_stats_per_edge(self.mn, edge)
+
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
         self.pq = initialize_priority_queue(self.search_space)
         self.method = method
@@ -81,6 +87,7 @@ class StructuredPriorityGraft():
         self.precison_threshold = .7
         self.start_num = 4
         self.ss_at_70 = 1
+        self.is_freeze_neighbors = False
 
     def on_synthetic(self, precison_threshold = .7, start_num = 4):
         self.is_synthetic = True
@@ -113,6 +120,14 @@ class StructuredPriorityGraft():
         Enable monitoring Markrov net
         """
         self.is_monitor_mn = True
+        # self.full_mn = MarkovNet()
+        # self.full_mn.mn.initialize_unary_factors(variables, num_states)
+
+    def on_freeze_neighbors(self):
+        """
+        Enable monitoring Markrov net
+        """
+        self.is_freeze_neighbors = True
 
     def setup_learning_parameters(self, edge_l1=0, node_l1=0, l1_coeff=0, l2_coeff=0, max_iter_graft=500):
         """
@@ -212,7 +227,7 @@ class StructuredPriorityGraft():
             is_ss_at_70_regeistered = False
 
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-        weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec)
+        weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0])
         # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
         objec.extend(objec)
@@ -266,7 +281,7 @@ class StructuredPriorityGraft():
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers)
             
             # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-            weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec)
+            weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0])
             # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
             if self.is_monitor_mn:
@@ -331,6 +346,8 @@ class StructuredPriorityGraft():
 
         return learned_mn, final_active_set, None, None, None, None, None, False
 
+
+
     def activation_test(self):
         """
         Test edges for activation
@@ -371,12 +388,15 @@ class StructuredPriorityGraft():
                         _ = original_pq.pop(edge)
                         self.pq = original_pq
                     if self.method == 'structured':
+                        ##################
                         linked_inactive_edges = self.get_linked_inactive_tested_edges(edge)
                         for res_item in linked_inactive_edges:
                             try:
                                 self.pq.additem(res_item[0], res_item[1] ) #Revive linked inactive edges
                             except:
                                 pass
+                        ##################
+                        # pass
                     else:
                         [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
                         edge = item[0]
@@ -390,8 +410,10 @@ class StructuredPriorityGraft():
                         tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
                     if self.method == 'structured':                        
                         edge = item[0]
+                        ##################
                         self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
                         self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
+                        ##################
                         if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
                             penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
                             neighbors_0 = list(bp.mn.get_neighbors(edge[0]))
@@ -408,17 +430,34 @@ class StructuredPriorityGraft():
                                 #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
                                 # except:
                                 #     pass
-                                try:
-                                    if res_edge in self.sufficient_stats:
-                                        self.pq.updateitem(res_edge, (self.pq[res_edge] + direct_penalty) / 2)
-                                        # print('structured reassignment')
-                                    else:
-                                        self.pq.updateitem(res_edge, penalty1)
-                                        # print('structured assignment virgin')
-                                except:
-                                    pass
 
+                                if not self.is_freeze_neighbors:
+                                    try:
+                                        if res_edge not in self.sufficient_stats:
+                                            self.pq.updateitem(res_edge, penalty1)
+                                    except:
+                                        pass
+
+                                    ############################
+                                    # try:
+                                    #     if res_edge in self.sufficient_stats:
+                                    #         self.pq.updateitem(res_edge, (self.pq[res_edge] + direct_penalty) / 2)
+                                    #         # print('structured reassignment')
+                                    #     else:
+                                    #         self.pq.updateitem(res_edge, penalty1)
+                                    #         # print('structured assignment virgin')
+
+                                    # except:
+                                    #     pass
+                                    #################
+                                # else:
+                                #     self.frozen.setdefault(res_edge[0], []).append((res_edge, penalty1))
+                                #     self.frozen.setdefault(res_edge[1], []).append((res_edge, penalty1))
         return False, (0, 0), iteration_activation
+
+
+
+
 
     def setup_grafting_learner(self, len_data):
         """
@@ -468,30 +507,32 @@ class StructuredPriorityGraft():
 
     def update_subgraphs(self, edge):
 
-        subgraph_0, subgraph_1 = None, None # MERGE SUBGRAPHS TOGETHER
-        key_0, key_1 = 'k1', 'k2'
-        for subgraph_key in self.subgraphs.keys():
-            if edge[0] in self.subgraphs[subgraph_key]:
-                subgraph_0 = self.subgraphs[subgraph_key]
-                key_0 = subgraph_key
-            if edge[1] in self.subgraphs[subgraph_key]:
-                subgraph_1 = self.subgraphs[subgraph_key]
-                key_1 = subgraph_key
-        if key_0 == key_1:
-            return []
-        descendants = list()
-        if subgraph_0 == None and subgraph_1 == None:
-            self.subgraphs[edge[0]] = [edge[0], edge[1]]
-        if subgraph_0 == None and subgraph_1 != None:
-            self.subgraphs.setdefault(key_1, []).append(edge[0])
-            descendants = self.subgraphs[key_1]
-        if subgraph_0 != None and subgraph_1 == None:
-            self.subgraphs.setdefault(key_0, []).append(edge[1])
-            descendants = self.subgraphs[key_0]
-        if subgraph_0 != None and subgraph_1 != None:
-            self.subgraphs.setdefault(key_0, []).extend(self.subgraphs[key_1])
-            self.subgraphs.pop(key_1, None)
-            descendants = self.subgraphs[key_0]
+        descendants = list(set(list(nx.shortest_path(self.graph,source=edge[0])) + list(nx.shortest_path(self.graph,source=edge[1]))))
+
+        # subgraph_0, subgraph_1 = None, None # MERGE SUBGRAPHS TOGETHER
+        # key_0, key_1 = 'k1', 'k2'
+        # for subgraph_key in self.subgraphs.keys():
+        #     if edge[0] in self.subgraphs[subgraph_key]:
+        #         subgraph_0 = self.subgraphs[subgraph_key]
+        #         key_0 = subgraph_key
+        #     if edge[1] in self.subgraphs[subgraph_key]:
+        #         subgraph_1 = self.subgraphs[subgraph_key]
+        #         key_1 = subgraph_key
+        # if key_0 == key_1:
+        #     return []
+        # descendants = list()
+        # if subgraph_0 == None and subgraph_1 == None:
+        #     self.subgraphs[edge[0]] = [edge[0], edge[1]]
+        # if subgraph_0 == None and subgraph_1 != None:
+        #     self.subgraphs.setdefault(key_1, []).append(edge[0])
+        #     descendants = self.subgraphs[key_1]
+        # if subgraph_0 != None and subgraph_1 == None:
+        #     self.subgraphs.setdefault(key_0, []).append(edge[1])
+        #     descendants = self.subgraphs[key_0]
+        # if subgraph_0 != None and subgraph_1 != None:
+        #     self.subgraphs.setdefault(key_0, []).extend(self.subgraphs[key_1])
+        #     self.subgraphs.pop(key_1, None)
+        #     descendants = self.subgraphs[key_0]
 
         return descendants # RETURN nodes that can be reachable from any of edge's two nodes
 

@@ -52,10 +52,10 @@ def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_
 
         # factor = random.sample(range(-100,100,10),  (num_states_dict[edge[0]], num_states_dict[edge[1]]))
         factor = np.random.normal(10, edge_std, (num_states_dict[edge[0]], num_states_dict[edge[1]]))
-        print(factor)
+        # print(factor)
         x = []
         [x.append(factor[i,j]) for i in range(num_states_dict[edge[0]]) for j in range(num_states_dict[edge[1]])]
-        print(x)
+        # print(x)
         model.set_edge_factor(edge, np.random.normal(factor))
         # model.set_edge_factor(edge,np.log(np.random.randint(30, size=(num_states_dict[edge[0]], num_states_dict[edge[1]]))))
         # print(np.random.randn(num_states_dict[num_states_dict[edge[0]], num_states_dict[edge[1]]))

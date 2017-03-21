@@ -26,19 +26,22 @@ def main():
 	zero_threshold = 1e-3
 	training_ratio = .8
 	edge_std = 2.5
-	node_std = .0001
+	node_std = .0001	
 	state_num = 4
-	min_precision = .1 # WORKS WITH MAX NUMBER OF EDGES
+	min_precision = .2 # WORKS WITH MAX NUMBER OF EDGES
 	# num_nodes_range = [10]
 	num_nodes_range = range(10, 100, 10)
 
 	# l1_coeff_range = np.arange(0.01,.1,0.01)
 	# l1_coeff_range = [0]
 
-	l1_coeff_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1]
+	# l1_coeff_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1]
+
+	l1_coeff_range = [5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1]
+	edge_reg_range = [5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1]
 
 
-	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1] #np.arange(1e-5, 5e-2, 5e-5)#[.04]#[1, 5e-1, 1e-1]
+	# edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1] #np.arange(1e-5, 5e-2, 5e-5)#[.04]#[1, 5e-1, 1e-1]
 	node_reg_range = [1e-2]
 
 	T_likelihoods = dict()
@@ -119,7 +122,7 @@ def main():
 					# print(_p)
 					p[(state0,state1)] = (float(len(_p)) / len_data, p_test)
 					# p[(state0,state1)] = _p
-			print(p)
+			# print(p)
 
 		train_data = data[: int(training_ratio * len_data)]
 		test_data = data[int(training_ratio * len_data) : len_data]
@@ -142,7 +145,7 @@ def main():
 		edge_num = state_num ** 2 * len(edges) + 10 # Allow precision to go up
 
 		num_attributes = len(variables)
-		recalls, precisions, sufficientstats, mn_snapshots, f1_scores = dict(), dict(), dict(), dict(), dict()
+		recalls, precisions, sufficientstats, mn_snapshots, f1_scores, loss = dict(), dict(), dict(), dict(), dict(), dict()
 
 		print('>>>>>>>>>>>>>>>>>>>>>METHOD: Feature Graft' )
 		solved_feature_graft = False
@@ -153,78 +156,81 @@ def main():
 			print('l1_coeff')
 			print(l1_coeff)
 			fg = FeatureGraft(variables, num_states, max_num_states, train_data, list_order)
-			# fg.on_verbose()
+			fg.on_verbose()
 			fg.on_show_metrics()
 			fg.on_synthetic(precison_threshold = min_precision)
 
 			fg.setup_learning_parameters(max_iter_graft=priority_graft_iter, l1_coeff=l1_coeff)
 			fg.on_monitor_mn()
 			t = time.time()
-			learned_mn, final_active_set, recall, precision, f1_score, is_early_stop = fg.learn_structure(edge_num, edges=edges)
+			learned_mn, final_active_set, recall, precision, f1_score, objec, is_early_stop = fg.learn_structure(edge_num, edges=edges)
 
-			nll = compute_likelihood(learned_mn, len(variables), test_data)
-			nll1 = compute_likelihood(fg.mn_snapshots[min(list(fg.mn_snapshots.keys()))], len(variables), test_data)
+			# nll = compute_likelihood(learned_mn, len(variables), test_data)
+			# nll1 = compute_likelihood(fg.mn_snapshots[min(list(fg.mn_snapshots.keys()))], len(variables), test_data)
 
 
 			print('finished?')
 			print((not is_early_stop))
 			if not is_early_stop:
 				exec_time = time.time() - t
-				if nll < nll1:
+				if best_f1 < f1_score[-1]:
 					best_f1 = f1_score[-1]
 					best_mn = fg.mn_snapshots
 					best_f1_list = f1_score
 					best_l1 = l1_coeff
+					best_loss = objec
+					mn_snapshots['FeatureGraft'] = best_mn
+					f1_scores['FeatureGraft'] = best_f1_list
+					time_stamps = sorted(list(best_mn.keys()))
+					M_time_stamps['FeatureGraft'] = time_stamps
 					solved_feature_graft = True
+					loss['FeatureGraft'] = best_loss
 					if best_f1 > .75:
 						break
 
-		mn_snapshots['FeatureGraft'] = best_mn
-		f1_scores['FeatureGraft'] = best_f1_list
-		time_stamps = sorted(list(best_mn.keys()))
-		M_time_stamps['FeatureGraft'] = time_stamps
-		method_likelihoods = []
-		accuracies = []
-		for t in time_stamps:
-			nll = compute_likelihood_1(best_mn[t], len(variables), test_data)
-			method_likelihoods.append(nll)
 
-		M_accuracies['FeatureGraft'] = accuracies
-		T_likelihoods['FeatureGraft'] = method_likelihoods
+		# method_likelihoods = []
+		# accuracies = []
+		# for t in time_stamps:
+		# 	nll = compute_likelihood_1(best_mn[t], len(variables), test_data)
+		# 	method_likelihoods.append(nll)
+
+		# M_accuracies['FeatureGraft'] = accuracies
+		# T_likelihoods['FeatureGraft'] = method_likelihoods
 
 
-		print('>>>>>>>>>>>>>>>>>>>>>METHOD:  Full L1' )
+		# print('>>>>>>>>>>>>>>>>>>>>>METHOD:  Full L1' )
 
-		fg = FeatureGraft(variables, num_states, max_num_states, train_data, list_order)
-		# fg.on_verbose()
-		fg.on_show_metrics()
-		fg.on_full_l1()
-		METHODS.append('full_l1')
-		fg.setup_learning_parameters(max_iter_graft=priority_graft_iter, l1_coeff=best_l1)
-		fg.on_monitor_mn()
+		# fg = FeatureGraft(variables, num_states, max_num_states, train_data, list_order)
+		# # fg.on_verbose()
+		# fg.on_show_metrics()
+		# fg.on_full_l1()
+		# METHODS.append('full_l1')
+		# fg.setup_learning_parameters(max_iter_graft=priority_graft_iter, l1_coeff=best_l1)
+		# fg.on_monitor_mn()
 
-		t = time.time()
-		learned_mn, final_active_set, recall, precision, f1_score, is_early_stop = fg.learn_structure(edge_num, edges=edges)
-		exec_time = time.time() - t
+		# t = time.time()
+		# learned_mn, final_active_set, recall, precision, f1_score, is_early_stop = fg.learn_structure(edge_num, edges=edges)
+		# exec_time = time.time() - t
 
-		mn_snapshots['full_l1'] = fg.mn_snapshots
-		f1_scores['full_l1'] = f1_score
-		time_stamps = sorted(list(fg.mn_snapshots.keys()))
-		M_time_stamps['full_l1'] = time_stamps
-		method_likelihoods = []
-		accuracies = []
-		for t in time_stamps:
-			nll = compute_likelihood_1(fg.mn_snapshots[t], len(variables), test_data)
-			method_likelihoods.append(nll)
+		# mn_snapshots['full_l1'] = fg.mn_snapshots
+		# f1_scores['full_l1'] = f1_score
+		# time_stamps = sorted(list(fg.mn_snapshots.keys()))
+		# M_time_stamps['full_l1'] = time_stamps
+		# method_likelihoods = []
+		# accuracies = []
+		# for t in time_stamps:
+		# 	nll = compute_likelihood_1(fg.mn_snapshots[t], len(variables), test_data)
+		# 	method_likelihoods.append(nll)
 
-		M_accuracies['full_l1'] = accuracies
-		T_likelihoods['full_l1'] = method_likelihoods
+		# M_accuracies['full_l1'] = accuracies
+		# T_likelihoods['full_l1'] = method_likelihoods
 
 
-		print('Real model old')
-		real_model_nll = compute_likelihood(model, len(variables), test_data)
-		print('Real model new')
-		real_model_nll = compute_likelihood_1(model, len(variables), test_data)
+		# print('Real model old')
+		# real_model_nll = compute_likelihood(model, len(variables), test_data)
+		# print('Real model new')
+		# real_model_nll = compute_likelihood_1(model, len(variables), test_data)
 
 		print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
 		edge_num = len(edges) + 10
@@ -246,39 +252,42 @@ def main():
 			grafter.on_synthetic(precison_threshold = min_precision)
 			grafter.on_monitor_mn()
 			t = time.time()
-			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, is_early_stop  = grafter.learn_structure(edge_num, edges=edges)
+			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop  = grafter.learn_structure(edge_num, edges=edges)
 			print((not is_early_stop))
 			if not is_early_stop:
 				# print(final_active_set)
 				# print(recall)
-				f1_scores['graft'] = f1_score
 				exec_time = time.time() - t
 				precisions['graft'] = precision
 				recalls['graft'] = recall
 
-				nll = compute_likelihood(learned_mn, len(variables), test_data)
-				nll1 = compute_likelihood(grafter.mn_snapshots[min(list(grafter.mn_snapshots.keys()))], len(variables), test_data)
-
-				if nll < nll1:
+				# nll = compute_likelihood(learned_mn, len(variables), test_data)
+				# nll1 = compute_likelihood(grafter.mn_snapshots[min(list(grafter.mn_snapshots.keys()))], len(variables), test_data)
+				print('F1')
+				print(f1_score[-1])
+				if f1_score[-1] > best_f1:
 					best_f1 = f1_score[-1]
 					best_mn = grafter.mn_snapshots
 					best_f1_list = f1_score
 					solved_graft = True
+					best_loss = objec
+					mn_snapshots['graft'] = best_mn
+					f1_scores['graft'] = best_f1_list
+					time_stamps = sorted(list(best_mn.keys()))
+					M_time_stamps['graft'] = time_stamps
+					loss['graft'] = best_loss
+					print(best_f1)
 					if best_f1 > .75:
+						print('BEST REACHED****')
 						break
 
-		mn_snapshots['graft'] = best_mn
-		f1_scores['graft'] = best_f1_list
-		time_stamps = sorted(list(best_mn.keys()))
-		M_time_stamps['graft'] = time_stamps
-
-		method_likelihoods = []
-		accuracies = []
-		for t in time_stamps:
-			nll = compute_likelihood_1(best_mn[t], len(variables), test_data)
-			method_likelihoods.append(nll)
-		T_likelihoods['graft'] = method_likelihoods
-		M_accuracies['graft'] = accuracies
+		# method_likelihoods = []
+		# accuracies = []
+		# for t in time_stamps:
+		# 	nll = compute_likelihood_1(best_mn[t], len(variables), test_data)
+		# 	method_likelihoods.append(nll)
+		# T_likelihoods['graft'] = method_likelihoods
+		# M_accuracies['graft'] = accuracies
 
 
 		plt.close()
@@ -292,22 +301,23 @@ def main():
 				# print(f1_scores)
 				# print(f1_scores[METHODS[i]])
 				# print(len(f1_scores[METHODS[i]]))
-				ax1.plot(M_time_stamps[method], T_likelihoods[method], color=METHOD_COLORS[method], label='nll_' + method, linewidth=1)
+				print(method)
+				print(loss[method])
+				print(M_time_stamps[method])
+				ax1.plot(M_time_stamps[method], loss[method], color=METHOD_COLORS[method], label='NLL-' + method, linewidth=1)
 				if method != 'full_l1':
 					# print(len(f1_scores[method]))
 					# print(len(M_time_stamps[method]))
-					ax2.plot(M_time_stamps[method], f1_scores[method], METHOD_COLORS[method], linewidth=1, linestyle=':', label='f1-score_'+ method)
+					ax2.plot(M_time_stamps[method], f1_scores[method], METHOD_COLORS[method], linewidth=1, linestyle=':', label='F1-'+ method)
 
-			ax1.plot(M_time_stamps['FeatureGraft'], real_model_nll * np.ones(len(T_likelihoods['FeatureGraft'])), color='green', label='nll_real_model', linewidth=1)
+			# ax1.plot(M_time_stamps['FeatureGraft'], real_model_nll * np.ones(len(T_likelihoods['FeatureGraft'])), color='green', label=' Real Model', linewidth=1)
 
-			ax1.set_xlabel('time')
-			ax1.set_ylabel('nll')
-			ax2.set_ylabel('f1_score')
-
-			ax1.legend(loc='best')
+			ax1.set_xlabel('Time')
+			ax1.set_ylabel('NLL')
+			ax2.set_ylabel('F1')
 			ax2.legend(loc=4, fancybox=True, framealpha=0.5)
-			plt.title('nll-precision')
-			plt.xlabel('iterations')
+			ax1.legend(loc='best', framealpha=0.5)
+			plt.title('NLL-F1')
 			plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_nll_FeatureVsGroup.png')
 			plt.close()
 

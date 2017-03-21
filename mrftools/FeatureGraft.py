@@ -168,11 +168,13 @@ class FeatureGraft():
         if self.is_full_l1:
             self.zero_feature_indices = []
 
+        objec = list()
+
         weights_opt[self.zero_feature_indices] = 0
 
-        weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices)
+        weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices, loss=objec)
         self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
-
+        objec.extend(objec)
         if self.is_monitor_mn:
             exec_time =  time.time() - exec_time_origin
             self.save_mn()
@@ -191,17 +193,19 @@ class FeatureGraft():
             self.active_set = list(set(self.active_set))
 
             if self.is_show_metrics and activated_feature:
-                    self.update_metrics(edges, recall, precision, f1_score)
+                self.update_metrics(edges, recall, precision, f1_score)
 
             if self.is_verbose:
                 self.print_update(activated_feature, precision[-1])
 
             if self.is_synthetic and precision[-1] < self.precison_threshold and len(self.active_features) > 5:
-                return learned_mn, self.active_set, recall, precision, f1_score, True
+                learned_mn = self.aml_optimize.belief_propagators[0].mn
+                learned_mn.load_factors_from_matrices()
+                return learned_mn, self.active_set, recall, precision, f1_score, objec, True
 
             weights_opt[self.zero_feature_indices] = 0
             weights_opt[activated_feature] = 0
-            weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices)
+            weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices, loss=objec)
             self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
 
@@ -216,9 +220,9 @@ class FeatureGraft():
         learned_mn.load_factors_from_matrices()
         if self.is_show_metrics:
             self.print_metrics(recall, precision, f1_score)
-            return learned_mn, self.active_set, recall, precision, f1_score, False
+            return learned_mn, self.active_set, recall, precision, f1_score, objec, False
 
-        return learned_mn, self.active_set, None, None, None, False
+        return learned_mn, self.active_set, None, None, None, objec, False
 
 
     def setup_grafting_learner(self):

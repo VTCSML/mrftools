@@ -16,7 +16,7 @@ np.set_printoptions(threshold=np.nan)
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'blue', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
-folder_num = '30'
+folder_num = 'monitor_ss'
 num_iterations = 1
 
 def main():
@@ -31,19 +31,19 @@ def main():
 
 	training_ratio = .7
 	mrf_density = .01
-	edge_std = 10
+	edge_std = 2.5
 	node_std = .0001
 	state_num = 4
 	l2_coeff = 0
-	num_nodes_range = range(35, 100, 10)
-	min_precision = .5
+	num_nodes_range = range(55, 100, 10)
+	min_precision = .15
 
 	# num_nodes_range = range(16, 500, 8)
 	# num_nodes_range = [10]
 	# num_nodes_range = range(5, 500, 10)
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1] #np.arange(1e-5, 5e-2, 5e-5)#[.04]#[1, 5e-1, 1e-1]
-	node_reg_range = [1e-2] #np.arange(1e-3, 1e-1, 1e-3)#[.06]#[1, 9e-1, 6e-1, 3e-1, 1e-1]
+	# node_reg_range = [1e-2] #np.arange(1e-3, 1e-1, 1e-3)#[.06]#[1, 9e-1, 6e-1, 3e-1, 1e-1]
 
 	# reg_range = np.arange(0,1,0.01)
 
@@ -79,8 +79,6 @@ def main():
 		std_time_num_edges = dict()
 
 		max_time = 0
-
-
 
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
@@ -120,10 +118,10 @@ def main():
 		for method in METHODS:
 			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
 			if method == 'structured':
-				max_f1score = -1
+				max_recall = -1
 				pass_loop = False
 				for edge_reg in edge_reg_range:
-					node_reg = 1 * edge_reg
+					node_reg = 1.15 * edge_reg
 					print('//////////////')
 					print('reg params')
 					print(edge_reg)
@@ -138,7 +136,7 @@ def main():
 					spg.on_monitor_mn()
 					t = time.time()
 					# print(edges)
-					learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, is_early_stop = spg.learn_structure(edge_num, edges=edges)
+					learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, _, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 					# print(final_active_set)
 					# print(recall)
 					print(not is_early_stop)
@@ -166,12 +164,12 @@ def main():
 						# for t in time_stamps:
 						# 	nll = compute_likelihood_1(spg.mn_snapshots[t], len(variables), tesiterationst_data)
 						# last_f1score = f1_score[-1]
-						if last_f1score > max_f1score:
+						if recall[-1] > max_recall:
 							print('New best')
 							# print(last_f1score)
 							opt_edge_reg = edge_reg
 							opt_node_reg = node_reg
-							max_f1score = last_f1score
+							max_recall = recall[-1]
 							best_mn_snapshots = spg.mn_snapshots
 							cumm_iter = [spg.total_iter_num[0]]
 							[cumm_iter.append(cumm_iter[i-1] + spg.total_iter_num[i]) for i in range(1,len(spg.total_iter_num))]
@@ -195,7 +193,7 @@ def main():
 				spg.on_monitor_mn()
 				t = time.time()
 				# print(edges)
-				learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, is_early_stop = spg.learn_structure(edge_num, edges=edges)
+				learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, _, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 				f1_scores[method] = f1_score
 				sufficientstats[method] = suff_stats_list
 				precisions[method] = precision
@@ -203,10 +201,6 @@ def main():
 				cumm_iter = [spg.total_iter_num[0]]
 				[cumm_iter.append(cumm_iter[i-1] + spg.total_iter_num[i]) for i in range(1,len(spg.total_iter_num))]
 				cumm_iters[method] = cumm_iter
-
-
-
-
 
 		plt.close()
 		for i in range(len(METHODS)):
@@ -223,7 +217,6 @@ def main():
 		plt.title('Recall-SS')
 		plt.savefig('../../../results_' + folder_num + '/' + str(len(variables)) + '_ReacllVSss_.png')
 		plt.close()
-
 
 		for i in range(len(METHODS)):
 			print(METHODS[i])
@@ -256,10 +249,6 @@ def main():
 		plt.savefig('../../../results_' + folder_num + '/' + str(len(variables)) + '_ReacllVsIter_.png')
 		plt.close()
 
-
-
-		
-
 	pernode_sufficientstats = []
 	[pernode_sufficientstats.append(suff_stats_at_70[num_nodes]) for num_nodes in num_nodes_range]
 
@@ -273,8 +262,6 @@ def main():
 	plt.title('suff_stats VS num_nodes')
 	plt.savefig('../../../results_' + folder_num + '/' + 'numnodes_ss_.png')
 	plt.close()
-
-
 
 if __name__ == '__main__':
 	main()
