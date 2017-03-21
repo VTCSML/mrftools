@@ -18,7 +18,7 @@ np.set_printoptions(threshold=np.nan)
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
-folder_name = 'compare_New_loss_queue'
+folder_name = 'compare_loss_queue_pruned'
 folder_num = 'l1_metrics'
 num_iterations = 1
 
@@ -33,7 +33,7 @@ def main():
 	node_std = .0001
 	state_num = 10
 	l2_coeff = 0
-	num_nodes_range = range(5, 100, 10)
+	num_nodes_range = range(100, 500, 50)
 	min_precision = .2
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1]
@@ -48,7 +48,7 @@ def main():
 		total_edge_num = (num_nodes ** 2 - num_nodes) / 2
 		# mrf_density = min(mrf_density, float(2)/(num_nodes-1))
 		mrf_density = float(1)/(2 * num_nodes-1)
-		len_data = min(100000, num_nodes * 500)
+		len_data = min(100000, num_nodes * 100)
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
 		M_accuracies = dict()

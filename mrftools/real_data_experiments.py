@@ -19,7 +19,7 @@ def main():
 	node_reg_range = [0.05] #np.arange(0.01,0.25,0.05)
 
 	graft_iter = 2500 # Iterations per optimization over active set
-	edge_num = 1 # Allowed max number of edges in the final network
+	edge_num = 10 # Allowed max number of edges in the final network
 	data_train_ratio = .8
 
 	max_sufficient_stats_ratio = .1
@@ -35,20 +35,20 @@ def main():
 	# num_states: dict() indicating the number of states of each variable
 	# max_num_states : maximum number of states across all variables
 
-	model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(100, 10, mrf_density=.05, state_min=5, state_max=5, edge_std=.5, node_std = .01)
+	# model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(100, 10, mrf_density=.05, state_min=5, state_max=5, edge_std=.5, node_std = .01)
 
 
-	# print('FETCHING DATA!')
-	# FILES_LIST = ['../../../ratings/jester-data-1.xls', '../../../ratings/jester-data-2.xls', '../../../ratings/jester-data-3.xls'] 
-	# data = read_ratings_from_batch_files(FILES_LIST, 50)
-	# len_data = len(data)
-	# train_data = data[: int(.8 * len_data)]
-	# test_data = data[int(.8 * len_data) : len_data]
-	# variables = list(data[0].keys())
-	# num_states = dict()
-	# for i in range(1,101):
-	# 	num_states[i] = 5
-	# max_num_states = 5
+	print('FETCHING DATA!')
+	FILES_LIST = ['../../../ratings/jester-data-1.xls', '../../../ratings/jester-data-2.xls', '../../../ratings/jester-data-3.xls'] 
+	data = read_ratings_from_batch_files(FILES_LIST, 50)
+	len_data = len(data)
+	train_data = data[: int(.8 * len_data)]
+	test_data = data[int(.8 * len_data) : len_data]
+	variables = list(data[0].keys())
+	num_states = dict()
+	for i in range(1,101):
+		num_states[i] = 5
+	max_num_states = 5
 
 	# data = [{0:1, 1:2, 2:3}, {0:1, 1:2, 2:3}, {0:1, 1:2, 2:3}, {0:1, 1:2, 2:3}]
 	# max_num_states = 4
