@@ -7,14 +7,16 @@ import time
 from Graft import Graft
 from read_ratings import read_ratings_from_batch_files
 
+from generate_synthetic_data import generate_synthetic_data, generate_random_synthetic_data
+
 folder_name = '../../../real_results'
 METHODS = ['structured', 'queue']
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 
 def main():
 	# Define the l1 params intervals
-	edge_reg_range = [0.06] #np.arange(0.01,0.25,0.05) 
-	node_reg_range = [0.21] #np.arange(0.01,0.25,0.05)
+	edge_reg_range = [0.01] #np.arange(0.01,0.25,0.05) 
+	node_reg_range = [0.05] #np.arange(0.01,0.25,0.05)
 
 	graft_iter = 2500 # Iterations per optimization over active set
 	edge_num = 1 # Allowed max number of edges in the final network
@@ -33,17 +35,20 @@ def main():
 	# num_states: dict() indicating the number of states of each variable
 	# max_num_states : maximum number of states across all variables
 
-	print('FETCHING DATA!')
-	FILES_LIST = ['../../../ratings/jester-data-1.xls', '../../../ratings/jester-data-2.xls', '../../../ratings/jester-data-3.xls'] 
-	data = read_ratings_from_batch_files(FILES_LIST, 50)
-	len_data = len(data)
-	train_data = data[: int(.8 * len_data)]
-	test_data = data[int(.8 * len_data) : len_data]
-	variables = list(data[0].keys())
-	num_states = dict()
-	for i in range(1,101):
-		num_states[i] = 5
-	max_num_states = 5
+	model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(100, 10, mrf_density=.05, state_min=5, state_max=5, edge_std=.5, node_std = .01)
+
+
+	# print('FETCHING DATA!')
+	# FILES_LIST = ['../../../ratings/jester-data-1.xls', '../../../ratings/jester-data-2.xls', '../../../ratings/jester-data-3.xls'] 
+	# data = read_ratings_from_batch_files(FILES_LIST, 50)
+	# len_data = len(data)
+	# train_data = data[: int(.8 * len_data)]
+	# test_data = data[int(.8 * len_data) : len_data]
+	# variables = list(data[0].keys())
+	# num_states = dict()
+	# for i in range(1,101):
+	# 	num_states[i] = 5
+	# max_num_states = 5
 
 	# data = [{0:1, 1:2, 2:3}, {0:1, 1:2, 2:3}, {0:1, 1:2, 2:3}, {0:1, 1:2, 2:3}]
 	# max_num_states = 4
@@ -76,6 +81,7 @@ def main():
 				spg.on_monitor_mn() # enable getting snapshots of partial MRFS and their graphs call spg.mn_snapshots and spg.graph_snapshots (Both are dict() with keys as time stamps)
 				spg.on_verbose() # UnComment to log progress
 				spg.on_limit_sufficient_stats(max_sufficient_stats_ratio)
+				spg.on_show_metrics()
 				print('learning')
 				spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=graft_iter, node_l1=node_reg) # Setup learning parameters
 				t = time.time()
@@ -90,9 +96,10 @@ def main():
 					opt_node_reg = node_reg
 					best_mn_snapshots = spg.mn_snapshots
 					best_loss = loss
+
+					print(best_loss)
 				# print('======SPG NLL: ' + str(best_spg_nll))
 				# print('======SPG Exec Time: ' + str(exec_time) + ' s')
-
 		time_stamps = sorted(list(best_mn_snapshots.keys()))
 		method_time_stamps[method] = time_stamps
 		method_likelihoods = list()
@@ -102,14 +109,12 @@ def main():
 		ts_likelihoods[method] = method_likelihoods
 		ts_loss[method] = best_loss
 
-	METHODS.append('graft')
-
 	############################ LEARN USING CLASSIC GRAFT
+	METHODS.append('graft')
 	grafter = Graft(variables, num_states, max_num_states, train_data, None)
-
-	spg.on_limit_sufficient_stats(max_sufficient_stats_ratio)
-
+	grafter.on_limit_sufficient_stats(max_sufficient_stats_ratio)
 	grafter.on_monitor_mn()
+	grafter.on_show_metrics()
 	# grafter.on_verbose() #UnComment to log progress
 	grafter.setup_learning_parameters(edge_l1 = opt_edge_reg, max_iter_graft=graft_iter, node_l1=opt_node_reg)
 	t = time.time()
@@ -130,7 +135,6 @@ def main():
 
 
 	##### PLOTTING RESULTS
-
 	### LOSS VS Time
 	plt.close()
 	fig, ax1 = plt.subplots()
@@ -141,7 +145,7 @@ def main():
 	ax1.set_ylabel('Loss')
 	ax1.legend(loc='best', framealpha=0.5)
 	plt.title('Loss VS Time')
-	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_loss_.png')
+	plt.savefig(folder_name + '/' + str(len(variables)) + '_loss_.png')
 	plt.close()
 
 	### NLL VS Time
@@ -153,7 +157,7 @@ def main():
 	ax1.set_ylabel('NLL')
 	ax1.legend(loc='best', framealpha=0.5)
 	plt.title('NLL')
-	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_loss_.png')
+	plt.savefig(folder_name + '/' + str(len(variables)) + '_loss_.png')
 	plt.close()
 
 if __name__ == '__main__':

@@ -1,43 +1,72 @@
-FETCHING DATA!
->parsing ../../../ratings/jester-data-1.xls
->parsing ../../../ratings/jester-data-2.xls
->parsing ../../../ratings/jester-data-3.xls
-Done!
+> Creating model
+> Generating data
+structured
 Searching for opt params
 PARAMS
-0.06
-0.21
+0.01
+0.05
 learning
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:118: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:132: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 ACTIVATED EDGE
-(99, 100)
+(0, 1)
 CURRENT ACTIVE SPACE
-[(99, 100)]
-Final Active Set
-[(99, 100)]
-160.943790019
+[(0, 1)]
+Average Selection iterations
+0.333333333333
+SUFFICIENT STATS
+2
+Recall
+0
+Precision
+0.0
+F1-score
+0
+16.2759123921
 NEW OPT FOUND AT:
-0.21 , 0.06
-160.88250476
-160.88250476
-160.943790019
+0.05 , 0.01
+[0.32124448751306667, 0.32124448751306667, 0.27650354893036222]
+15.9304612463
+15.9304612463
+16.2759123921
+queue
 Searching for opt params
 PARAMS
-0.06
-0.21
+0.01
+0.05
 learning
 ACTIVATED EDGE
-(99, 100)
+(0, 1)
 CURRENT ACTIVE SPACE
-[(99, 100)]
-Final Active Set
-[(99, 100)]
-160.943790019
+[(0, 1)]
+Average Selection iterations
+0.333333333333
+SUFFICIENT STATS
+2
+Recall
+0
+Precision
+0.0
+F1-score
+0
+16.2759123921
 NEW OPT FOUND AT:
-0.21 , 0.06
-160.88250476
-160.88250476
-160.943790019
+0.05 , 0.01
+[0.32124448751306667, 0.32124448751306667, 0.27650354893036222]
+15.9304612463
+15.9304612463
+16.2759123921
+SUFFICIENT STATS
+22
+Recall
+0
+Precision
+0.0
+F1-score
+0
+14.8294013885
+15.9304612463
+15.9304612463
+14.8294013885

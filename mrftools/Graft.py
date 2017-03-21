@@ -261,7 +261,7 @@ class Graft():
             print('Final Active Set')
             print(final_active_set)
 
-        return learned_mn, final_active_set, None, None, None, None, objec, False
+        return learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, False
 
 
     def setup_grafting_learner(self, len_data):
@@ -343,7 +343,10 @@ class Graft():
         """
         UPDATE METRICS
         """
-        curr_recall = float(len([x for x in self.active_set if x in edges]))/len(edges)
+        try:
+            curr_recall = float(len([x for x in self.active_set if x in edges]))/len(edges)
+        except:
+            curr_recall = 0
         recall.append(curr_recall)
 
         try:

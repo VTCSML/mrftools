@@ -697,3 +697,54 @@ Success
 reg params
 0.1
 0.115
+Average Selection iterations
+130.315789474
+SUFFICIENT STATS
+2775
+Recall
+0.324324324324
+Precision
+0.705882352941
+F1-score
+0.444444444444
+True
+Success
+0.444444444444
+//////////////
+reg params
+0.25
+0.2875
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+2775
+Recall
+0
+Precision
+0
+F1-score
+0
+True
+Success
+0
+//////////////
+reg params
+0.5
+0.575
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+2775
+Recall
+0
+Precision
+0
+F1-score
+0
+True
+Success
+0
+//////////////
+reg params
+0.75
+0.8625
