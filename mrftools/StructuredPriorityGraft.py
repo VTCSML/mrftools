@@ -335,7 +335,7 @@ class StructuredPriorityGraft():
             #     self.update_metrics(edges, recall, precision, suff_stats_list)
 
         if self.is_plot_queue:
-            self.make_queue_plot_ground_truth(values, rows, columns, loop_num, len_search_space)
+            # self.make_queue_plot_ground_truth(values, rows, columns, loop_num, len_search_space)
             self.make_queue_plot_synthetic_truth(pq_history, final_active_set, loop_num, len_search_space)
 
         # draw_graph(active_set, variables)
@@ -422,7 +422,9 @@ class StructuredPriorityGraft():
                         # self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
                         # self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
                         # ##################
+
                         self.frozen_list.append((edge, direct_penalty))
+
                         if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
                             penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
                             neighbors_0 = list(bp.mn.get_neighbors(edge[0]))
@@ -430,7 +432,10 @@ class StructuredPriorityGraft():
                             curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
                                           list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
                                           list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
-                                          x < y and (x, y) in self.search_space]))
+                                          x < y]))
+                            print('bad edge')
+                            print(edge)
+                            print(curr_resulting_edges_1)
                             for res_edge in curr_resulting_edges_1:
                                 # try:
                                 #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
@@ -440,9 +445,11 @@ class StructuredPriorityGraft():
                                 if not self.is_freeze_neighbors:
                                     try:
                                         if res_edge not in self.sufficient_stats:
+                                            print(res_edge)
                                             self.pq.updateitem(res_edge, penalty1)
                                     except:
                                         pass
+
                                     ############################
                                     # try:
                                     #     if res_edge in self.sufficient_stats:
@@ -457,14 +464,12 @@ class StructuredPriorityGraft():
                                 # else:
                                 #     self.frozen.setdefault(res_edge[0], []).append((res_edge, penalty1))
                                 #     self.frozen.setdefault(res_edge[1], []).append((res_edge, penalty1))
+
             if is_added and self.method == 'structured':
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )
                 self.frozen_list = list()
         return False, (0, 0), iteration_activation
-
-
-
 
 
     def setup_grafting_learner(self, len_data):
@@ -549,7 +554,13 @@ class StructuredPriorityGraft():
         """
         Plot queue reorganization using ground truth edges
         """
-        view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num, len_search_space))
+        print(loop_num)
+        print(len_search_space)
+        print(np.array(values))
+        print(np.array(rows))
+        print(np.array(columns))
+        view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num + 1, len_search_space))
+
         view_queue_tmp = view_queue_tmp.todense()
         view_queue_tmp[view_queue_tmp==0] = .2
         view_queue = np.zeros((loop_num+2, len_search_space+2))
@@ -566,6 +577,7 @@ class StructuredPriorityGraft():
         """
         Plot queue reorganization using learned truth edges
         """
+        plt.close()
         columns = list()
         rows = list()
         values = list()
@@ -577,11 +589,20 @@ class StructuredPriorityGraft():
                 values.append(.5)
             len_pq = len(copy_pq)
             for c in range(len_pq):
-                test_edge = copy_pq.popitem()[0]
+                if self.method == 'structured':
+                    test_edge = copy_pq.popitem()[0]
+                if self.method == 'queue':
+                    test_edge = copy_pq.pop()[0]
                 if test_edge in final_active_set:
                     columns.append(c + t)
                     rows.append(t )
                     values.append(1)
+        # print(loop_num)
+        print('LOOPNUM')
+        print(len_search_space)
+        # print(np.array(columns))
+        # print(np.array(rows))
+        # print(np.array(values))
         view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num, len_search_space))
         view_queue_tmp = view_queue_tmp.todense()
         view_queue_tmp[view_queue_tmp==0] = .2
@@ -605,11 +626,17 @@ class StructuredPriorityGraft():
             columns.append(t)
             rows.append(len(self.active_set))
             values.append(.5)
-        copy_pq = copy.deepcopy(self.pq)
+        if self.method == 'queue':
+            copy_pq = copy.deepcopy(self.edges_list)
+        else:
+            copy_pq = copy.deepcopy(self.pq)
         pq_history[loop_num] = copy.deepcopy(copy_pq)
         len_pq = len(copy_pq)
         for c in range(len_pq):
-            test_edge = copy_pq.popitem()[0]
+            if self.method == 'queue':
+                test_edge = copy_pq.pop()[0]
+            else:
+                test_edge = copy_pq.popitem()[0]
             if test_edge in edges:
                 columns.append(c + len(self.active_set) )
                 rows.append(len(self.active_set))

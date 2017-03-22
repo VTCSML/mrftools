@@ -11,7 +11,7 @@ from Graft import Graft
 
 
 # METHODS = ['structured', 'naive', 'queue']
-METHODS = ['queue']
+METHODS = ['structured', 'queue']
 def main():
 	edge_reg = 0.025 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.05
@@ -20,7 +20,7 @@ def main():
 	graft_iter = 2500
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 10
+	num_nodes = 25
 	state_num = 8
 	T_likelihoods = dict()
 	edge_std = 2.5
@@ -76,6 +76,7 @@ def main():
 			spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 			spg.on_monitor_mn()
 			spg.on_verbose()
+			spg.on_plot_queue('../../../pq_plot')
 			t = time.time()
 			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 			exec_time = time.time() - t

@@ -18,7 +18,7 @@ np.set_printoptions(threshold=np.nan)
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
-folder_name = 'compare_loss_queue_pruned1'
+folder_name = 'compare_loss_queue_pruned'
 folder_num = 'l1_metrics'
 num_iterations = 1
 
@@ -32,7 +32,7 @@ def main():
 	node_std = .0001
 	state_num = 10
 	l2_coeff = 0
-	num_nodes_range = range(10, 500, 10)
+	num_nodes_range = range(25, 500, 25)
 	min_precision = .2
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
@@ -113,6 +113,8 @@ def main():
 					# nll = compute_likelihood(learned_mn, len(variables), test_data)
 					# _likelihoods.append(nll)
 					# if not is_early_stop and nll < best_nll:
+					if not is_early_stop and recall[-1] == 0:
+						break
 					if not is_early_stop and f1_score[-1] > best_f1:
 						best_f1 = f1_score[-1]
 						print('NEW OPT FOUND')
@@ -181,6 +183,7 @@ def main():
 						# spg.on_synthetic(precison_threshold = min_precision, start_num = 10)
 						spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 						spg.on_monitor_mn()
+						# spg.on_plot_queue('../../../')
 						t = time.time()
 						learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 						if not is_early_stop:
@@ -291,7 +294,7 @@ def main():
 		# 	plt.savefig(graph_folder + str(j) + '_G_graph_.png')
 		# 	plt.close()
 
-		
+
 
 		# accuracies = []
 
