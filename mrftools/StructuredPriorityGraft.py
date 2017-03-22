@@ -55,6 +55,14 @@ class StructuredPriorityGraft():
 
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
         self.pq = initialize_priority_queue(self.search_space)
+
+        self.edges_list = list()
+
+        if method == 'queue':
+            while len(self.pq) > 0:
+                item = self.pq.popitem()
+                self.edges_list.append(item)
+
         self.method = method
         self.l1_coeff = 0
         self.l2_coeff = 0
@@ -355,114 +363,108 @@ class StructuredPriorityGraft():
         """
         priority_min = 1e+5
         iteration_activation = 0
-        tmp_list = []
+        tmp_list = list()
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
-        copy_search_space = copy.deepcopy(self.search_space)
-        original_pq = copy.deepcopy(self.pq)
         is_added = True
         while is_added:
             is_added = False
-            while len(self.pq)>0:
-                # print(self.pq)
-                item = self.pq.popitem()# Get edges by order of priority
+            while len(self.pq)>0 or len(self.edges_list)>0:
+                if self.method == 'queue':
+                    item = self.edges_list.pop()
+                else:
+                    item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
-                pretested = False
-                if edge in copy_search_space:
-                    # print(edge)
-                    iteration_activation += 1
-                    copy_search_space.remove(edge)
-                    if edge in self.sufficient_stats:
-                        pretested = True
-                        sufficient_stat_edge = self.sufficient_stats[edge]
-                    else:
-                        sufficient_stat_edge, padded_sufficient_stat_edge =  self.get_sufficient_stats_per_edge(self.aml_optimize.belief_propagators[0].mn,edge)
-                        self.sufficient_stats[edge] = sufficient_stat_edge
-                        self.padded_sufficient_stats[edge] = padded_sufficient_stat_edge
-                    # belief = bp.var_beliefs[edge[0]] - bp.mn.unary_potentials[edge[0]] + np.matrix(bp.var_beliefs[edge[1]] - bp.mn.unary_potentials[edge[1]]).T
-                    belief = bp.var_beliefs[edge[0]] + np.matrix(bp.var_beliefs[edge[1]]).T
-                    # belief = belief - logsumexp(belief)
-                    gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(self.data)).squeeze()
-                    gradient_norm = np.sqrt(gradient.dot(gradient))
-                    length_normalizer = np.sqrt(len(gradient))
-                    activate = (gradient_norm / length_normalizer) > self.edge_l1
-                    if activate:
+                # print(edge)
+                iteration_activation += 1
+                if edge in self.sufficient_stats:
+                    sufficient_stat_edge = self.sufficient_stats[edge]
+                else:
+                    sufficient_stat_edge, padded_sufficient_stat_edge =  self.get_sufficient_stats_per_edge(self.aml_optimize.belief_propagators[0].mn,edge)
+                    self.sufficient_stats[edge] = sufficient_stat_edge
+                    self.padded_sufficient_stats[edge] = padded_sufficient_stat_edge
+                belief = bp.var_beliefs[edge[0]] + np.matrix(bp.var_beliefs[edge[1]]).T
+                gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(self.data)).squeeze()
+                gradient_norm = np.sqrt(gradient.dot(gradient))
+                length_normalizer = np.sqrt(len(gradient))
+                activate = (gradient_norm / length_normalizer) > self.edge_l1
+                if activate:
+                    self.search_space.remove(item[0])
+                    if self.method == 'queue':
+                        [self.edges_list.append(item) for item in tmp_list]
+                    if self.method == 'structured':
                         is_added = True
-                        self.search_space.remove(item[0])
-                        if self.method == 'queue':
-                            _ = original_pq.pop(edge)
-                            self.pq = original_pq
-                        if self.method == 'structured':
-                            # ##################
-                            # linked_inactive_edges = self.get_linked_inactive_tested_edges(edge)
-                            # for res_item in linked_inactive_edges:
-                            #     try:
-                            #         self.pq.additem(res_item[0], res_item[1] ) #Revive linked inactive edges
-                            #     except:
-                            #         pass
-                            # ##################
-                            pass
-                        else:
-                            [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
-                            edge = item[0]
+                        # ##################
+                        # linked_inactive_edges = self.get_linked_inactive_tested_edges(edge)
+                        # for res_item in linked_inactive_edges:
+                        #     try:
+                        #         self.pq.additem(res_item[0], res_item[1] ) #Revive linked inactive edges
+                        #     except:
+                        #         pass
+                        # ##################
+                        pass
+                    if self.method == 'naive':
+                        [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
+                        edge = item[0]
 
-                        return True, edge, iteration_activation
-                    else:
-                        if self.method == 'queue':
-                            continue
-                        direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
-                        if  self.method == 'naive':
-                            tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
-                        if self.method == 'structured':                        
-                            edge = item[0]
+                    return True, edge, iteration_activation
+                else:
+                    if self.method == 'queue':
+                        tmp_list.append(item)
+                        continue
+                    direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
+                    if  self.method == 'naive':
+                        tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
+                    if self.method == 'structured':                        
+                        edge = item[0]
 
-                            # ##################
-                            # self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
-                            # self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
-                            # ##################
+                        # ##################
+                        # self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
+                        # self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
+                        # ##################
 
-                            self.frozen_list.append((edge, direct_penalty))
+                        self.frozen_list.append((edge, direct_penalty))
 
-                            if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
-                                penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
-                                neighbors_0 = list(bp.mn.get_neighbors(edge[0]))
-                                neighbors_1 = list(bp.mn.get_neighbors(edge[1]))
-                                curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
-                                              list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
-                                              list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
-                                              x < y and (x, y) in self.search_space]))
-                                # print('tested edge')
-                                # print(edge)
-                                # print(curr_resulting_edges_1)
-                                for res_edge in curr_resulting_edges_1:
+                        if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
+                            penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
+                            neighbors_0 = list(bp.mn.get_neighbors(edge[0]))
+                            neighbors_1 = list(bp.mn.get_neighbors(edge[1]))
+                            curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
+                                          list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
+                                          list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
+                                          x < y and (x, y) in self.search_space]))
+                            # print('tested edge')
+                            # print(edge)
+                            # print(curr_resulting_edges_1)
+                            for res_edge in curr_resulting_edges_1:
+                                # try:
+                                #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
+                                # except:
+                                #     pass
+
+                                if not self.is_freeze_neighbors:
+                                    try:
+                                        if res_edge not in self.sufficient_stats:
+                                            self.pq.updateitem(res_edge, penalty1)
+                                    except:
+                                        pass
+
+                                    ############################
                                     # try:
-                                    #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
+                                    #     if res_edge in self.sufficient_stats:
+                                    #         self.pq.updateitem(res_edge, (self.pq[res_edge] + direct_penalty) / 2)
+                                    #         # print('structured reassignment')
+                                    #     else:
+                                    #         self.pq.updateitem(res_edge, penalty1)
+                                    #         # print('structured assignment virgin')
+
                                     # except:
                                     #     pass
-
-                                    if not self.is_freeze_neighbors:
-                                        try:
-                                            if res_edge not in self.sufficient_stats:
-                                                self.pq.updateitem(res_edge, penalty1)
-                                        except:
-                                            pass
-
-                                        ############################
-                                        # try:
-                                        #     if res_edge in self.sufficient_stats:
-                                        #         self.pq.updateitem(res_edge, (self.pq[res_edge] + direct_penalty) / 2)
-                                        #         # print('structured reassignment')
-                                        #     else:
-                                        #         self.pq.updateitem(res_edge, penalty1)
-                                        #         # print('structured assignment virgin')
-
-                                        # except:
-                                        #     pass
-                                        #################
-                                    # else:
-                                    #     self.frozen.setdefault(res_edge[0], []).append((res_edge, penalty1))
-                                    #     self.frozen.setdefault(res_edge[1], []).append((res_edge, penalty1))
-            if is_added:
+                                    #################
+                                # else:
+                                #     self.frozen.setdefault(res_edge[0], []).append((res_edge, penalty1))
+                                #     self.frozen.setdefault(res_edge[1], []).append((res_edge, penalty1))
+            if is_added and self.method == 'structured':
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )
                 self.frozen_list = list()

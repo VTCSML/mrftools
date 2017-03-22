@@ -11,11 +11,11 @@ from Graft import Graft
 
 
 # METHODS = ['structured', 'naive', 'queue']
-METHODS = ['structured']
+METHODS = ['queue']
 def main():
 	edge_reg = 0.025 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.05
-	len_data = 1000
+	len_data = 100
 	priority_graft_iter = 2500
 	graft_iter = 2500
 	suffstats_ratio = .05
@@ -30,7 +30,7 @@ def main():
 	print('======================================Simulating data...')
 
 	precisions_nofreeze, recall_nofreeze, time_nofreeze, precisions_freeze, recall_freeze, time_freeze = list(), list(), list(), list(), list(), list()
-	for i in range(10):
+	for i in range(1):
 
 		model, variables, data, max_num_states, num_states, real_edges = generate_random_synthetic_data(len_data, num_nodes, mrf_density=mrf_density, state_min=state_num, state_max=state_num, edge_std=edge_std, node_std = node_std)
 		train_data = data[: int(training_ratio * len_data)]
@@ -75,7 +75,7 @@ def main():
 			spg.on_show_metrics()
 			spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 			spg.on_monitor_mn()
-			# spg.on_verbose()
+			spg.on_verbose()
 			t = time.time()
 			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 			exec_time = time.time() - t

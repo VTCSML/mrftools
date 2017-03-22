@@ -10,257 +10,94 @@ NUM VARIABLES
 NUM EDGES
 1
 EDGES
-[(0, 1)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
+[(0, 9)]
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:118: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:132: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+NEW ITER
+0
+((1, 3), 0)
+HERE1
+0
+((7, 9), 0)
+HERE1
+0
+((1, 9), 0)
+HERE1
+0
+((2, 7), 0)
+HERE1
+0
+((4, 5), 0)
+HERE1
+0
+((3, 7), 0)
+HERE1
+0
+((6, 7), 0)
+HERE1
+0
+((2, 3), 0)
+HERE1
+0
+((0, 8), 0)
+HERE1
+0
+((8, 9), 0)
+HERE1
+0
+((5, 9), 0)
+HERE1
+0
+((3, 4), 0)
+HERE1
+0
+((3, 8), 0)
+HERE1
+0
+((4, 8), 0)
+HERE1
+0
+((5, 8), 0)
+HERE1
+0
+((6, 8), 0)
+HERE1
+0
+((1, 2), 0)
+HERE1
+0
+((3, 9), 0)
+HERE1
+0
+((1, 6), 0)
+HERE1
+0
+((0, 1), 0)
+HERE1
+0
+((0, 3), 0)
+HERE1
+0
+((3, 5), 0)
+HERE1
+0
+((0, 9), 0)
+Final lenght
+0
 Average Selection iterations
-12.0
+0.0
 SUFFICIENT STATS
-45
+23
 Recall
-1.0
+0
 Precision
-1.0
+0
 F1-score
-1.0
+0
 ---->Exec time
-0.908501148224
+0.219618082047
 Loss
-[0.25317420568565285, 0.25317420568565285, 0.17726896276545612]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(3, 5)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-14.0
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.498746871948
-Loss
-[0.2528541628576782, 0.2528541628576782, 0.17667738912948644]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(0, 3)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-9.0
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.766037940979
-Loss
-[0.2526996712007018, 0.2526996712007018, 0.17674551473059935]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(0, 1)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-12.0
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.806897878647
-Loss
-[0.25221705126113331, 0.25221705126113331, 0.1759992200049155]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(4, 7)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-6.0
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.518234014511
-Loss
-[0.25313520229009201, 0.25313520229009201, 0.17721652410759067]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(1, 8)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-12.3333333333
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.585456848145
-Loss
-[0.25314945473780964, 0.25314945473780964, 0.17728765447229822]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(0, 1)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-13.3333333333
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.461698055267
-Loss
-[0.25279635245892945, 0.25279635245892945, 0.17621989781424122]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(3, 4)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-0.333333333333
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.536143064499
-Loss
-[0.25268829153589362, 0.25268829153589362, 0.1765780976256483]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(2, 8)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-3.66666666667
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.505313873291
-Loss
-[0.2535505011715552, 0.2535505011715552, 0.17745866447868522]
-> Creating model
-> Generating data
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 8, 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8}
-8
-NUM VARIABLES
-10
-NUM EDGES
-1
-EDGES
-[(3, 7)]
->>>>>>>>>>>>>>>>>>>>>METHOD: structured
-Average Selection iterations
-6.0
-SUFFICIENT STATS
-45
-Recall
-1.0
-Precision
-1.0
-F1-score
-1.0
----->Exec time
-0.490433931351
-Loss
-[0.25344021213010592, 0.25344021213010592, 0.17720591164126465]
+[0.254286864208709, 0.254286864208709]

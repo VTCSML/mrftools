@@ -35,7 +35,7 @@ def main():
 	node_std = .0001
 	state_num = 4
 	l2_coeff = 0
-	num_nodes_range = range(55, 100, 10)
+	num_nodes_range = range(50, 100, 10)
 	min_precision = .15
 
 	# num_nodes_range = range(16, 500, 8)
