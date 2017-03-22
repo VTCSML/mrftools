@@ -18,7 +18,7 @@ np.set_printoptions(threshold=np.nan)
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
-folder_name = 'compare_loss_queue_pruned'
+folder_name = 'compare_loss_queue_pruned1'
 folder_num = 'l1_metrics'
 num_iterations = 1
 
@@ -28,15 +28,14 @@ def main():
 	T_likelihoods = dict()
 	# zero_threshold = 1e-3
 	training_ratio = .7
-	mrf_density = .01
 	edge_std = 2.5
 	node_std = .0001
 	state_num = 10
 	l2_coeff = 0
-	num_nodes_range = range(10, 500, 50)
+	num_nodes_range = range(10, 500, 10)
 	min_precision = .2
 
-	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1]
+	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
 
 	T_likelihoods = dict()
 	M_time_stamps = dict()
@@ -47,8 +46,8 @@ def main():
 
 		total_edge_num = (num_nodes ** 2 - num_nodes) / 2
 		# mrf_density = min(mrf_density, float(2)/(num_nodes-1))
-		mrf_density = float(1)/(2*(num_nodes-1))
-		len_data = min(100000, num_nodes * 100)
+		mrf_density = float(1)/(2 * (num_nodes - 1))
+		len_data = min(100000, num_nodes * 500)
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
 		M_accuracies = dict()
@@ -79,6 +78,7 @@ def main():
 		recalls, precisions, sufficientstats, mn_snapshots, f1_scores, objs = dict(), dict(), dict(), dict(), dict(), dict()
 		for method in METHODS:
 			if method == 'structured':
+				opt_reached = False
 				_likelihoods = []
 				_recalls = []
 				_precisions= []
@@ -95,7 +95,7 @@ def main():
 					j += 1
 					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
 					spg.on_show_metrics()
-					spg.on_verbose()
+					# spg.on_verbose()
 
 					spg.on_synthetic(precison_threshold = min_precision, start_num = 4)
 
@@ -110,13 +110,13 @@ def main():
 					_recalls.append(recall[-1])
 					_precisions.append(precision[-1])
 					# nll = compute_likelihood_1(learned_mn, len(variables), test_data)
-					nll = compute_likelihood(learned_mn, len(variables), test_data)
-					_likelihoods.append(nll)
+					# nll = compute_likelihood(learned_mn, len(variables), test_data)
+					# _likelihoods.append(nll)
 					# if not is_early_stop and nll < best_nll:
 					if not is_early_stop and f1_score[-1] > best_f1:
 						best_f1 = f1_score[-1]
 						print('NEW OPT FOUND')
-						best_nll = nll
+						# best_nll = nll
 						best_mn_snapshots = copy.deepcopy(spg.mn_snapshots)
 						best_graph_snapshots = copy.deepcopy(spg.graph_snapshots)
 						f1_scores[method] = f1_score
@@ -213,21 +213,23 @@ def main():
 								print('OPT PARAMS')
 								print(opt_edge_reg)
 								print(opt_node_reg)
-				plt.close()
-				j = 0
-				graph_folder = '../../../results_' + folder_name + '/spg_graphs_' + str(num_nodes) + '/'
-				try:
-					os.mkdir(graph_folder)
-				except:
-					pass
-				for t in sorted(list(best_graph_snapshots.keys())):
-					j += 1
-					G = best_graph_snapshots[t]
-					pos = nx.shell_layout(G)
-					nx.draw(G, pos)
-					plt.title(str(t))
-					plt.savefig(graph_folder + str(j) + '_SPG_graph_.png')
-					plt.close()
+
+
+				# plt.close()
+				# j = 0
+				# graph_folder = '../../../results_' + folder_name + '/spg_graphs_' + str(num_nodes) + '/'
+				# try:
+				# 	os.mkdir(graph_folder)
+				# except:
+				# 	pass
+				# for t in sorted(list(best_graph_snapshots.keys())):
+				# 	j += 1
+				# 	G = best_graph_snapshots[t]
+				# 	pos = nx.shell_layout(G)
+				# 	nx.draw(G, pos)
+				# 	plt.title(str(t))
+				# 	plt.savefig(graph_folder + str(j) + '_SPG_graph_.png')
+				# 	plt.close()
 
 			else:
 				print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
@@ -273,21 +275,23 @@ def main():
 		print(len(objec))
 
 
-		plt.close()
-		j = 0
-		graph_folder = '../../../results_' + folder_name + '/graft_graphs_' + str(num_nodes) +'/'
-		try:
-			os.mkdir(graph_folder)
-		except:
-			pass
-		for t in sorted(list(grafter.graph_snapshots.keys())):
-			j += 1
-			G = grafter.graph_snapshots[t]
-			pos = nx.shell_layout(G)
-			nx.draw(G, pos)
-			plt.title(str(t))
-			plt.savefig(graph_folder + str(j) + '_G_graph_.png')
-			plt.close()
+		# plt.close()
+		# j = 0
+		# graph_folder = '../../../results_' + folder_name + '/graft_graphs_' + str(num_nodes) +'/'
+		# try:
+		# 	os.mkdir(graph_folder)
+		# except:
+		# 	pass
+		# for t in sorted(list(grafter.graph_snapshots.keys())):
+		# 	j += 1
+		# 	G = grafter.graph_snapshots[t]
+		# 	pos = nx.shell_layout(G)
+		# 	nx.draw(G, pos)
+		# 	plt.title(str(t))
+		# 	plt.savefig(graph_folder + str(j) + '_G_graph_.png')
+		# 	plt.close()
+
+		
 
 		# accuracies = []
 

@@ -35,14 +35,14 @@ def main():
 	node_std = .0001
 	state_num = 4
 	l2_coeff = 0
-	num_nodes_range = range(50, 100, 10)
+	num_nodes_range = range(25, 100, 10)
 	min_precision = .15
 
 	# num_nodes_range = range(16, 500, 8)
 	# num_nodes_range = [10]
 	# num_nodes_range = range(5, 500, 10)
 
-	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1] #np.arange(1e-5, 5e-2, 5e-5)#[.04]#[1, 5e-1, 1e-1]
+	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1] #np.arange(1e-5, 5e-2, 5e-5)#[.04]#[1, 5e-1, 1e-1]
 	# node_reg_range = [1e-2] #np.arange(1e-3, 1e-1, 1e-3)#[.06]#[1, 9e-1, 6e-1, 3e-1, 1e-1]
 
 	# reg_range = np.arange(0,1,0.01)

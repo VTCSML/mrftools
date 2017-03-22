@@ -61,8 +61,7 @@ class StructuredPriorityGraft():
         if method == 'queue':
             while len(self.pq) > 0:
                 item = self.pq.popitem()
-                self.edges_list.append(item)
-
+                self.edges_list = [item] + self.edges_list
         self.method = method
         self.l1_coeff = 0
         self.l2_coeff = 0
@@ -391,7 +390,10 @@ class StructuredPriorityGraft():
                 if activate:
                     self.search_space.remove(item[0])
                     if self.method == 'queue':
-                        [self.edges_list.append(item) for item in tmp_list]
+                        for i in range(len(tmp_list)):
+                            item = tmp_list.pop()
+                            self.edges_list.append(item)
+                        # print(self.edges_list)
                     if self.method == 'structured':
                         is_added = True
                         # ##################
@@ -416,14 +418,11 @@ class StructuredPriorityGraft():
                         tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
                     if self.method == 'structured':                        
                         edge = item[0]
-
                         # ##################
                         # self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
                         # self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
                         # ##################
-
                         self.frozen_list.append((edge, direct_penalty))
-
                         if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
                             penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
                             neighbors_0 = list(bp.mn.get_neighbors(edge[0]))
@@ -432,9 +431,6 @@ class StructuredPriorityGraft():
                                           list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
                                           list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
                                           x < y and (x, y) in self.search_space]))
-                            # print('tested edge')
-                            # print(edge)
-                            # print(curr_resulting_edges_1)
                             for res_edge in curr_resulting_edges_1:
                                 # try:
                                 #     self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
@@ -447,7 +443,6 @@ class StructuredPriorityGraft():
                                             self.pq.updateitem(res_edge, penalty1)
                                     except:
                                         pass
-
                                     ############################
                                     # try:
                                     #     if res_edge in self.sufficient_stats:
@@ -456,7 +451,6 @@ class StructuredPriorityGraft():
                                     #     else:
                                     #         self.pq.updateitem(res_edge, penalty1)
                                     #         # print('structured assignment virgin')
-
                                     # except:
                                     #     pass
                                     #################
@@ -467,7 +461,6 @@ class StructuredPriorityGraft():
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )
                 self.frozen_list = list()
-
         return False, (0, 0), iteration_activation
 
 
