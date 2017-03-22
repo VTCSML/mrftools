@@ -161,7 +161,7 @@ def main():
 						# last_f1score = f1_score[-1]
 						if nll1 > nll and nll <= best_nll:
 							best_nll = nll
-							print('NEW BEST CONGRATUALITIONS WALID! YOU MADE IT! YOUR PARENTS MUST BE PROUD OF YOU! WHAT AN ACCOMPLISHMENT!! THIS IS THE FUTURE OF MACHINE LEARNING...')
+							print('NEW BEST')
 							print(best_nll)
 							opt_edge_reg = edge_reg
 							opt_node_reg = node_reg

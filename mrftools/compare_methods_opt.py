@@ -33,7 +33,7 @@ def main():
 	node_std = .0001
 	state_num = 10
 	l2_coeff = 0
-	num_nodes_range = range(100, 500, 50)
+	num_nodes_range = range(10, 500, 50)
 	min_precision = .2
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1, 2.5e-1, 5e-1, 7.5e-1, 1]
@@ -47,7 +47,7 @@ def main():
 
 		total_edge_num = (num_nodes ** 2 - num_nodes) / 2
 		# mrf_density = min(mrf_density, float(2)/(num_nodes-1))
-		mrf_density = float(1)/(2 * num_nodes-1)
+		mrf_density = float(1)/(2*(num_nodes-1))
 		len_data = min(100000, num_nodes * 100)
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
@@ -95,9 +95,9 @@ def main():
 					j += 1
 					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
 					spg.on_show_metrics()
-					# spg.on_verbose()
+					spg.on_verbose()
 
-					spg.on_synthetic(precison_threshold = min_precision, start_num = 10)
+					spg.on_synthetic(precison_threshold = min_precision, start_num = 4)
 
 					spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 					spg.on_monitor_mn()
@@ -196,7 +196,7 @@ def main():
 							if  last_f1score > max_f1score:
 
 								# best_nll = nll
-								print('NEW BEST! YOU MADE IT!!!! THIS IS THE FUTURE OF MACHINE LEARNING...')
+								print('NEW BEST!')
 								print(best_nll)
 								opt_edge_reg = edge_reg
 								opt_node_reg = node_reg

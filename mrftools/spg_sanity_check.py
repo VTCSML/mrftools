@@ -15,7 +15,7 @@ METHODS = ['queue']
 def main():
 	edge_reg = 0.025 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.05
-	len_data = 100
+	len_data = 50
 	priority_graft_iter = 2500
 	graft_iter = 2500
 	suffstats_ratio = .05

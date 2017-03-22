@@ -262,7 +262,7 @@ class StructuredPriorityGraft():
 
         old_edge_regularizers = []
 
-        while ((len(self.pq) > 0) and is_activated_edge) and len(self.active_set) < num_edges and self.is_limit_sufficient_stats_reached(): # Stop if all edges are added or no edge is added at the previous iteration
+        while ((len(self.pq) > 0 or len(self.edges_list) > 0) and is_activated_edge) and len(self.active_set) < num_edges and self.is_limit_sufficient_stats_reached(): # Stop if all edges are added or no edge is added at the previous iteration
             
             self.active_set.append(activated_edge)
             if self.is_verbose:
@@ -406,7 +406,6 @@ class StructuredPriorityGraft():
                     if self.method == 'naive':
                         [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
                         edge = item[0]
-
                     return True, edge, iteration_activation
                 else:
                     if self.method == 'queue':
