@@ -18,7 +18,7 @@ np.set_printoptions(threshold=np.nan)
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
-folder_name = 'compare_loss_queue_pruned'
+folder_name = 'compare_loss_queue'
 folder_num = 'l1_metrics'
 num_iterations = 1
 
@@ -28,14 +28,16 @@ def main():
 	T_likelihoods = dict()
 	# zero_threshold = 1e-3
 	training_ratio = .7
-	edge_std = 2.5
+	edge_std = 3
 	node_std = .0001
 	state_num = 10
 	l2_coeff = 0
-	num_nodes_range = range(25, 500, 25)
+	num_nodes_range = range(10, 500, 10)
 	min_precision = .2
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
+	opt_edge_reg = .1
+	opt_node_reg = .1
 
 	T_likelihoods = dict()
 	M_time_stamps = dict()
@@ -46,8 +48,8 @@ def main():
 
 		total_edge_num = (num_nodes ** 2 - num_nodes) / 2
 		# mrf_density = min(mrf_density, float(2)/(num_nodes-1))
-		mrf_density = float(1)/(2 * (num_nodes - 1))
-		len_data = min(100000, num_nodes * 500)
+		mrf_density = float(1)/((num_nodes - 1))
+		len_data = 10000
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
 		M_accuracies = dict()
@@ -60,6 +62,23 @@ def main():
 		test_data = data[int(training_ratio * len_data) : len_data]
 		list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
 		shuffle(list_order)
+
+
+		ss_test = dict()
+
+		print('ss')
+		for var1 in variables:
+			for var2 in variables:
+				if var1 < var2:
+					edge = (var1, var2)
+					edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
+					for states in data:
+						table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
+						table[states[edge[0]], states[edge[1]]] = 1
+						tmp = np.asarray(table.reshape((-1, 1)))
+						edge_sufficient_stats += tmp
+						ss_test[edge] = edge_sufficient_stats
+		print('ss end')
 
 		print(variables)
 		print(num_states)
@@ -86,6 +105,7 @@ def main():
 				j = 0
 				best_params = (0,0)
 				best_nll = float('inf')
+				best_precision = 0
 				best_f1 = 0
 				for edge_reg in edge_reg_range:
 					node_reg = 1.15 * edge_reg
@@ -93,11 +113,11 @@ def main():
 					print(edge_reg)
 					print(node_reg)
 					j += 1
-					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
+					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
 					spg.on_show_metrics()
 					# spg.on_verbose()
 
-					spg.on_synthetic(precison_threshold = min_precision, start_num = 4)
+					spg.on_synthetic(precison_threshold = min_precision, start_num = 2)
 
 					spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 					spg.on_monitor_mn()
@@ -117,6 +137,7 @@ def main():
 						break
 					if not is_early_stop and f1_score[-1] > best_f1:
 						best_f1 = f1_score[-1]
+						best_precision = precision[-1] 
 						print('NEW OPT FOUND')
 						# best_nll = nll
 						best_mn_snapshots = copy.deepcopy(spg.mn_snapshots)
@@ -157,19 +178,20 @@ def main():
 				# plt.close()
 
 
-				if best_f1 >= .8:
-					print('OPT PARAMS')
-					print(opt_edge_reg)
-					print(opt_node_reg)
-					opt_reached =True
+				# if best_f1 >= .8:
+				# 	print('OPT PARAMS')
+				# 	print(opt_edge_reg)
+				# 	print(opt_node_reg)
+				# 	opt_reached =True
 
-				if not opt_reached:
+				# if not opt_reached:
 
-					print('Getting best node reg')
+				# 	print('Getting best node reg')
 
 					#########################################################################################################
 					edge_reg = best_params[1]
-					max_f1score = 0
+					best_precision = 0
+					best_f1 = 0
 					pass_loop = False
 					best_nll = float('inf')
 					node_reg_range = [1.5 * edge_reg, 1.25 * edge_reg, 1.2 * edge_reg, 1.175 * edge_reg, 1.15 * edge_reg, 1.125 * edge_reg, 1.1 * edge_reg , 1.05 * edge_reg, 1 * edge_reg]
@@ -180,7 +202,7 @@ def main():
 						spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
 						spg.on_show_metrics()
 						# spg.on_verbose()
-						# spg.on_synthetic(precison_threshold = min_precision, start_num = 10)
+						spg.on_synthetic(precison_threshold = min_precision, start_num = 2)
 						spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 						spg.on_monitor_mn()
 						# spg.on_plot_queue('../../../')
@@ -193,17 +215,15 @@ def main():
 							# nll1 = compute_likelihood(spg.mn_snapshots[min(list(spg.mn_snapshots.keys()))], len(variables), test_data)
 							# nll = compute_likelihood(learned_mn, len(variables), test_data)
 							mn_snapshots[method] = spg.mn_snapshots
-							last_f1score = f1_score[-1]
 							# if nll1 > nll and nll <= best_nll:
-
-							if  last_f1score > max_f1score:
-
+							if  f1_score[-1] > best_f1:
 								# best_nll = nll
 								print('NEW BEST!')
 								print(best_nll)
 								opt_edge_reg = edge_reg
 								opt_node_reg = node_reg
-								max_f1score = last_f1score
+								best_precision = precision[-1]
+								best_f1 = f1_score[-1]
 								best_mn_snapshots = copy.deepcopy(spg.mn_snapshots)
 								best_graph_snapshots = copy.deepcopy(spg.graph_snapshots)
 								f1_scores[method] = f1_score
@@ -236,7 +256,7 @@ def main():
 
 			else:
 				print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
-				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
+				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
 				spg.on_show_metrics()
 				spg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
 				spg.on_monitor_mn()
@@ -335,21 +355,46 @@ def main():
 		# plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_nll_.png')
 		# plt.close()
 
+		# plt.close()
+		# fig, ax1 = plt.subplots()
+		# ax2 = ax1.twinx()
+		# for i in range(len(METHODS)):
+		# 	print(METHODS[i])
+		# 	ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
+		# 	ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
+		# ax1.set_xlabel('Time')
+		# ax1.set_ylabel('Normalized Loss')
+		# ax2.set_ylabel('F1 Score')
+		# ax2.legend(loc=4, fancybox=True, framealpha=0.5)
+		# ax1.legend(loc='best', framealpha=0.5)
+		# plt.title('Loss-F1')
+		# plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_loss_.png')
+		# plt.close()
+
+
 		plt.close()
 		fig, ax1 = plt.subplots()
-		ax2 = ax1.twinx()
 		for i in range(len(METHODS)):
 			print(METHODS[i])
-			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
-			ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', label='F1-'+METHODS[i])
+			ax1.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
 		ax1.set_xlabel('Time')
-		ax1.set_ylabel('Loss')
-		ax2.set_ylabel('F1')
-		ax2.legend(loc=4, fancybox=True, framealpha=0.5)
-		ax1.legend(loc='best', framealpha=0.5)
-		plt.title('Loss-F1')
-		plt.xlabel('iterations')
-		plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_loss_.png')
+		ax1.set_ylabel('F1 Score')
+		ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+		plt.title('F1 VS Time')
+		plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_F1_.png')
+		plt.close()
+
+
+		plt.close()
+		fig, ax1 = plt.subplots()
+		for i in range(len(METHODS)):
+			print(METHODS[i])
+			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='Loss-'+METHODS[i])
+		ax1.set_xlabel('Time')
+		ax1.set_ylabel('Normalized Loss')
+		ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+		plt.title('Loss VS Time')
+		plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_Loss_.png')
 		plt.close()
 
 if __name__ == '__main__':

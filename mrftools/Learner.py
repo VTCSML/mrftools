@@ -136,7 +136,7 @@ class Learner(object):
 
 ###############################
 
-    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data_len, verbose=False, callback_f=None,  is_feature_graft=False, zero_feature_indices = None, loss = None, ss_test = None, search_space = None, len_data = None, bp =None, is_compute_real_loss =False):
+    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data_len, verbose=False, callback_f=None,  is_feature_graft=False, zero_feature_indices = None, loss = None, ss_test = None, search_space = None, len_data = None, bp =None, is_compute_real_loss = True, normalizer = 0):
         self.edge_regularizers = edge_regularizers
         self.var_regularizers = var_regularizers
         self.feature_graft = is_feature_graft
@@ -174,10 +174,16 @@ class Learner(object):
                 gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(edge_ss) / len_data).squeeze()
                 gradient_norm = gradient.dot(gradient)
                 diff_norm += gradient_norm
-            diff_norm = np.sqrt(diff_norm) / (len(diff) + len(search_space))
+            diff_norm = np.sqrt(diff_norm) / normalizer
+            print('diff_norm')
+            print(diff_norm)
+            print('Normalized')
+            print(normalizer)
             loss.append(diff_norm)
         else:
-            loss.append(self.objec / len(self.tau_p))
+
+            # loss.append(self.objec / len(self.tau_p)) #BAD BAD BAD
+            loss.append(self.objec)
 
 
         # if verbose:

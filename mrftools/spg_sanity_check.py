@@ -11,21 +11,23 @@ from Graft import Graft
 
 
 # METHODS = ['structured', 'naive', 'queue']
+METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHODS = ['structured', 'queue']
 def main():
-	edge_reg = 0.025 #np.arange(0.01,0.25,0.05) 
+	edge_reg = 0.04 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.05
-	len_data = 50
+	len_data = 1000
 	priority_graft_iter = 2500
-	graft_iter = 2500
+	graft_iter = 100
 	suffstats_ratio = .05
 	training_ratio = .6
 	num_nodes = 25
-	state_num = 8
+	state_num = 5
 	T_likelihoods = dict()
-	edge_std = 2.5
+	edge_std = 5
 	node_std = .0001
-	mrf_density = .01
+
+	mrf_density = .002
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	print('======================================Simulating data...')
 
@@ -49,6 +51,10 @@ def main():
 		edge_num = float('inf')
 		num_attributes = len(variables)
 		recalls, precisions, active_sets= dict(), dict(), dict()
+
+		M_time_stamps = dict()
+		objs = dict()
+		f1_scores = dict()
 
 		# print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
 		# grafter = Graft(variables, num_states, max_num_states, data, list_order)
@@ -84,6 +90,26 @@ def main():
 			print(exec_time)
 			print('Loss')
 			print(objec)
+			M_time_stamps[method] = sorted(list(spg.mn_snapshots.keys()))
+			objs[method] = objec
+			f1_scores[method] = f1_score
+
+
+		plt.close()
+		fig, ax1 = plt.subplots()
+		ax2 = ax1.twinx()
+		for i in range(len(METHODS)):
+			print(METHODS[i])
+			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
+			ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
+		ax1.set_xlabel('Time')
+		ax1.set_ylabel('Normalized Loss')
+		ax2.set_ylabel('F1 Score')
+		ax2.legend(loc=4, fancybox=True, framealpha=0.5)
+		ax1.legend(loc='best', framealpha=0.5)
+		plt.title('Loss-F1')
+		plt.savefig('../../../pq_plot/' + str(len(variables)) + '_loss_.png')
+		plt.close()
 
 
 
