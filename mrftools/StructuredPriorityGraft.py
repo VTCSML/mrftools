@@ -56,6 +56,8 @@ class StructuredPriorityGraft():
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
         self.pq = initialize_priority_queue(self.search_space)
 
+        self.search_space = set(self.search_space)
+
         self.edges_list = list()
 
         if method == 'queue':
@@ -243,14 +245,16 @@ class StructuredPriorityGraft():
             recall, precision, suff_stats_list, self.total_iter_num, f1_score = [0,0], [0,0], [0,0], [0,0], [0,0]
             is_ss_at_70_regeistered = False
 
+        metric_exec_time = 0
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-        weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+        metric_exec_time += tmp_metric_exec_time
         # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
         objec.extend(objec)
 
         if self.is_monitor_mn:
-            exec_time =  time.time() - exec_time_origin
+            exec_time =  time.time() - exec_time_origin - metric_exec_time
             self.save_mn()
             self.save_mn(exec_time=exec_time)
             self.save_graph(exec_time=exec_time)
@@ -298,11 +302,13 @@ class StructuredPriorityGraft():
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers)
             
             # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-            weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+            metric_exec_time += tmp_metric_exec_time
             # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
+
             if self.is_monitor_mn:
-                exec_time = time.time() - exec_time_origin
+                exec_time = time.time() - exec_time_origin - metric_exec_time
                 self.save_mn(exec_time=exec_time)
                 self.save_graph(exec_time=exec_time)
 

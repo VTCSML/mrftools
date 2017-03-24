@@ -5,6 +5,7 @@ from scipy.optimize import minimize, check_grad
 from LogLinearModel import LogLinearModel
 import math
 from opt import ada_grad, ada_grad_1
+import time
 
 class Learner(object):
     def __init__(self, inference_type):
@@ -159,95 +160,73 @@ class Learner(object):
             res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
             new_weights = res.x
 
-
-
+        t = time.time()
+        normalizer = len(self.tau_q)
         if is_compute_real_loss:
-            diff = self.tau_q - self.tau_p
+            diff = self.grad 
             diff_norm = diff.dot(diff)
             # loss.append(diff_norm)
             # loss.append(self.objec / len(self.tau_p))
             bp.load_beliefs()
+            latent_grad = 0
             for edge in search_space:
                 edge_ss = ss_test[edge]
                 belief = bp.var_beliefs[edge[0]] + np.matrix(bp.var_beliefs[edge[1]]).T
                 # belief = belief - logsumexp(belief)
                 gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(edge_ss) / len_data).squeeze()
                 gradient_norm = gradient.dot(gradient)
+                latent_grad += gradient_norm
+                normalizer += len(gradient)
                 diff_norm += gradient_norm
-            diff_norm = np.sqrt(diff_norm) / normalizer
-            print('diff_norm')
-            print(diff_norm)
-            print('Normalized')
-            print(normalizer)
+
+            # print('latent grad')
+            # print(latent_grad)
+            # print(diff_norm)
+            # print(normalizer - len(self.tau_q))
+            diff_norm = np.sqrt(diff_norm)
+            # print('diff_norm')
+            # print(diff_norm)
+            # print('Normalized')
+            # print(normalizer)
             loss.append(diff_norm)
         else:
-
             # loss.append(self.objec / len(self.tau_p)) #BAD BAD BAD
             loss.append(self.objec)
+        t = time.time() - t
 
 
-        # if verbose:
-        #     print('Iter')
-        #     print(res.nit)
-        #     print('opt. message')
-        #     print(res.message)
-        #     print(np.sqrt(res.jac.dot(res.jac)))
-        #     print('obj')
-        #     print(res.fun)
+        if verbose:
+            print('Iter')
+            print(res.nit)
+            print('opt. message')
+            print(res.message)
+            print(np.sqrt(res.jac.dot(res.jac)))
+            print('obj')
+            print(res.fun)
 
-        # print('Diff')
-        # print(self.tau_q - self.tau_p)
-
-
-        # # print('Diff')
-        # diff = self.tau_q - self.tau_p
-        # # print(diff)
-        # diff_norm = np.sqrt(diff.dot(diff))/ len(diff)
-        # # print(np.sqrt(diff.dot(diff))/ len(diff))
-        # gradient_norm.append(diff_norm)
-
-        if self.feature_graft and is_compute_real_loss:
-            new_weights[self.zero_feature_indices] = 0
-            # print(self.curr_gradient)
-            gradient_vec = np.zeros(len(self.curr_gradient))
-            # print('edges')
-            # print(self.zero_feature_indices)
-            gradient_vec[self.zero_feature_indices] = self.curr_gradient[self.zero_feature_indices]
-            activated_feature = np.array(np.abs(gradient_vec)).argmax(axis=0)
-            max_grad = max(np.abs(gradient_vec))
-            diff = self.tau_q - self.tau_p
-            print(len(self.tau_p))
-            diff_norm = diff.dot(diff)
-            diff_norm = np.sqrt(diff_norm) / len(diff)
-            loss.append(diff_norm)
+        # if self.feature_graft and is_compute_real_loss:
+        #     new_weights[self.zero_feature_indices] = 0
+        #     # print(self.curr_gradient)
+        #     gradient_vec = np.zeros(len(self.curr_gradient))
+        #     # print('edges')
+        #     # print(self.zero_feature_indices)
+        #     gradient_vec[self.zero_feature_indices] = self.curr_gradient[self.zero_feature_indices]
+        #     activated_feature = np.array(np.abs(gradient_vec)).argmax(axis=0)
+        #     max_grad = max(np.abs(gradient_vec))
+        #     diff = self.tau_q - self.tau_p
+        #     print(len(self.tau_p))
+        #     diff_norm = diff.dot(diff)
+        #     diff_norm = np.sqrt(diff_norm) / len(diff)
+        #     loss.append(diff_norm)
 
 
-            # print(self.curr_gradient)
+        #     if max_grad > self.l1_regularization and len(self.zero_feature_indices) > 0:
+        #         self.zero_feature_indices.remove(activated_feature)
+        #         return new_weights, activated_feature
+        #     else:
+        #         return new_weights, None
 
-            # print('Data')
-            # print(self.tau_q)
-            # print('Model')
-            # print(self.tau_p)
-
-            # print('Diff')
-            # diff = self.tau_q - self.tau_p
-            # print(np.sqrt(diff.dot(diff))/ len(diff))
-            
-            # print('l1')
-            # print(self.l1_regularization)
-            # print('Gradient')
-            # print(gradient_vec)
-
-            # print('Last gradient')
-            # print(np.sqrt(gradient_vec.dot(gradient_vec)) / len(gradient_vec))
-            # print(max_grad)
-            if max_grad > self.l1_regularization and len(self.zero_feature_indices) > 0:
-                self.zero_feature_indices.remove(activated_feature)
-                return new_weights, activated_feature
-            else:
-                return new_weights, None
-
-        return new_weights
+        return new_weights, t
 
     def reset(self):
         self.weight_record =  np.array([])
@@ -358,6 +337,8 @@ class Learner(object):
 
         # if self.feature_graft:
         #     grad[self.zero_feature_indices] = 0
+
+        self.grad = grad
 
         return grad
 

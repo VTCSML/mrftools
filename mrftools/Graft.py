@@ -47,6 +47,7 @@ class Graft():
             self.search_space = [self.mn.search_space[i] for i in list_order]
         else:
             self.search_space = self.mn.search_space
+        self.mn.search_space = set(self.mn.search_space)
         self.data = data
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
         self.l1_coeff = 0
@@ -160,6 +161,16 @@ class Graft():
             exec_time_origin = time.time()
         self.aml_optimize = self.setup_grafting_learner(len(self.data))
 
+
+
+        num_features = 0
+
+        for var in self.variables:
+            num_features += len(self.mn.unary_potentials[var]) 
+        for edge in self.search_space:
+            num_features += len(self.mn.unary_potentials[edge[0]]) *  len(self.mn.unary_potentials[edge[1]])
+
+
         for edge in self.search_space:
             self.sufficient_stats[edge], self.padded_sufficient_stats[edge] = self.get_sufficient_stats_per_edge(self.mn, edge)
 
@@ -179,13 +190,16 @@ class Graft():
         if self.is_show_metrics:
             recall, precision, suff_stats_list, f1_score = [0,0], [0,0], [0,0], [0,0]
 
+        metric_exec_time = 0
+
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-        weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0])
+        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+        metric_exec_time += tmp_metric_exec_time
         self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
         objec.extend(objec)
 
         if self.is_monitor_mn:
-            exec_time =  time.time() - exec_time_origin
+            exec_time = time.time() - exec_time_origin - metric_exec_time
             self.save_mn()
             self.save_mn(exec_time=exec_time)
             self.save_graph(exec_time=exec_time)
@@ -217,11 +231,13 @@ class Graft():
             self.set_regularization_indices(unary_indices, pairwise_indices)
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge)
 
-            weights_opt = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0])
+            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
             self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
+            metric_exec_time += tmp_metric_exec_time
+
             if self.is_monitor_mn:
-                exec_time = time.time() - exec_time_origin
+                exec_time = time.time() - exec_time_origin - metric_exec_time
                 self.save_mn(exec_time=exec_time)
                 self.save_graph(exec_time=exec_time)
 

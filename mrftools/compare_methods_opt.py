@@ -30,14 +30,14 @@ def main():
 	training_ratio = .7
 	edge_std = 3
 	node_std = .0001
-	state_num = 10
+	state_num = 5
 	l2_coeff = 0
 	num_nodes_range = range(10, 500, 10)
 	min_precision = .2
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
-	opt_edge_reg = .1
-	opt_node_reg = .1
+	# opt_edge_reg = .1
+	# opt_node_reg = .1
 
 	T_likelihoods = dict()
 	M_time_stamps = dict()
@@ -49,7 +49,7 @@ def main():
 		total_edge_num = (num_nodes ** 2 - num_nodes) / 2
 		# mrf_density = min(mrf_density, float(2)/(num_nodes-1))
 		mrf_density = float(1)/((num_nodes - 1))
-		len_data = 10000
+		len_data = 2500
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
 		M_accuracies = dict()
@@ -71,14 +71,29 @@ def main():
 			for var2 in variables:
 				if var1 < var2:
 					edge = (var1, var2)
-					edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
-					for states in data:
-						table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
-						table[states[edge[0]], states[edge[1]]] = 1
-						tmp = np.asarray(table.reshape((-1, 1)))
-						edge_sufficient_stats += tmp
-						ss_test[edge] = edge_sufficient_stats
+					edge_sufficient_stats = 1
+					table = np.ones((num_states[edge[0]], num_states[edge[1]]))
+					# table[states[edge[0]], states[edge[1]]] = 1
+					tmp = np.asarray(table.reshape((-1, 1)))
+					edge_sufficient_stats += tmp
+					ss_test[edge] = edge_sufficient_stats
 		print('ss end')
+
+
+
+		# print('ss')
+		# for var1 in variables:
+		# 	for var2 in variables:
+		# 		if var1 < var2:
+		# 			edge = (var1, var2)
+		# 			edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
+		# 			for states in train_data:
+		# 				table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
+		# 				table[states[edge[0]], states[edge[1]]] = 1
+		# 				tmp = np.asarray(table.reshape((-1, 1)))
+		# 				edge_sufficient_stats += tmp
+		# 				ss_test[edge] = edge_sufficient_stats
+		# print('ss end')
 
 		print(variables)
 		print(num_states)
@@ -178,17 +193,15 @@ def main():
 				# plt.close()
 
 
-				# if best_f1 >= .8:
-				# 	print('OPT PARAMS')
-				# 	print(opt_edge_reg)
-				# 	print(opt_node_reg)
-				# 	opt_reached =True
+				if best_f1 >= .8:
+					print('OPT PARAMS')
+					print(opt_edge_reg)
+					print(opt_node_reg)
+					opt_reached =True
 
-				# if not opt_reached:
+				if not opt_reached:
 
-				# 	print('Getting best node reg')
-
-					#########################################################################################################
+					print('#########################################Getting best node reg#################################################')
 					edge_reg = best_params[1]
 					best_precision = 0
 					best_f1 = 0
@@ -199,7 +212,7 @@ def main():
 						print('//////')
 						print(edge_reg)
 						print(node_reg)
-						spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
+						spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
 						spg.on_show_metrics()
 						# spg.on_verbose()
 						spg.on_synthetic(precison_threshold = min_precision, start_num = 2)
@@ -389,9 +402,9 @@ def main():
 		fig, ax1 = plt.subplots()
 		for i in range(len(METHODS)):
 			print(METHODS[i])
-			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='Loss-'+METHODS[i])
+			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='Loss-'+METHODS[i])
 		ax1.set_xlabel('Time')
-		ax1.set_ylabel('Normalized Loss')
+		ax1.set_ylabel('Loss')
 		ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
 		plt.title('Loss VS Time')
 		plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_Loss_.png')
