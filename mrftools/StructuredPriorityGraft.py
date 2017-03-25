@@ -196,7 +196,7 @@ class StructuredPriorityGraft():
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
                 tmp_weights_opt[list(self.edge_regularizers[edge].flatten())] = weights_opt[list(old_edge_regularizers[edge].flatten())]
-                print(tmp_weights_opt)
+                # print(tmp_weights_opt)
             except:
                 pass
         if len(old_node_regularizers) > 0:
@@ -395,7 +395,6 @@ class StructuredPriorityGraft():
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
         while len(self.pq)>0 or len(self.edges_list)>0:
-            t_satrt = time.time()
             while len(self.pq)>0 or len(self.edges_list)>0:
                 if self.method == 'queue':
                     item = self.edges_list.pop()
@@ -484,12 +483,12 @@ class StructuredPriorityGraft():
                                                 self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
                                                 # print('After')
                                                 # print(self.pq)
-
             if self.method != 'structured':
                 break
             if self.is_added:
                 self.is_added = False
                 for frozen_items in self.frozen_list:
+                    print(frozen_items)
                     self.pq.additem(frozen_items[0], frozen_items[1] )
                 self.frozen_list = list()
         return False, (0, 0), iteration_activation
