@@ -149,10 +149,10 @@ class Learner(object):
             self.is_initialize_grad_sum = False
 
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter, 'gtol': 1e-07, 'ftol': 1e-15})
-        # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
-        # new_weights = res.x
+        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
+        new_weights = res.x
 
-        new_weights = ada_grad(self.objective, self.subgrad_grad, weights, None, callback_f, iter_num = max_iter)
+        # new_weights = ada_grad(self.objective, self.subgrad_grad, weights, None, callback_f, iter_num = max_iter)
 
         t = time.time()
         normalizer = len(self.tau_q)
