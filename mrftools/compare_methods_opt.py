@@ -124,7 +124,7 @@ def main():
 				best_precision = 0
 				best_f1 = 0
 				for edge_reg in edge_reg_range:
-					node_reg = 1.15 * edge_reg
+					node_reg = 1.1 * edge_reg
 					print('======PARAMS')
 					print(edge_reg)
 					print(node_reg)
@@ -219,7 +219,7 @@ def main():
 						# spg.on_verbose()
 						spg.on_synthetic(precison_threshold = min_precision, start_num = 2)
 						spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
-						spg.on_monitor_mn()
+						spg.on_monitor_mn(is_real_loss=True)
 						# spg.on_plot_queue('../../../')
 						t = time.time()
 						learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
@@ -274,7 +274,7 @@ def main():
 				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
 				spg.on_show_metrics()
 				spg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
-				spg.on_monitor_mn()
+				spg.on_monitor_mn(is_real_loss=True)
 				t = time.time()
 				learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 				exec_time = time.time() - t

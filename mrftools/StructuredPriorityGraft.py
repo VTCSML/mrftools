@@ -306,9 +306,9 @@ class StructuredPriorityGraft():
             unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
             self.set_regularization_indices(unary_indices, pairwise_indices)
 
-            tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers)
-            
-            # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
+            # tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers)
+            tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
+
             weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
             metric_exec_time += tmp_metric_exec_time
             # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
@@ -393,7 +393,6 @@ class StructuredPriorityGraft():
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
         while len(self.pq)>0 or len(self.edges_list)>0:
-            print('HERE2')
             t_satrt = time.time()
             while len(self.pq)>0 or len(self.edges_list)>0:
                 if self.method == 'queue':
@@ -487,7 +486,6 @@ class StructuredPriorityGraft():
             if self.method != 'structured':
                 break
             if self.is_added:
-                print('--------')
                 self.is_added = False
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )
