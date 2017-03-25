@@ -172,6 +172,7 @@ class Learner(object):
             loss.append(diff_norm)
         else:
             loss.append(self.objec)
+        print(loss)
         t = time.time() - t
 
         if verbose:

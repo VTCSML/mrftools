@@ -8,26 +8,27 @@ from StructuredPriorityGraft import StructuredPriorityGraft
 from grafting_util import compute_likelihood
 import time
 from Graft import Graft
+from grafting_util import initialize_priority_queue
+import copy
 
 
 # METHODS = ['structured', 'naive', 'queue']
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
-METHODS = ['structured', 'queue']
+METHODS = ['structured']
 def main():
-	edge_reg = 0.04 #np.arange(0.01,0.25,0.05) 
-	node_reg = 0.05
+	edge_reg = 0.009 #np.arange(0.01,0.25,0.05) 
+	node_reg = 0.01
 	len_data = 1000
-	priority_graft_iter = 2500
-	graft_iter = 100
+	priority_graft_iter = 5000
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 25
+	num_nodes = 35
 	state_num = 5
 	T_likelihoods = dict()
 	edge_std = 5
 	node_std = .0001
 
-	mrf_density = .002
+	mrf_density = .01
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	print('======================================Simulating data...')
 
@@ -38,6 +39,7 @@ def main():
 		train_data = data[: int(training_ratio * len_data)]
 		test_data = data[int(training_ratio * len_data) : len_data]
 		list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
+		original_pq = initialize_priority_queue(variables=variables)
 		shuffle(list_order)
 		print(variables)
 		print(num_states)
@@ -55,6 +57,14 @@ def main():
 		M_time_stamps = dict()
 		objs = dict()
 		f1_scores = dict()
+
+
+
+
+
+
+
+
 
 		# print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
 		# grafter = Graft(variables, num_states, max_num_states, data, list_order)
@@ -77,7 +87,8 @@ def main():
 
 		for method in METHODS:
 			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
-			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
+			pq = copy.deepcopy(original_pq)
+			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict = pq)
 			spg.on_show_metrics()
 			spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
 			spg.on_monitor_mn()

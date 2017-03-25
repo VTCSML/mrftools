@@ -5,7 +5,7 @@ from graph_mining_util import *
 from pqdict import pqdict
 from ApproxMaxLikelihood import ApproxMaxLikelihood
 import time
-from random import shuffle
+from random import shuffle, uniform
 from sklearn.metrics import accuracy_score
 
 
@@ -248,13 +248,21 @@ def compute_accuracy(mn, variables, data, variable, unobserved_state):
     return accuracy_score(true_states, predicted_states) , true_states, predicted_states
 
 
-def initialize_priority_queue(search_space):
+def initialize_priority_queue(search_space=None, variables=list()):
     """
     Initialize priority queue for grafting
     """
     pq = pqdict()
-    for edge in search_space:
-        pq.additem(edge, 0)
+    if search_space == None:
+        search_space = list()
+        for var1 in variables:
+            for var2 in variables:
+                if var1<var2:
+                    edge = (var1, var2)
+                    pq.additem(edge, uniform(0,1e-5))
+    else:
+        for edge in search_space:
+            pq.additem(edge, 0)
     return pq
 
 def reset_unary_factors(mn, mn_old):

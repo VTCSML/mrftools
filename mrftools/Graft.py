@@ -76,7 +76,8 @@ class Graft():
         Reduce search space by selecting a random subset of edges
         """
         self.is_limit_suffstats = True
-        self.search_space = [self.mn.search_space[i] for i in sorted(random.sample(xrange(len(self.mn.search_space)), int(max_sufficient_stats_ratio * len(self.mn.search_space))))]
+        self.search_space = random.sample(self.mn.search_space, int(max_sufficient_stats_ratio * len(self.mn.search_space)))
+        # self.search_space = [self.mn.search_space[i] for i in sorted(random.sample(xrange(len(self.mn.search_space)), int(max_sufficient_stats_ratio * len(self.mn.search_space))))]
 
     def on_zero_treshold(self, zero_threshold=1e-2):
         """
@@ -269,8 +270,8 @@ class Graft():
 
         # draw_graph(active_set, variables)
 
-        learned_mn = self.aml_optimize.belief_propagators[0].mn
-        self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
+        learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
+        # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
         learned_mn.load_factors_from_matrices()
         if self.is_show_metrics:
             self.print_metrics(recall, precision, f1_score)

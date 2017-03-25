@@ -32,7 +32,7 @@ class StructuredPriorityGraft():
     """
     Structured priority grafting class
     """
-    def __init__(self, variables, num_states, max_num_states, data, list_order, method='structured', ss_test=dict()):
+    def __init__(self, variables, num_states, max_num_states, data, list_order, method='structured', ss_test=dict(), pq_dict = None):
         """
         Initialize StructuredPriorityGraft class
         """
@@ -54,7 +54,11 @@ class StructuredPriorityGraft():
         #     self.sufficient_stats_test[edge], _ = self.get_sufficient_stats_per_edge(self.mn, edge)
 
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
-        self.pq = initialize_priority_queue(self.search_space)
+
+        if pq_dict == None:
+            self.pq = initialize_priority_queue(search_space=self.search_space)
+        else:
+            self.pq = pq_dict
 
         self.search_space = set(self.search_space)
 
@@ -358,13 +362,12 @@ class StructuredPriorityGraft():
 
         # draw_graph(active_set, variables)
 
-        learned_mn = self.aml_optimize.belief_propagators[0].mn
-        self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
+        learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
         learned_mn.load_factors_from_matrices()
 
         if self.is_show_metrics:
             self.print_metrics(recall, precision, f1_score)
-            print('correctly reordered')
+            print('Correctly re-ordered')
             try:
                 print(float(self.reordered) )
                 print( float(self.correctly_reordered) / float(self.reordered) )
@@ -389,7 +392,8 @@ class StructuredPriorityGraft():
         tmp_list = list()
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
-        while self.is_added:
+        while len(self.pq)>0 or len(self.edges_list)>0:
+            print('HERE2')
             t_satrt = time.time()
             while len(self.pq)>0 or len(self.edges_list)>0:
                 if self.method == 'queue':
@@ -397,6 +401,7 @@ class StructuredPriorityGraft():
                 else:
                     item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
+                # print('edge tested')
                 # print(edge)
                 iteration_activation += 1
                 if edge in self.sufficient_stats:
@@ -411,6 +416,7 @@ class StructuredPriorityGraft():
                 gradient_norm = np.sqrt(gradient.dot(gradient))
                 length_normalizer = np.sqrt(len(gradient))
                 activate = (gradient_norm / length_normalizer) > self.edge_l1
+                # print((gradient_norm / length_normalizer))
                 if activate:
                     self.search_space.remove(item[0])
                     if self.method == 'queue':
@@ -446,6 +452,7 @@ class StructuredPriorityGraft():
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
                     if  self.method == 'naive':
                         tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
+                    
                     if self.method == 'structured':                        
                         # ##################
                         # self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
@@ -462,44 +469,26 @@ class StructuredPriorityGraft():
 
                                 penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
 
-                                # curr_resulting_edges_1 = list(set([(x, y) for (x, y) in
-                                #               list(itertools.product([edge[0]], neighbors_1)) + list(itertools.product(neighbors_1, [edge[0]])) +
-                                #               list(itertools.product([edge[1]], neighbors_0))+ list(itertools.product(neighbors_0, [edge[1]])) if
-                                #               x < y]))
-
-                                # print('bad edge')
-                                # print(edge)
-                                # print(curr_resulting_edges_1)
-
                                 for node_0 in neighbors_0:
                                     for node_1 in neighbors_1:
                                         res_edge = (min(node_0,node_1), max(node_0,node_1))
-                                        try:
+                                        if res_edge in self.pq:
                                             if res_edge not in self.sufficient_stats:
+                                                # print('res_edge')
+                                                # print(res_edge)
+                                                # print('Before')
+                                                # print(self.pq)
                                                 self.reordered += 1
                                                 self.correctly_reordered += int(res_edge not in self.edges)
                                                 self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
-                                        except:
-                                            pass
+                                                # print('After')
+                                                # print(self.pq)
 
-                                        ############################
-                                        # try:
-                                        #     if res_edge in self.sufficient_stats:
-                                        #         self.pq.updateitem(res_edge, (self.pq[res_edge] + direct_penalty) / 2)
-                                        #         # print('structured reassignment')
-                                        #     else:
-                                        #         self.pq.updateitem(res_edge, penalty1)
-                                        #         # print('structured assignment virgin')
-                                        # except:
-                                        #     pass
-                                        #################
-                                    # else:
-                                    #     self.frozen.setdefault(res_edge[0], []).append((res_edge, penalty1))
-                                    #     self.frozen.setdefault(res_edge[1], []).append((res_edge, penalty1))
-
-            if self.is_added and self.method == 'structured':
+            if self.method != 'structured':
+                break
+            if self.is_added:
+                print('--------')
                 self.is_added = False
-                print('HERE')
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )
                 self.frozen_list = list()
