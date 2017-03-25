@@ -132,23 +132,26 @@ class Graft():
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
 
     def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge):
-        tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
-        for edge in self.active_set:
+        tmp_weights_opt = np.zeros(len(weights_opt) + vector_length_per_edge)
+        for edge in self.active_set[:len(self.active_set) - 1]:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
-                tmp_weights_opt[self.edge_regularizers[edge]] = weights_opt[old_edge_regularizers[edge]]
+                tmp_weights_opt[list(self.edge_regularizers[edge].flatten())] = weights_opt[list(old_edge_regularizers[edge].flatten())]
+                print(tmp_weights_opt)
             except:
                 pass
-        # self.node_regularizers=[]
+
         for node in self.variables:
             # self.node_regularizers.extend(unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]])
             self.node_regularizers[node] = unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]]
-        try:
-            tmp_weights_opt[self.node_regularizers] = weights_opt[old_node_regularizers]
-        except:
-            pass
+            try:
+                tmp_weights_opt[list(self.node_regularizers[node])] = weights_opt[list(old_node_regularizers[node])]
+                # print(tmp_weights_opt)
+            except:
+                pass
         old_edge_regularizers = copy.deepcopy(self.edge_regularizers)
         old_node_regularizers = copy.deepcopy(self.node_regularizers)
+
 
         return tmp_weights_opt, old_node_regularizers, old_edge_regularizers
 
@@ -234,7 +237,7 @@ class Graft():
             self.set_regularization_indices(unary_indices, pairwise_indices)
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge)
             # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-            
+
             weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
             self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 

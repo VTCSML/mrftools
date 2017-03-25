@@ -39,7 +39,7 @@ def main():
 	training_ratio = .7
 	edge_std = 3
 	node_std = .0001
-	state_num = 15
+	state_num = 10
 	mrf_density = float(1)/((num_nodes - 1))
 	len_data = 10000
 	M_accuracies = dict()
@@ -188,7 +188,6 @@ def main():
 						recalls[method] = recall
 						nll_0 = compute_likelihood(spg.mn_snapshots[0], len(variables), test_data)
 						nll = compute_likelihood(learned_mn, len(variables), test_data)
-						mn_snapshots[method] = spg.mn_snapshots
 						if nll > nll_0 and nll <= best_nll and f1_score[-1] > best_f1:
 							best_nll = nll
 							print('NEW OPT NODE L1!')
@@ -272,6 +271,7 @@ def main():
 	for method in METHODS:
 		nll_list = list()
 		mn_snaps = mn_snapshots[method]
+
 		for t in M_time_stamps[method]:
 			nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
 			nll_list.append(nll)

@@ -205,7 +205,7 @@ class StructuredPriorityGraft():
                 self.node_regularizers[node] = unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]]
                 try:
                     tmp_weights_opt[list(self.node_regularizers[node])] = weights_opt[list(old_node_regularizers[node])]
-                    print(tmp_weights_opt)
+                    # print(tmp_weights_opt)
                 except:
                     pass
         old_edge_regularizers = copy.deepcopy(self.edge_regularizers)
