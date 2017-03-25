@@ -1,0 +1,135 @@
+================================= ///////////////////START//////////////// =========================================
+======================================Simulating data...
+> Creating model
+> Generating data
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+{0: 5, 1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 5, 7: 5, 8: 5, 9: 5}
+5
+NUM VARIABLES
+10
+NUM EDGES
+5
+EDGES
+[(0, 8), (2, 8), (3, 9), (4, 5), (4, 8)]
+>>>>>>>>>>>>>>>>>>>>>METHOD: structured
+======PARAMS
+0.01
+0.011
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:119: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+Average Selection iterations
+3.30769230769
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.454545454545
+F1-score
+0.625
+Correctly re-ordered
+2.0
+1.0
+False
+12.5390360962
+15.738132279
+NEW OPT EDGE L1
+0.01
+======PARAMS
+0.025
+0.0275
+Average Selection iterations
+3.30769230769
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.454545454545
+F1-score
+0.625
+Correctly re-ordered
+2.0
+1.0
+False
+12.6594215037
+16.4789388843
+======PARAMS
+0.05
+0.055
+Average Selection iterations
+7.33333333333
+SUFFICIENT STATS
+45
+Recall
+0.8
+Precision
+1.0
+F1-score
+0.888888888889
+Correctly re-ordered
+0.0
+N/A
+False
+12.9105264415
+11.6888110439
+NEW OPT EDGE L1
+0.05
+NEW OPT NODE L1
+0.055
+OPT PARAMS
+0.05
+0.055
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+18.3333333333
+SUFFICIENT STATS
+45
+Recall
+0.8
+Precision
+1.0
+F1-score
+0.888888888889
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+45
+Recall
+0.8
+Precision
+1.0
+F1-score
+0.888888888889
+[(2, 8), (4, 5), (3, 9), (4, 8)]
+[0, 0, 0.2, 0.4, 0.6, 0.8]
+6
+6
+12.9105264415
+12.9105264415
+11.7224501101
+11.4993430499
+11.7665365574
+11.6888110439
+12.9105264415
+12.9105264415
+11.7224501101
+11.4993430499
+11.7665365574
+11.6888110439
+12.9105264415
+12.9105264415
+11.5252734338
+11.2264655115
+11.2383087649
+11.7697057759
+structured
+queue
+graft
+structured
+queue
+graft

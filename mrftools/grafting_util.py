@@ -248,6 +248,22 @@ def compute_accuracy(mn, variables, data, variable, unobserved_state):
     return accuracy_score(true_states, predicted_states) , true_states, predicted_states
 
 
+def get_all_ss(variables, num_states, data):
+    ss_test = dict()
+    for var1 in variables:
+        for var2 in variables:
+            if var1 < var2:
+                edge = (var1, var2)
+                edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
+                for states in data:
+                    table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
+                    table[states[edge[0]], states[edge[1]]] = 1
+                    tmp = np.asarray(table.reshape((-1, 1)))
+                    edge_sufficient_stats += tmp
+                    ss_test[edge] = edge_sufficient_stats
+    return ss_test
+
+
 def initialize_priority_queue(search_space=None, variables=list()):
     """
     Initialize priority queue for grafting

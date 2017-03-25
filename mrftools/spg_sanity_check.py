@@ -14,7 +14,7 @@ import copy
 
 # METHODS = ['structured', 'naive', 'queue']
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
-METHODS = ['structured', 'queue', 'queue']
+METHODS = ['structured', 'queue']
 def main():
 	edge_reg = 0.009 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.01
@@ -22,7 +22,7 @@ def main():
 	priority_graft_iter = 5000
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 50
+	num_nodes = 25
 	state_num = 5
 	T_likelihoods = dict()
 	edge_std = 5

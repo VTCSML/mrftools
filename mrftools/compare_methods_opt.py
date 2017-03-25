@@ -5,7 +5,7 @@ from generate_synthetic_data import generate_synthetic_data, generate_random_syn
 from random import shuffle
 from scipy import signal as sg
 from StructuredPriorityGraft import StructuredPriorityGraft
-from grafting_util import compute_likelihood, compute_accuracy_synthetic, compute_likelihood_1
+from grafting_util import compute_likelihood, compute_accuracy_synthetic, compute_likelihood_1, get_all_ss
 import time
 from Graft import Graft
 import copy
@@ -81,19 +81,7 @@ def main():
 
 
 
-		print('ss')
-		for var1 in variables:
-			for var2 in variables:
-				if var1 < var2:
-					edge = (var1, var2)
-					edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
-					for states in train_data:
-						table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
-						table[states[edge[0]], states[edge[1]]] = 1
-						tmp = np.asarray(table.reshape((-1, 1)))
-						edge_sufficient_stats += tmp
-						ss_test[edge] = edge_sufficient_stats
-		print('ss end')
+		ss_test = get_all_ss(variables, num_states, train_data)
 
 		print(variables)
 		print(num_states)
