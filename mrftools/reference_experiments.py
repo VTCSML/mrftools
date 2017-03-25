@@ -47,7 +47,6 @@ def main():
 	edge_likelihoods = dict()
 	print('======================================Simulating data...')
 	model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(len_data, num_nodes, mrf_density=mrf_density, state_min=state_num, state_max=state_num, edge_std=edge_std, node_std = node_std)
-	target_vars = list(set(itertools.chain.from_iterable(edges)))
 	train_data = data[: int(training_ratio * len_data)]
 	test_data = data[int(training_ratio * len_data) : len_data]
 	#############################################################################################<-------------
@@ -124,7 +123,7 @@ def main():
 					best_params = (node_reg, edge_reg)
 					time_stamps = sorted(list(best_mn_snapshots.keys()))
 					M_time_stamps[method] = time_stamps
-					mn_snapshots[method] = spg.mn_snapshots
+					mn_snapshots[method] = best_mn_snapshots
 					if f1_score[-1] >=.8: # good enough
 						print('NEW OPT NODE L1')
 						print(opt_node_reg)
@@ -204,7 +203,7 @@ def main():
 							objs[method] = objec
 							time_stamps = sorted(list(best_mn_snapshots.keys()))
 							M_time_stamps[method] = time_stamps
-							mn_snapshots[method] = spg.mn_snapshots
+							mn_snapshots[method] = best_mn_snapshots
 							print('OPT PARAMS')
 							print(opt_edge_reg)
 							print(opt_node_reg)

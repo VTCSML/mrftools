@@ -196,16 +196,18 @@ class StructuredPriorityGraft():
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
                 tmp_weights_opt[list(self.edge_regularizers[edge].flatten())] = weights_opt[list(old_edge_regularizers[edge].flatten())]
+                print(tmp_weights_opt)
             except:
                 pass
         if len(old_node_regularizers) > 0:
             for node in self.variables:
                 # self.node_regularizers.extend(unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]])
                 self.node_regularizers[node] = unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]]
-            try:
-                tmp_weights_opt[list(self.node_regularizers)] = weights_opt[list(old_node_regularizers)]
-            except:
-                pass
+                try:
+                    tmp_weights_opt[list(self.node_regularizers[node])] = weights_opt[list(old_node_regularizers[node])]
+                    print(tmp_weights_opt)
+                except:
+                    pass
         old_edge_regularizers = copy.deepcopy(self.edge_regularizers)
         old_node_regularizers = copy.deepcopy(self.node_regularizers)
 

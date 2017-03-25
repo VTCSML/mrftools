@@ -3,96 +3,253 @@
 > Creating model
 > Generating data
 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-{0: 5, 1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 5, 7: 5, 8: 5, 9: 5}
-5
+{0: 15, 1: 15, 2: 15, 3: 15, 4: 15, 5: 15, 6: 15, 7: 15, 8: 15, 9: 15}
+15
 NUM VARIABLES
 10
 NUM EDGES
 5
 EDGES
-[(0, 8), (2, 8), (3, 9), (4, 5), (4, 8)]
+[(0, 4), (0, 5), (0, 8), (4, 8), (5, 6)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 0.01
 0.011
-/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:119: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
-  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 Average Selection iterations
-3.30769230769
+3.41666666667
 SUFFICIENT STATS
 45
 Recall
 1.0
 Precision
-0.454545454545
+0.5
 F1-score
-0.625
+0.666666666667
 Correctly re-ordered
-2.0
-1.0
+0.0
+N/A
 False
-12.5390360962
-15.738132279
+15.9589006418
+19.0603787196
 NEW OPT EDGE L1
 0.01
 ======PARAMS
 0.025
 0.0275
 Average Selection iterations
-3.30769230769
+3.41666666667
 SUFFICIENT STATS
 45
 Recall
 1.0
 Precision
-0.454545454545
+0.5
 F1-score
-0.625
-Correctly re-ordered
-2.0
-1.0
-False
-12.6594215037
-16.4789388843
-======PARAMS
-0.05
-0.055
-Average Selection iterations
-7.33333333333
-SUFFICIENT STATS
-45
-Recall
-0.8
-Precision
-1.0
-F1-score
-0.888888888889
+0.666666666667
 Correctly re-ordered
 0.0
 N/A
 False
-12.9105264415
-11.6888110439
-NEW OPT EDGE L1
-0.05
-NEW OPT NODE L1
-0.055
-OPT PARAMS
+16.2820897167
+18.8847346234
+======PARAMS
 0.05
 0.055
->>>>>>>>>>>>>>>>>>>>>METHOD: queue
 Average Selection iterations
-18.3333333333
+0.0
 SUFFICIENT STATS
 45
 Recall
-0.8
+0
 Precision
-1.0
+0
 F1-score
-0.888888888889
+0
+Correctly re-ordered
+0.0
+N/A
+False
+>>>>>>>>Getting best node reg...
+//////
+0.01
+0.015
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+16.033527987
+19.056305986
+NEW OPT NODE L1!
+19.056305986
+OPT PARAMS
+0.01
+0.015
+//////
+0.01
+0.0125
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9862228257
+19.0591713461
+//////
+0.01
+0.012
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9770843004
+19.0596087362
+//////
+0.01
+0.01175
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9724455018
+19.0597647912
+//////
+0.01
+0.0115
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9678943724
+19.0599026615
+//////
+0.01
+0.01125
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9634009451
+19.0601340581
+//////
+0.01
+0.011
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9589006418
+19.0603787196
+//////
+0.01
+0.0105
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.9500518863
+19.0606753166
+//////
+0.01
+0.01
+Average Selection iterations
+3.41666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
+Correctly re-ordered
+0.0
+N/A
+15.941331003
+19.0609661833
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+17.1666666667
+SUFFICIENT STATS
+45
+Recall
+1.0
+Precision
+0.5
+F1-score
+0.666666666667
 Correctly re-ordered
 0.0
 N/A
@@ -100,36 +257,19 @@ N/A
 SUFFICIENT STATS
 45
 Recall
-0.8
-Precision
 1.0
+Precision
+0.166666666667
 F1-score
-0.888888888889
-[(2, 8), (4, 5), (3, 9), (4, 8)]
-[0, 0, 0.2, 0.4, 0.6, 0.8]
-6
-6
-12.9105264415
-12.9105264415
-11.7224501101
-11.4993430499
-11.7665365574
-11.6888110439
-12.9105264415
-12.9105264415
-11.7224501101
-11.4993430499
-11.7665365574
-11.6888110439
-12.9105264415
-12.9105264415
-11.5252734338
-11.2264655115
-11.2383087649
-11.7697057759
-structured
-queue
-graft
-structured
-queue
-graft
+0.285714285714
+[(0, 8), (0, 5), (5, 8), (4, 5), (4, 8), (0, 4), (5, 6), (4, 6), (0, 6), (6, 8), (3, 5), (2, 5), (5, 7), (2, 8), (5, 9), (1, 5), (3, 8), (0, 3), (7, 8), (8, 9), (1, 8), (0, 2), (0, 7), (0, 9), (0, 1), (2, 4), (3, 4), (4, 7), (4, 9), (1, 4)]
+[0, 0, 0.2, 0.4, 0.4, 0.4, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+32
+32
+15.941331003
+Traceback (most recent call last):
+  File "reference_experiments.py", line 328, in <module>
+    
+  File "reference_experiments.py", line 277, in main
+    nll_list.append(nll)
+KeyError: 0.7270328998565674
