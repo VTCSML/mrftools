@@ -33,7 +33,7 @@ def main():
 	state_num = 5
 	l2_coeff = 0
 	num_nodes_range = range(10, 500, 10)
-	min_precision = .2
+	min_precision = .5
 
 	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
 	# opt_edge_reg = .1
@@ -49,7 +49,7 @@ def main():
 		total_edge_num = (num_nodes ** 2 - num_nodes) / 2
 		# mrf_density = min(mrf_density, float(2)/(num_nodes-1))
 		mrf_density = float(1)/((num_nodes - 1))
-		len_data = 2500
+		len_data = 25000
 		# METHODS = ['naive', 'structured', 'queue']
 		METHODS = ['structured', 'queue']
 		M_accuracies = dict()
@@ -66,34 +66,34 @@ def main():
 
 		ss_test = dict()
 
-		print('ss')
-		for var1 in variables:
-			for var2 in variables:
-				if var1 < var2:
-					edge = (var1, var2)
-					edge_sufficient_stats = 1
-					table = np.ones((num_states[edge[0]], num_states[edge[1]]))
-					# table[states[edge[0]], states[edge[1]]] = 1
-					tmp = np.asarray(table.reshape((-1, 1)))
-					edge_sufficient_stats += tmp
-					ss_test[edge] = edge_sufficient_stats
-		print('ss end')
-
-
-
 		# print('ss')
 		# for var1 in variables:
 		# 	for var2 in variables:
 		# 		if var1 < var2:
 		# 			edge = (var1, var2)
-		# 			edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
-		# 			for states in train_data:
-		# 				table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
-		# 				table[states[edge[0]], states[edge[1]]] = 1
-		# 				tmp = np.asarray(table.reshape((-1, 1)))
-		# 				edge_sufficient_stats += tmp
-		# 				ss_test[edge] = edge_sufficient_stats
+		# 			edge_sufficient_stats = 1
+		# 			table = np.ones((num_states[edge[0]], num_states[edge[1]]))
+		# 			# table[states[edge[0]], states[edge[1]]] = 1
+		# 			tmp = np.asarray(table.reshape((-1, 1)))
+		# 			edge_sufficient_stats += tmp
+		# 			ss_test[edge] = edge_sufficient_stats
 		# print('ss end')
+
+
+
+		print('ss')
+		for var1 in variables:
+			for var2 in variables:
+				if var1 < var2:
+					edge = (var1, var2)
+					edge_sufficient_stats = np.asarray(np.zeros((num_states[edge[0]], num_states[edge[1]])).reshape((-1, 1)))
+					for states in train_data:
+						table = np.zeros((num_states[edge[0]], num_states[edge[1]]))
+						table[states[edge[0]], states[edge[1]]] = 1
+						tmp = np.asarray(table.reshape((-1, 1)))
+						edge_sufficient_stats += tmp
+						ss_test[edge] = edge_sufficient_stats
+		print('ss end')
 
 		print(variables)
 		print(num_states)
@@ -120,6 +120,7 @@ def main():
 				j = 0
 				best_params = (0,0)
 				best_nll = float('inf')
+				best_objec = float('inf')
 				best_precision = 0
 				best_f1 = 0
 				for edge_reg in edge_reg_range:
@@ -150,7 +151,8 @@ def main():
 					# if not is_early_stop and nll < best_nll:
 					if not is_early_stop and recall[-1] == 0:
 						break
-					if not is_early_stop and f1_score[-1] > best_f1:
+					if not is_early_stop and f1_score[-1] > best_f1 + .05 and objec[-1] < best_objec:
+						best_objec = objec[-1]
 						best_f1 = f1_score[-1]
 						best_precision = precision[-1] 
 						print('NEW OPT FOUND')

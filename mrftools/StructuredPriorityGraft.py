@@ -100,6 +100,8 @@ class StructuredPriorityGraft():
         self.frozen_list = list()
         self.reordered =0
         self.correctly_reordered = 0
+        self.is_real_loss = False
+        self.is_added = True
 
     def on_synthetic(self, precison_threshold = .7, start_num = 4):
         self.is_synthetic = True
@@ -127,11 +129,12 @@ class StructuredPriorityGraft():
         self.is_remove_zero_edges = True
         self.zero_threshold = zero_threshold
 
-    def on_monitor_mn(self):
+    def on_monitor_mn(self, is_real_loss=False):
         """
         Enable monitoring Markrov net
         """
         self.is_monitor_mn = True
+        self.is_real_loss = is_real_loss
         # self.full_mn = MarkovNet()
         # self.full_mn.mn.initialize_unary_factors(variables, num_states)
 
@@ -247,7 +250,7 @@ class StructuredPriorityGraft():
 
         metric_exec_time = 0
         tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
         metric_exec_time += tmp_metric_exec_time
         # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
@@ -302,7 +305,7 @@ class StructuredPriorityGraft():
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers)
             
             # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], normalizer = num_features)
+            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
             metric_exec_time += tmp_metric_exec_time
             # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
 
@@ -386,9 +389,7 @@ class StructuredPriorityGraft():
         tmp_list = list()
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
-        is_added = True
-        while is_added:
-            is_added = False
+        while self.is_added:
             t_satrt = time.time()
             while len(self.pq)>0 or len(self.edges_list)>0:
                 if self.method == 'queue':
@@ -418,7 +419,7 @@ class StructuredPriorityGraft():
                             self.edges_list.append(item)
                         # print(self.edges_list)
                     if self.method == 'structured':
-                        is_added = True
+                        self.is_added = True
                         # ##################
                         # linked_inactive_edges = self.get_linked_inactive_tested_edges(edge)
                         # for res_item in linked_inactive_edges:
@@ -496,7 +497,8 @@ class StructuredPriorityGraft():
                                     #     self.frozen.setdefault(res_edge[0], []).append((res_edge, penalty1))
                                     #     self.frozen.setdefault(res_edge[1], []).append((res_edge, penalty1))
 
-            if is_added and self.method == 'structured':
+            if self.is_added and self.method == 'structured':
+                self.is_added = False
                 print('HERE')
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )

@@ -10,12 +10,13 @@ NUM VARIABLES
 NUM EDGES
 1
 EDGES
-[(19, 20)]
+[(3, 13)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
-/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:118: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:119: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
-/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:132: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+HERE
 LOOPNUM
 300
 Average Selection iterations
@@ -32,28 +33,7 @@ correctly reordered
 0.0
 N/A
 ---->Exec time
-1.09146094322
+0.850989103317
 Loss
-[0.0019237132474016275, 0.0019237132474016275]
+[37.947603898776691, 37.947603898776691]
 >>>>>>>>>>>>>>>>>>>>>METHOD: queue
-LOOPNUM
-300
-Average Selection iterations
-0.0
-SUFFICIENT STATS
-300
-Recall
-0
-Precision
-0
-F1-score
-0
-correctly reordered
-0.0
-N/A
----->Exec time
-1.13098216057
-Loss
-[0.0019237132474016275, 0.0019237132474016275]
-structured
-queue

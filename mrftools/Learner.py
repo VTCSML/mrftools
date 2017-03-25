@@ -137,7 +137,7 @@ class Learner(object):
 
 ###############################
 
-    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data_len, verbose=False, callback_f=None,  is_feature_graft=False, zero_feature_indices = None, loss = None, ss_test = None, search_space = None, len_data = None, bp =None, is_compute_real_loss = True, normalizer = 0):
+    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data_len, verbose=False, callback_f=None,  is_feature_graft=False, zero_feature_indices = None, loss = None, ss_test = None, search_space = None, len_data = None, bp =None, is_real_loss = False):
         self.edge_regularizers = edge_regularizers
         self.var_regularizers = var_regularizers
         self.feature_graft = is_feature_graft
@@ -147,53 +147,32 @@ class Learner(object):
         if self.is_initialize_grad_sum == True:
             self.grad_sum = np.zeros(len(weights))
             self.is_initialize_grad_sum = False
+
         # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter, 'gtol': 1e-07, 'ftol': 1e-15})
-        
-        if not is_feature_graft:
-            res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
-            new_weights = res.x
-        else:
-            # print(self.grad_sum)
-
-            # new_weights, self.grad_sum = ada_grad_1(self.subgrad_obj, self.subgrad_grad, weights, self.zero_feature_indices , None, callback_f, self.grad_sum)
-
-            res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
-            new_weights = res.x
+        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter})
+        new_weights = res.x
 
         t = time.time()
         normalizer = len(self.tau_q)
-        if is_compute_real_loss:
+        if is_real_loss:
             diff = self.grad 
             diff_norm = diff.dot(diff)
-            # loss.append(diff_norm)
-            # loss.append(self.objec / len(self.tau_p))
             bp.load_beliefs()
             latent_grad = 0
             for edge in search_space:
                 edge_ss = ss_test[edge]
                 belief = bp.var_beliefs[edge[0]] + np.matrix(bp.var_beliefs[edge[1]]).T
-                # belief = belief - logsumexp(belief)
                 gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(edge_ss) / len_data).squeeze()
                 gradient_norm = gradient.dot(gradient)
                 latent_grad += gradient_norm
                 normalizer += len(gradient)
                 diff_norm += gradient_norm
 
-            # print('latent grad')
-            # print(latent_grad)
-            # print(diff_norm)
-            # print(normalizer - len(self.tau_q))
             diff_norm = np.sqrt(diff_norm)
-            # print('diff_norm')
-            # print(diff_norm)
-            # print('Normalized')
-            # print(normalizer)
             loss.append(diff_norm)
         else:
-            # loss.append(self.objec / len(self.tau_p)) #BAD BAD BAD
             loss.append(self.objec)
         t = time.time() - t
-
 
         if verbose:
             print('Iter')
