@@ -56,85 +56,29 @@ def compute_likelihood(mn, num_nodes, data, variables = None):
     """
     if variables == None:
         variables = range(num_nodes)
-    # print(len( mn.edge_potentials))
-    # print(mn.neighbors)
-    data_copy = copy.deepcopy(data)
-    new_active_set = list(mn.edge_potentials.keys()) 
-    # new_edge = [x for x in new_active_set if x not in old_active_set]
-    unary_potentials_copy = copy.deepcopy(mn.unary_potentials)
-    likelihood = 0
-    likelihood_1 = 0
-    total_diff = 0
-    for instance in data_copy:
-        # try:
-        #     old_node_likelihoods = history[i]
-        # except:
-        #     old_node_likelihoods = {}
-        likelihood_instance = 0
-        likelihood_instance_1 = 0
-        eliminated = []
+    unary_potentials = mn.unary_potentials
+    total_log_likelihood = 0
+    for instance in data:
+        instance_log_likelihood = 0
         for curr_node in range(num_nodes):
-            # eliminated.append(curr_node)
-            curr_node_potential = copy.deepcopy(unary_potentials_copy[variables[curr_node]])
-            # print(curr_node_potential[:])
-            inner_exp = np.exp(curr_node_potential[:])
-            # print(inner_exp)
-            inner_exp_1 = curr_node_potential[:]
+            curr_node_potential = unary_potentials[variables[curr_node]]
+            inner_exp = curr_node_potential[:]
             ####################
-            likelihood_instance_node = np.exp(curr_node_potential[instance[variables[curr_node]]])
-            likelihood_instance_node_1 = copy.deepcopy(curr_node_potential[instance[variables[curr_node]]])
+            instance_log_likelihood += curr_node_potential[instance[variables[curr_node]]]
             ####################
-            # curr_neighbors = [x for x in list(mn.get_neighbors(curr_node)) if x not in eliminated]
-            curr_neighbors = list(mn.get_neighbors(variables[curr_node])) 
-            has_neighbor = len(curr_neighbors) > 0
-            # if has_neighbor:
-            #     test_instances = copy.deepcopy(data_copy)
+            curr_neighbors = mn.get_neighbors(variables[curr_node])
             for neighbor in curr_neighbors:
-                # new_test_instances = [x for x in test_instances if x[neighbor] == instance[neighbor]]
-                # test_instances = new_test_instances
-                pair_pots = copy.deepcopy(mn.get_potential((variables[curr_node], neighbor)))
-                ####################
-                likelihood_instance_node = likelihood_instance_node * np.exp(copy.deepcopy(pair_pots[instance[variables[curr_node]], instance[neighbor]]))
-                likelihood_instance_node_1 = likelihood_instance_node_1 + copy.deepcopy(pair_pots[instance[variables[curr_node]], instance[neighbor]])
-                # print('////')
-                # print(inner_exp)
-                # print(np.exp(copy.deepcopy(pair_pots[:, instance[neighbor]])))
-                inner_exp = inner_exp * np.exp(copy.deepcopy(pair_pots[:, instance[neighbor]]))
-                # print(inner_exp)
-                inner_exp_1 = inner_exp_1 + copy.deepcopy(pair_pots[:, instance[neighbor]])
+                pair_pots = mn.get_potential((variables[curr_node], neighbor))
+                instance_log_likelihood += pair_pots[instance[variables[curr_node]], instance[neighbor]]
 
+                inner_exp += pair_pots[:, instance[neighbor]]
 
-            # if has_neighbor:
-            #     conditioned_instances = [x for x in test_instances if x[curr_node] == instance[curr_node]]
+            logZ = logsumexp(inner_exp)
 
-            logZ_1 = logsumexp(inner_exp_1)
-            # try:
-            #     # print(old_node_likelihoods[curr_node])
-            #     diff = likelihood_instance_node / np.sum(inner_exp) - old_node_likelihoods[curr_node]
-            #     total_diff += diff
-            #     # if np.abs(diff)>1e-3:
-            #         # print(new_edge)
-            #         # print((curr_node, instance[curr_node]))
-            #         # print(diff)
-            # except:
-            #     pass
-            #     # print('Nan')
+            instance_log_likelihood = instance_log_likelihood - logZ
+        total_log_likelihood += instance_log_likelihood
 
-            # print(curr_node)
-            # print(has_neighbor)
-            # print(np.log(likelihood_instance_node / np.sum(inner_exp)))
-
-            likelihood_instance = likelihood_instance + np.log(likelihood_instance_node / np.sum(inner_exp))
-            likelihood_instance_1 = likelihood_instance_1 + likelihood_instance_node_1 - logZ_1
-        # history[i] = old_node_likelihoods
-        # i += 1
-        likelihood = likelihood + likelihood_instance
-        likelihood_1 = likelihood_1 + likelihood_instance_1
-        # print('..')
-        # print(likelihood)
-        # print(likelihood_1)
-    # nll = - (float(likelihood) / float(len(data)))
-    nll = - (float(likelihood_1[0]) / float(len(data)))
+    nll = - total_log_likelihood[0] / float(len(data))
     print(nll)
     return nll
 
