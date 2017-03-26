@@ -14,6 +14,7 @@ import networkx as nx
 import os
 import sys
 import argparse
+import shelve
 
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
@@ -21,9 +22,9 @@ METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 parser = argparse.ArgumentParser()
 parser.add_argument('--nodes_num', dest='num_nodes', required=True)
 parser.add_argument('--edge_std', dest='edge_std', default=5)
-parser.add_argument('--node_std', dest='node_std', default=.1)
+parser.add_argument('--node_std', dest='node_std', default=.01)
 parser.add_argument('--state_num', dest='state_num', default=5)
-parser.add_argument('--len_data', dest='len_data', default=1000)
+parser.add_argument('--len_data', dest='len_data', default=500)
 args = parser.parse_args()
 
 
@@ -49,7 +50,7 @@ def main():
 	edge_std = args.edge_std
 	node_std = args.node_std
 	state_num = args.state_num
-	mrf_density = float(2)/((num_nodes - 1))
+	mrf_density = float(1)/((num_nodes - 1))
 	len_data = args.len_data
 	M_accuracies = dict()
 	sorted_timestamped_mn = dict()
@@ -60,6 +61,10 @@ def main():
 	train_data = data[: int(training_ratio * len_data)]
 	test_data = data[int(training_ratio * len_data) : len_data]
 	#############################################################################################<-------------
+
+	RES_SHELVE = shelve.open('results_' + str(num_nodes))
+
+	params = {'num_nodes':num_nodes, 'edge_std':edge_std, 'node_std':node_std, 'state_num':state_num, 'len_data':len_data, 'mrf_density':mrf_density}
 
 	list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
 	shuffle(list_order)
@@ -317,6 +322,12 @@ def main():
 	# 	plt.savefig(graph_folder + str(j) + '_G_graph_.png')
 	# 	plt.close()
 	#########################################################
+
+	results = {'methods':METHODS, 'nlls':nlls, 'f1':f1_scores, 'objs':objs, 'params':params}
+	RES_SHELVE.update(results)
+	RES_SHELVE.close()
+
+
 
 	#UNCOMMENT TO PLOT F1 SCORES EVOLUTION
 	plt.close()

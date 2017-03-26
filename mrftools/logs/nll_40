@@ -8,9 +8,9 @@
 NUM VARIABLES
 40
 NUM EDGES
-40
+20
 EDGES
-[(0, 19), (0, 27), (1, 13), (1, 20), (1, 22), (2, 20), (4, 11), (4, 22), (5, 7), (5, 16), (5, 23), (5, 31), (6, 31), (7, 30), (9, 22), (10, 33), (11, 16), (11, 31), (12, 27), (13, 19), (13, 21), (15, 21), (16, 22), (16, 27), (17, 30), (18, 22), (18, 23), (18, 38), (19, 26), (21, 26), (21, 31), (21, 35), (22, 38), (23, 28), (24, 34), (26, 38), (28, 33), (30, 33), (32, 37), (33, 36)]
+[(0, 23), (2, 11), (2, 32), (3, 9), (5, 6), (5, 35), (6, 26), (6, 31), (7, 20), (8, 13), (8, 17), (9, 34), (9, 38), (10, 33), (13, 18), (15, 16), (23, 25), (25, 35), (30, 37), (33, 38)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -19,3 +19,135 @@ EDGES
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+False
+======PARAMS
+2.5e-05
+2.875e-05
+False
+======PARAMS
+5e-05
+5.75e-05
+False
+======PARAMS
+7.5e-05
+8.625e-05
+False
+======PARAMS
+0.0001
+0.000115
+False
+======PARAMS
+0.00025
+0.0002875
+False
+======PARAMS
+0.0005
+0.000575
+False
+======PARAMS
+0.00075
+0.0008625
+False
+======PARAMS
+0.001
+0.00115
+False
+======PARAMS
+0.0025
+0.002875
+False
+======PARAMS
+0.005
+0.00575
+False
+======PARAMS
+0.0075
+0.008625
+False
+======PARAMS
+0.01
+0.0115
+False
+======PARAMS
+0.025
+0.02875
+Average Selection iterations
+30.64
+SUFFICIENT STATS
+780
+Recall
+0.6
+Precision
+0.521739130435
+F1-score
+0.558139534884
+Correctly re-ordered
+3.0
+1.0
+True
+NEW OPT EDGE L1
+0.025
+======PARAMS
+0.05
+0.0575
+Average Selection iterations
+51.0
+SUFFICIENT STATS
+780
+Recall
+0.45
+Precision
+0.692307692308
+F1-score
+0.545454545455
+Correctly re-ordered
+3.0
+1.0
+True
+======PARAMS
+0.075
+0.08625
+Average Selection iterations
+76.7
+SUFFICIENT STATS
+780
+Recall
+0.3
+Precision
+0.75
+F1-score
+0.428571428571
+Correctly re-ordered
+0.0
+N/A
+True
+======PARAMS
+0.1
+0.115
+Average Selection iterations
+191.75
+SUFFICIENT STATS
+780
+Recall
+0.1
+Precision
+1.0
+F1-score
+0.181818181818
+Correctly re-ordered
+0.0
+N/A
+True
+>>>>>>>>Getting best node reg...
+//////
+0.025
+0.0375
+//////
+0.025
+0.03125
+//////
+0.025
+0.03
+//////
+0.025
+0.029375

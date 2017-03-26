@@ -8,9 +8,9 @@
 NUM VARIABLES
 10
 NUM EDGES
-10
+5
 EDGES
-[(0, 5), (0, 6), (0, 9), (2, 4), (2, 9), (3, 7), (4, 8), (5, 6), (5, 9), (6, 9)]
+[(2, 4), (4, 8), (4, 9), (6, 7), (8, 9)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -55,3 +55,228 @@ False
 ======PARAMS
 0.0025
 0.002875
+False
+======PARAMS
+0.005
+0.00575
+False
+======PARAMS
+0.0075
+0.008625
+False
+======PARAMS
+0.01
+0.0115
+Average Selection iterations
+5.28571428571
+SUFFICIENT STATS
+45
+Recall
+0.2
+Precision
+0.2
+F1-score
+0.2
+Correctly re-ordered
+0.0
+N/A
+True
+NEW OPT EDGE L1
+0.01
+======PARAMS
+0.025
+0.02875
+Average Selection iterations
+9.4
+SUFFICIENT STATS
+45
+Recall
+0.2
+Precision
+0.333333333333
+F1-score
+0.25
+Correctly re-ordered
+0.0
+N/A
+True
+NEW OPT EDGE L1
+0.025
+======PARAMS
+0.05
+0.0575
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+45
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+True
+>>>>>>>>Getting best node reg...
+//////
+0.025
+0.0375
+//////
+0.025
+0.03125
+//////
+0.025
+0.03
+//////
+0.025
+0.029375
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+25
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.025
+0.02875
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.025
+0.028125
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.025
+0.0275
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.025
+0.02625
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.025
+0.025
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+16.8333333333
+SUFFICIENT STATS
+45
+Recall
+0.2
+Precision
+0.25
+F1-score
+0.222222222222
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+45
+Recall
+0.2
+Precision
+0.333333333333
+F1-score
+0.25
+[(2, 7), (2, 6), (6, 7)]
+[0, 0, 0.0, 0.0, 0.2]
+5
+5
+structured
+7.27726330553
+7.27726330553
+7.28020884076
+7.3570347146
+7.41683182932
+queue
+7.27726330553
+7.27726330553
+7.28020884076
+7.3570347146
+7.33038102748
+7.39884672989
+graft
+7.27726330553
+7.27726330553
+7.28020884076
+7.3570347146
+7.41683182932
+structured
+queue
+graft
+structured
+queue
+graft
+structured
+queue
+graft
