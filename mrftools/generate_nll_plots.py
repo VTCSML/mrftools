@@ -15,38 +15,48 @@ import os
 import sys
 import argparse
 
-
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--nodes_num', dest='num_nodes', required=True)
+parser.add_argument('--edge_std', dest='edge_std', default=5)
+parser.add_argument('--node_std', dest='node_std', default=.1)
+parser.add_argument('--state_num', dest='state_num', default=5)
+parser.add_argument('--len_data', dest='len_data', default=1000)
+args = parser.parse_args()
+
 
 folder_name = 'compare_nll'
 folder_num = 'l1_metrics'
 num_iterations = 1
+is_real_loss = True
 
 METHODS = ['structured', 'queue'] # DON'T INCLUDE GRAFT IT WILL AUTOMATICALLY BE INCLUDED LATER
 
 def main():
-	priority_graft_iter = 1500
-	graft_iter = 1500
+	priority_graft_iter = 5000
+	graft_iter = 5000
 	# zero_threshold = 1e-3
-	min_precision = .25
-	edge_reg_range = [1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1] #[1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
+	min_precision = .2
+	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1]
 
 	print('================================= ///////////////////START//////////////// =========================================')
 
 	################################################################### DATA PREPROCESSING GOES HERE --------->
-	num_nodes = 15
+	num_nodes = int(args.num_nodes)
 	training_ratio = .7
-	edge_std = 10
-	node_std = .0001
-	state_num = 5
-	mrf_density = float(1)/((num_nodes - 1))
-	len_data = 10000
+	edge_std = args.edge_std
+	node_std = args.node_std
+	state_num = args.state_num
+	mrf_density = float(2)/((num_nodes - 1))
+	len_data = args.len_data
 	M_accuracies = dict()
 	sorted_timestamped_mn = dict()
 	edge_likelihoods = dict()
 	print('======================================Simulating data...')
 	model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(len_data, num_nodes, mrf_density=mrf_density, state_min=state_num, state_max=state_num, edge_std=edge_std, node_std = node_std)
+	shuffle(data)
 	train_data = data[: int(training_ratio * len_data)]
 	test_data = data[int(training_ratio * len_data) : len_data]
 	#############################################################################################<-------------
@@ -57,9 +67,9 @@ def main():
 	ss_test = dict()
 
 	# #Uncomment if real loss computation is required
-	##########################
-	# ss_test = get_all_ss(variables, num_states, train_data)
-	##########################
+	#########################
+	ss_test = get_all_ss(variables, num_states, train_data)
+	#########################
 
 
 	original_pq = initialize_priority_queue(variables=variables)
@@ -94,7 +104,7 @@ def main():
 			for edge_reg in edge_reg_range:
 				pq = copy.deepcopy(original_pq)
 
-				node_reg = 1.5 * edge_reg
+				node_reg = 1.15 * edge_reg
 
 				print('======PARAMS')
 				print(edge_reg)
@@ -103,23 +113,24 @@ def main():
 				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict=pq)
 				spg.on_show_metrics()
 				# spg.on_verbose()
-				spg.on_synthetic(precison_threshold = min_precision, start_num = 3) ## EARLY STOP GRAFTING IF 4 EDGES ARE ADDED AND PRECISION < min_precision
+				spg.on_synthetic(precison_threshold = min_precision, start_num = 5) ## EARLY STOP GRAFTING IF 4 EDGES ARE ADDED AND PRECISION < min_precision
 				spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
-				spg.on_monitor_mn(is_real_loss=False)
+				spg.on_monitor_mn(is_real_loss=is_real_loss)
 				t = time.time()
 				learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-				print(is_early_stop)
+				print(not is_early_stop)
 				if not is_early_stop and recall[-1] == 0: # L1 coeff too big
 					break
-				nll_0 = compute_likelihood(spg.mn_snapshots[0], len(variables), test_data)
-				nll = compute_likelihood(learned_mn, len(variables), test_data)
-				if not is_early_stop and f1_score[-1] > best_f1 and nll < best_nll and nll < nll_0:
+				# nll_0 = compute_likelihood(spg.mn_snapshots[0], len(variables), test_data)
+				# nll = compute_likelihood(learned_mn, len(variables), test_data)
+				# if not is_early_stop and f1_score[-1] > best_f1 and nll < best_nll and nll < nll_0:
+					# best_nll = nll
+				if not is_early_stop and f1_score[-1] > best_f1:
 					print('NEW OPT EDGE L1')
 					opt_node_reg = node_reg
 					opt_edge_reg = edge_reg
 					print(opt_edge_reg)
 					first_opt_found = True
-					best_nll = nll
 					best_f1 = f1_score[-1]
 					best_precision = precision[-1] 
 					best_mn_snapshots = copy.deepcopy(spg.mn_snapshots)
@@ -184,7 +195,7 @@ def main():
 					# spg.on_verbose()
 					spg.on_synthetic(precison_threshold = min_precision, start_num = 2)
 					spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=graft_iter, node_l1=node_reg)
-					spg.on_monitor_mn(is_real_loss=False)
+					spg.on_monitor_mn(is_real_loss=is_real_loss)
 					# spg.on_plot_queue('../../../') # Uncomment to plot pq dict COMES WITH COMPUTATION OVERLOAD
 					t = time.time()
 					learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
@@ -192,10 +203,11 @@ def main():
 						exec_time = time.time() - t
 						precisions[method] = precision
 						recalls[method] = recall
-						nll_0 = compute_likelihood(spg.mn_snapshots[0], len(variables), test_data)
-						nll = compute_likelihood(learned_mn, len(variables), test_data)
-						if nll < nll_0 and nll <= best_nll and f1_score[-1] > best_f1:
-							best_nll = nll
+						# nll_0 = compute_likelihood(spg.mn_snapshots[0], len(variables), test_data)
+						# nll = compute_likelihood(learned_mn, len(variables), test_data)
+						# if nll < nll_0 and nll <= best_nll and f1_score[-1] > best_f1:
+							# best_nll = nll
+						if f1_score[-1] > best_f1:
 							print('NEW OPT NODE L1!')
 							print(best_nll)
 							opt_edge_reg = edge_reg
@@ -237,7 +249,7 @@ def main():
 			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
 			spg.on_show_metrics()
 			spg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
-			spg.on_monitor_mn(is_real_loss=False)
+			spg.on_monitor_mn(is_real_loss=is_real_loss)
 			t = time.time()
 			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
 			exec_time = time.time() - t
@@ -254,7 +266,7 @@ def main():
 	grafter.on_show_metrics()
 	# grafter.on_verbose()
 	grafter.setup_learning_parameters(edge_l1 = opt_edge_reg, max_iter_graft=graft_iter, node_l1=opt_node_reg)
-	grafter.on_monitor_mn()
+	grafter.on_monitor_mn(is_real_loss=is_real_loss)
 	t = time.time()
 	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = grafter.learn_structure(edge_num, edges=edges)
 	print(final_active_set)
@@ -280,7 +292,7 @@ def main():
 		mn_snaps = mn_snapshots[method]
 
 		for t in M_time_stamps[method]:
-			nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
+			nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
 			nll_list.append(nll)
 		nlls[method] = nll_list
 	#########################################################
@@ -328,6 +340,19 @@ def main():
 	ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
 	plt.title('NLL VS Time')
 	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_NLL_.png')
+	plt.close()
+
+	#UNCOMMENT TO PLOT nll SCORES EVOLUTION
+	plt.close()
+	fig, ax1 = plt.subplots()
+	for i in range(len(METHODS)):
+		print(METHODS[i])
+		ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='LOSS-'+METHODS[i])
+	ax1.set_xlabel('Time')
+	ax1.set_ylabel('LOSS')
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+	plt.title('LOSS VS Time')
+	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_OBJ_.png')
 	plt.close()
 
 if __name__ == '__main__':

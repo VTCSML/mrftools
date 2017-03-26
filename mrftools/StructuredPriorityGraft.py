@@ -41,11 +41,13 @@ class StructuredPriorityGraft():
         self.max_num_states = max_num_states
         self.mn = MarkovNet()
         self.mn.initialize_unary_factors(variables, num_states)
+
         if list_order == None:
             self.search_space = self.mn.search_space
         else:
             self.search_space = [self.mn.search_space[i] for i in list_order]
         self.initial_search_space = copy.deepcopy(self.search_space)
+        
         self.data = data
 
         self.sufficient_stats_test = ss_test
@@ -191,7 +193,7 @@ class StructuredPriorityGraft():
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
 
     def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers ):
-        tmp_weights_opt = np.zeros(len(weights_opt) + vector_length_per_edge)
+        tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
         for edge in self.active_set[:len(self.active_set) - 1]:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
@@ -401,8 +403,6 @@ class StructuredPriorityGraft():
                 else:
                     item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
-                # print('edge tested')
-                # print(edge)
                 iteration_activation += 1
                 if edge in self.sufficient_stats:
                     sufficient_stat_edge = self.sufficient_stats[edge]
@@ -416,35 +416,19 @@ class StructuredPriorityGraft():
                 gradient_norm = np.sqrt(gradient.dot(gradient))
                 length_normalizer = np.sqrt(len(gradient))
                 activate = (gradient_norm / length_normalizer) > self.edge_l1
-                # print((gradient_norm / length_normalizer))
                 if activate:
                     self.search_space.remove(item[0])
                     if self.method == 'queue':
                         for i in range(len(tmp_list)):
                             item = tmp_list.pop()
                             self.edges_list.append(item)
-                        # print(self.edges_list)
                     if self.method == 'structured':
                         self.is_added = True
-                        # ##################
-                        # linked_inactive_edges = self.get_linked_inactive_tested_edges(edge)
-                        # for res_item in linked_inactive_edges:
-                        #     try:
-                        #         self.pq.additem(res_item[0], res_item[1] ) #Revive linked inactive edges
-                        #     except:
-                        #         pass
-                        # ##################
                         pass
                     if self.method == 'naive':
                         [self.pq.additem(items[0], items[1]) for items in tmp_list]# If an edge is activated, return the previously poped edges with reduced priority
                         edge = item[0]
-
-                    # print('number of iter')
-                    # print(iteration_activation)
-                    # print('exec_time')
-                    # print(time.time() - t_satrt)
                     return True, edge, iteration_activation
-
                 else:
                     if self.method == 'queue':
                         tmp_list.append(item)
@@ -452,43 +436,26 @@ class StructuredPriorityGraft():
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
                     if  self.method == 'naive':
                         tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
-                    
                     if self.method == 'structured':                        
-                        # ##################
-                        # self.frozen.setdefault(edge[0], []).append((edge, direct_penalty))
-                        # self.frozen.setdefault(edge[1], []).append((edge, direct_penalty))
-                        # ##################
-
                         self.frozen_list.append((edge, direct_penalty))
-
                         if self.graph.degree(edge[0])>2 or self.graph.degree(edge[1])>2:
                             if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
-
                                 neighbors_0 = self.graph.neighbors(edge[0]) #list(bp.mn.get_neighbors(edge[0]))
                                 neighbors_1 = self.graph.neighbors(edge[1]) #list(bp.mn.get_neighbors(edge[1]))
-
                                 penalty1 = self.priority_decrease_decay_factor ** 1 * direct_penalty
-
                                 for node_0 in neighbors_0:
                                     for node_1 in neighbors_1:
                                         res_edge = (min(node_0,node_1), max(node_0,node_1))
                                         if res_edge in self.pq:
                                             if res_edge not in self.sufficient_stats:
-                                                # print('res_edge')
-                                                # print(res_edge)
-                                                # print('Before')
-                                                # print(self.pq)
                                                 self.reordered += 1
                                                 self.correctly_reordered += int(res_edge not in self.edges)
                                                 self.pq.updateitem(res_edge, self.pq[res_edge] + penalty1)
-                                                # print('After')
-                                                # print(self.pq)
             if self.method != 'structured':
                 break
             if self.is_added:
                 self.is_added = False
                 for frozen_items in self.frozen_list:
-                    print(frozen_items)
                     self.pq.additem(frozen_items[0], frozen_items[1] )
                 self.frozen_list = list()
         return False, (0, 0), iteration_activation

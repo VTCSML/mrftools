@@ -157,7 +157,8 @@ class Learner(object):
         t = time.time()
         normalizer = len(self.tau_q)
         if is_real_loss:
-            diff = self.grad 
+            # diff = self.grad
+            diff = self.tau_q - self.tau_p 
             diff_norm = diff.dot(diff)
             bp.load_beliefs()
             latent_grad = 0
