@@ -116,21 +116,21 @@ class Learner(object):
     def subgrad_obj(self, weights, options=None):
         # if self.feature_graft:
         #     weights[self.zero_feature_indices] = 0
-        if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+        if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
     def subgrad_obj_dual(self, weights, options=None):
         if self.feature_graft:
             weights[self.zero_feature_indices] = 0
-        if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+        if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
         if self.feature_graft:
             weights[self.zero_feature_indices] = 0
-        if (self.tau_q == None or not self.fully_observed) and not (self.graft):
+        if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
