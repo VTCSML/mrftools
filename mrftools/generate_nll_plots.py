@@ -22,9 +22,9 @@ METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 parser = argparse.ArgumentParser()
 parser.add_argument('--nodes_num', dest='num_nodes', required=True)
 parser.add_argument('--edge_std', dest='edge_std', default=5)
-parser.add_argument('--node_std', dest='node_std', default=.01)
+parser.add_argument('--node_std', dest='node_std', default=.001)
 parser.add_argument('--state_num', dest='state_num', default=5)
-parser.add_argument('--len_data', dest='len_data', default=500)
+parser.add_argument('--len_data', dest='len_data', default=10000)
 args = parser.parse_args()
 
 

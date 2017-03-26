@@ -10,7 +10,7 @@ NUM VARIABLES
 NUM EDGES
 50
 EDGES
-[(0, 44), (2, 85), (4, 9), (7, 98), (10, 54), (12, 23), (12, 70), (16, 29), (16, 54), (16, 75), (17, 41), (18, 47), (19, 20), (19, 36), (19, 51), (19, 55), (20, 28), (20, 65), (22, 45), (22, 57), (22, 90), (23, 60), (23, 95), (24, 62), (24, 85), (26, 60), (30, 73), (30, 93), (31, 89), (36, 66), (40, 87), (42, 76), (44, 81), (45, 67), (45, 74), (48, 55), (49, 88), (50, 77), (52, 79), (57, 94), (60, 65), (63, 82), (63, 84), (65, 72), (65, 96), (66, 89), (73, 93), (78, 97), (85, 92), (88, 93)]
+[(0, 92), (2, 12), (2, 49), (6, 55), (7, 19), (9, 33), (10, 27), (11, 36), (11, 61), (12, 31), (12, 86), (15, 27), (15, 38), (15, 53), (17, 32), (18, 61), (19, 25), (19, 27), (23, 31), (23, 55), (24, 69), (24, 74), (25, 49), (28, 91), (29, 53), (29, 79), (30, 71), (31, 45), (31, 87), (32, 64), (36, 75), (40, 42), (40, 98), (41, 62), (43, 61), (45, 77), (48, 94), (52, 59), (54, 57), (54, 96), (56, 82), (59, 96), (63, 74), (63, 97), (64, 72), (68, 82), (68, 91), (68, 95), (75, 83), (85, 95)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -71,3 +71,197 @@ False
 ======PARAMS
 0.025
 0.02875
+False
+======PARAMS
+0.05
+0.0575
+Average Selection iterations
+51.0515463918
+SUFFICIENT STATS
+4950
+Recall
+0.48
+Precision
+0.252631578947
+F1-score
+0.331034482759
+Correctly re-ordered
+382.0
+0.989528795812
+True
+NEW OPT EDGE L1
+0.05
+======PARAMS
+0.075
+0.08625
+Average Selection iterations
+278.754716981
+SUFFICIENT STATS
+4950
+Recall
+0.38
+Precision
+0.372549019608
+F1-score
+0.376237623762
+Correctly re-ordered
+74.0
+1.0
+True
+NEW OPT EDGE L1
+0.075
+======PARAMS
+0.1
+0.115
+Average Selection iterations
+262.052631579
+SUFFICIENT STATS
+4950
+Recall
+0.18
+Precision
+0.529411764706
+F1-score
+0.268656716418
+Correctly re-ordered
+4.0
+1.0
+True
+>>>>>>>>Getting best node reg...
+//////
+0.075
+0.1125
+//////
+0.075
+0.09375
+Average Selection iterations
+168.310344828
+SUFFICIENT STATS
+4931
+Recall
+0.38
+Precision
+0.223529411765
+F1-score
+0.281481481481
+Correctly re-ordered
+295.0
+0.996610169492
+NEW OPT NODE L1!
+inf
+OPT PARAMS
+0.075
+0.09375
+//////
+0.075
+0.09
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.088125
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.08625
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.084375
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.0825
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.07875
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.075
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue

@@ -10,7 +10,7 @@ NUM VARIABLES
 NUM EDGES
 20
 EDGES
-[(0, 23), (2, 11), (2, 32), (3, 9), (5, 6), (5, 35), (6, 26), (6, 31), (7, 20), (8, 13), (8, 17), (9, 34), (9, 38), (10, 33), (13, 18), (15, 16), (23, 25), (25, 35), (30, 37), (33, 38)]
+[(2, 3), (2, 14), (3, 27), (4, 19), (5, 38), (7, 8), (7, 12), (9, 32), (10, 32), (11, 31), (12, 30), (14, 22), (16, 31), (16, 32), (18, 29), (23, 34), (23, 38), (25, 31), (29, 34), (34, 36)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -55,11 +55,41 @@ False
 ======PARAMS
 0.0025
 0.002875
-False
+Average Selection iterations
+33.2173913043
+SUFFICIENT STATS
+780
+Recall
+0.5
+Precision
+0.227272727273
+F1-score
+0.3125
+Correctly re-ordered
+153.0
+0.967320261438
+True
+NEW OPT EDGE L1
+0.0025
 ======PARAMS
 0.005
 0.00575
-False
+Average Selection iterations
+70.5
+SUFFICIENT STATS
+780
+Recall
+0.4
+Precision
+0.4
+F1-score
+0.4
+Correctly re-ordered
+3.0
+1.0
+True
+NEW OPT EDGE L1
+0.005
 ======PARAMS
 0.0075
 0.008625
@@ -67,56 +97,69 @@ False
 ======PARAMS
 0.01
 0.0115
-False
+Average Selection iterations
+37.2380952381
+SUFFICIENT STATS
+780
+Recall
+0.4
+Precision
+0.421052631579
+F1-score
+0.410256410256
+Correctly re-ordered
+2.0
+1.0
+True
+NEW OPT EDGE L1
+0.01
 ======PARAMS
 0.025
 0.02875
 Average Selection iterations
-30.64
+38.6818181818
 SUFFICIENT STATS
 780
 Recall
-0.6
+0.35
 Precision
-0.521739130435
+0.35
 F1-score
-0.558139534884
+0.35
 Correctly re-ordered
-3.0
+4.0
 1.0
 True
-NEW OPT EDGE L1
-0.025
 ======PARAMS
 0.05
 0.0575
 Average Selection iterations
-51.0
+45.4117647059
 SUFFICIENT STATS
 780
 Recall
-0.45
+0.3
 Precision
-0.692307692308
+0.4
 F1-score
-0.545454545455
+0.342857142857
 Correctly re-ordered
-3.0
+10.0
 1.0
 True
 ======PARAMS
 0.075
 0.08625
 Average Selection iterations
-76.7
+136.666666667
 SUFFICIENT STATS
 780
 Recall
-0.3
+0.05
 Precision
-0.75
+1.0
 F1-score
-0.428571428571
+0.0952380952381
 Correctly re-ordered
 0.0
 N/A
@@ -125,29 +168,205 @@ True
 0.1
 0.115
 Average Selection iterations
-191.75
+136.666666667
 SUFFICIENT STATS
 780
 Recall
-0.1
+0.05
 Precision
 1.0
 F1-score
-0.181818181818
+0.0952380952381
 Correctly re-ordered
 0.0
 N/A
 True
 >>>>>>>>Getting best node reg...
 //////
-0.025
-0.0375
+0.01
+0.015
 //////
-0.025
-0.03125
+0.01
+0.0125
 //////
-0.025
-0.03
+0.01
+0.012
 //////
-0.025
-0.029375
+0.01
+0.01175
+//////
+0.01
+0.0115
+Average Selection iterations
+75.4358974359
+SUFFICIENT STATS
+605
+Recall
+0.45
+Precision
+0.243243243243
+F1-score
+0.315789473684
+Correctly re-ordered
+1.0
+1.0
+NEW OPT NODE L1!
+inf
+OPT PARAMS
+0.01
+0.0115
+//////
+0.01
+0.01125
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.01
+0.011
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.01
+0.0105
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.01
+0.01
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+269.319148936
+SUFFICIENT STATS
+780
+Recall
+0.75
+Precision
+0.163043478261
+F1-score
+0.267857142857
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+780
+Recall
+0.4
+Precision
+0.296296296296
+F1-score
+0.340425531915
+[(12, 30), (4, 19), (2, 3), (3, 27), (2, 27), (2, 14), (3, 14), (14, 27), (14, 22), (2, 22), (3, 22), (22, 27), (7, 8), (7, 22), (25, 31), (22, 25), (8, 22), (7, 25), (25, 34), (23, 25), (25, 29), (8, 25), (25, 38), (25, 32), (25, 36), (9, 25), (9, 36)]
+[0, 0, 0.05, 0.1, 0.15, 0.2, 0.2, 0.25, 0.25, 0.25, 0.3, 0.3, 0.3, 0.3, 0.35, 0.35, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
+29
+29
+structured
+33.0759440119
+33.0759440119
+33.0816137238
+32.8319909354
+32.8323468764
+32.9935107867
+31.2140078002
+31.2403157342
+31.1224989968
+31.4060452717
+31.8728273727
+32.0643655061
+32.2359842811
+32.5736539939
+32.8114809111
+32.9771788161
+33.020496632
+33.0833040278
+33.0587648312
+33.3042490674
+33.5066247815
+33.5339855409
+33.5491647803
+33.5860835974
+33.7139424302
+33.9802262215
+34.0461254419
+34.2671290913
+34.700801646
+34.7111351338
+34.94617465
+35.0106309926
+34.9918419177
+35.0295443682
+35.0075161893
+35.0238574085
+35.2135022862
+35.4330465799
+35.4840101687
+queue
+33.0759440119
+33.0759440119
+33.0682916866
+33.389297659
+33.5010903365
+33.6692544594
+33.685222218
+33.7891893316
+33.7535289378
+34.0246924135
+34.1641973429
+34.3340987377
+34.4804114589
+34.4826768759
+34.4820162205
+34.7299599925
+34.8178021435
+34.815160182
+34.8153912698
+34.9345431539
+35.034053524
+34.754236417
+34.7796039765

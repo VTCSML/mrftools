@@ -10,7 +10,7 @@ NUM VARIABLES
 NUM EDGES
 24
 EDGES
-[(0, 41), (0, 47), (2, 29), (4, 9), (6, 36), (11, 38), (11, 46), (13, 21), (14, 21), (17, 43), (17, 45), (20, 24), (21, 38), (21, 41), (22, 43), (23, 49), (24, 33), (31, 38), (31, 40), (32, 48), (34, 38), (37, 47), (42, 43), (42, 48)]
+[(1, 36), (2, 31), (4, 13), (4, 48), (6, 29), (7, 11), (7, 40), (10, 23), (10, 38), (11, 39), (13, 33), (14, 21), (16, 23), (17, 19), (18, 20), (18, 45), (20, 36), (21, 47), (25, 29), (30, 38), (30, 46), (31, 38), (34, 39), (35, 38)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -59,75 +59,58 @@ False
 ======PARAMS
 0.005
 0.00575
-False
+Average Selection iterations
+25.0210526316
+SUFFICIENT STATS
+1225
+Recall
+1.0
+Precision
+0.258064516129
+F1-score
+0.410256410256
+Correctly re-ordered
+504.0
+0.992063492063
+True
+NEW OPT EDGE L1
+0.005
 ======PARAMS
 0.0075
 0.008625
-False
+Average Selection iterations
+17.0
+SUFFICIENT STATS
+1225
+Recall
+0.958333333333
+Precision
+0.328571428571
+F1-score
+0.489361702128
+Correctly re-ordered
+411.0
+0.992700729927
+True
+NEW OPT EDGE L1
+0.0075
 ======PARAMS
 0.01
 0.0115
-False
-======PARAMS
-0.025
-0.02875
 Average Selection iterations
-80.0
+68.1395348837
 SUFFICIENT STATS
 1225
 Recall
-0.333333333333
+1.0
 Precision
-0.666666666667
+0.285714285714
 F1-score
 0.444444444444
 Correctly re-ordered
-4.0
-1.0
-True
-NEW OPT EDGE L1
-0.025
-======PARAMS
-0.05
-0.0575
-Average Selection iterations
-140.375
-SUFFICIENT STATS
-1225
-Recall
-0.208333333333
-Precision
-0.833333333333
-F1-score
-0.333333333333
-Correctly re-ordered
-0.0
-N/A
+248.0
+0.983870967742
 True
 ======PARAMS
-0.075
-0.08625
-Average Selection iterations
-0.0
-SUFFICIENT STATS
-1225
-Recall
-0
-Precision
-0
-F1-score
-0
-Correctly re-ordered
-0.0
-N/A
-True
->>>>>>>>Getting best node reg...
-//////
 0.025
-0.0375
-//////
-0.025
-0.03125
-//////
-0.025
-0.03
+0.02875

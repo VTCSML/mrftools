@@ -10,7 +10,7 @@ NUM VARIABLES
 NUM EDGES
 40
 EDGES
-[(0, 46), (0, 52), (0, 78), (1, 20), (3, 44), (3, 73), (6, 15), (6, 57), (9, 34), (9, 39), (12, 61), (16, 30), (16, 42), (16, 66), (17, 55), (20, 46), (21, 68), (22, 36), (22, 47), (22, 48), (25, 38), (25, 42), (29, 79), (30, 42), (30, 50), (30, 70), (32, 57), (34, 69), (35, 64), (35, 75), (38, 64), (38, 70), (43, 77), (44, 65), (44, 72), (48, 57), (55, 77), (56, 70), (61, 64), (61, 65)]
+[(1, 18), (1, 64), (1, 78), (2, 3), (2, 6), (3, 10), (3, 50), (4, 33), (6, 63), (8, 15), (10, 64), (11, 21), (11, 62), (11, 69), (12, 16), (12, 37), (13, 28), (13, 74), (16, 17), (16, 36), (18, 45), (20, 70), (22, 32), (26, 29), (26, 76), (27, 54), (31, 36), (31, 50), (32, 44), (34, 46), (36, 49), (37, 51), (37, 79), (38, 56), (50, 61), (51, 71), (60, 71), (61, 77), (63, 72), (74, 78)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -75,11 +75,259 @@ False
 ======PARAMS
 0.05
 0.0575
-False
+Average Selection iterations
+88.8285714286
+SUFFICIENT STATS
+3160
+Recall
+0.375
+Precision
+0.454545454545
+F1-score
+0.41095890411
+Correctly re-ordered
+87.0
+1.0
+True
+NEW OPT EDGE L1
+0.05
 ======PARAMS
 0.075
 0.08625
-False
+Average Selection iterations
+131.708333333
+SUFFICIENT STATS
+3160
+Recall
+0.325
+Precision
+0.590909090909
+F1-score
+0.41935483871
+Correctly re-ordered
+22.0
+1.0
+True
+NEW OPT EDGE L1
+0.075
 ======PARAMS
 0.1
 0.115
+Average Selection iterations
+391.875
+SUFFICIENT STATS
+3160
+Recall
+0.125
+Precision
+0.833333333333
+F1-score
+0.217391304348
+Correctly re-ordered
+0.0
+N/A
+True
+>>>>>>>>Getting best node reg...
+//////
+0.075
+0.1125
+//////
+0.075
+0.09375
+//////
+0.075
+0.09
+Average Selection iterations
+142.8
+SUFFICIENT STATS
+2889
+Recall
+0.3
+Precision
+0.666666666667
+F1-score
+0.413793103448
+Correctly re-ordered
+13.0
+1.0
+NEW OPT NODE L1!
+inf
+OPT PARAMS
+0.075
+0.09
+//////
+0.075
+0.088125
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.08625
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.084375
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.0825
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.07875
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+//////
+0.075
+0.075
+Average Selection iterations
+0.0
+SUFFICIENT STATS
+0
+Recall
+0
+Precision
+0
+F1-score
+0
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: queue
+Average Selection iterations
+1596.56521739
+SUFFICIENT STATS
+3160
+Recall
+0.325
+Precision
+0.619047619048
+F1-score
+0.426229508197
+Correctly re-ordered
+0.0
+N/A
+>>>>>>>>>>>>>>>>>>>>>METHOD: Graft
+SUFFICIENT STATS
+3160
+Recall
+0.325
+Precision
+0.619047619048
+F1-score
+0.426229508197
+[(12, 16), (26, 76), (29, 76), (26, 29), (18, 45), (36, 49), (32, 44), (50, 61), (3, 50), (3, 61), (3, 10), (10, 50), (10, 61), (2, 10), (2, 3), (63, 72), (34, 46), (16, 17), (12, 17), (2, 50), (2, 61)]
+[0, 0, 0.025, 0.05, 0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.2, 0.225, 0.225, 0.225, 0.225, 0.25, 0.275, 0.3, 0.325, 0.325, 0.325, 0.325]
+23
+23
+structured
+76.7033455728
+76.7033455728
+76.3826998382
+76.4163419075
+74.8546582498
+75.3579316258
+74.8524394591
+75.2102264986
+75.0566930542
+73.8523683516
+72.7095909869
+72.6601665155
+72.8998180894
+73.4218585686
+73.7741616834
+73.9810669229
+74.170185757
+74.3466395661
+75.154858241
+74.3846734223
+queue
+76.7033455728
+76.7033455728
+76.3858986791
+75.0271911447
+74.3230535649
+74.2031023931
+74.3753391785
+73.113906636
+73.4953671223
+73.033441876
+73.7078367562
+73.5764820966
+72.6068720728
+72.5036550454
+72.3760627874
+72.6903792041
+73.0147870439
+72.8202691703
+73.2830712506
+73.4891481515
+73.8805957132
+74.959882662
+74.1271523032
+graft
+76.7033455728
+76.7033455728
+75.2022443255
+73.6475684434
+73.244018034
+72.9599152925
+71.5563203177
