@@ -110,7 +110,7 @@ def main():
 				print(edge_reg)
 				print(node_reg)
 				j += 1
-				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict=pq)
+				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict=pq, ss_test=ss_test)
 				spg.on_show_metrics()
 				# spg.on_verbose()
 				spg.on_synthetic(precison_threshold = min_precision, start_num = 5) ## EARLY STOP GRAFTING IF 4 EDGES ARE ADDED AND PRECISION < min_precision
@@ -180,6 +180,7 @@ def main():
 			if not opt_reached:
 
 				print('>>>>>>>>Getting best node reg...')
+				pq = copy.deepcopy(original_pq)
 				edge_reg = best_params[1]
 				best_precision = 0
 				best_f1 = 0
@@ -190,7 +191,7 @@ def main():
 					print('//////')
 					print(edge_reg)
 					print(node_reg)
-					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
+					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict=pq, ss_test=ss_test)
 					spg.on_show_metrics()
 					# spg.on_verbose()
 					spg.on_synthetic(precison_threshold = min_precision, start_num = 2)
@@ -246,7 +247,8 @@ def main():
 
 		else:
 			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
-			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, ss_test=ss_test)
+			pq = copy.deepcopy(original_pq)
+			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict=pq, ss_test=ss_test)
 			spg.on_show_metrics()
 			spg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
 			spg.on_monitor_mn(is_real_loss=is_real_loss)

@@ -10,7 +10,7 @@ NUM VARIABLES
 NUM EDGES
 10
 EDGES
-[(0, 6), (1, 8), (2, 5), (2, 7), (2, 8), (3, 5), (3, 9), (5, 9), (6, 7), (7, 8)]
+[(0, 5), (0, 6), (0, 9), (2, 4), (2, 9), (3, 7), (4, 8), (5, 6), (5, 9), (6, 9)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -19,13 +19,39 @@ EDGES
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
-Traceback (most recent call last):
-  File "generate_nll_plots.py", line 359, in <module>
-    main()
-  File "generate_nll_plots.py", line 120, in main
-    learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-  File "/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/StructuredPriorityGraft.py", line 261, in learn_structure
-    weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
-  File "/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py", line 166, in learn
-    edge_ss = ss_test[edge]
-KeyError: (5, 9)
+False
+======PARAMS
+2.5e-05
+2.875e-05
+False
+======PARAMS
+5e-05
+5.75e-05
+False
+======PARAMS
+7.5e-05
+8.625e-05
+False
+======PARAMS
+0.0001
+0.000115
+False
+======PARAMS
+0.00025
+0.0002875
+False
+======PARAMS
+0.0005
+0.000575
+False
+======PARAMS
+0.00075
+0.0008625
+False
+======PARAMS
+0.001
+0.00115
+False
+======PARAMS
+0.0025
+0.002875

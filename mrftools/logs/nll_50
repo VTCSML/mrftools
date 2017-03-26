@@ -10,22 +10,5 @@ NUM VARIABLES
 NUM EDGES
 49
 EDGES
-[(0, 19), (0, 30), (1, 2), (1, 16), (1, 43), (1, 49), (3, 6), (3, 30), (4, 43), (5, 43), (5, 46), (6, 38), (6, 44), (8, 9), (8, 28), (9, 22), (10, 12), (10, 31), (10, 38), (11, 13), (11, 15), (11, 22), (11, 25), (11, 44), (12, 27), (12, 38), (14, 28), (15, 25), (15, 28), (15, 32), (15, 41), (16, 39), (16, 48), (16, 49), (17, 45), (18, 43), (20, 24), (21, 27), (23, 34), (24, 35), (27, 32), (27, 36), (27, 44), (28, 43), (31, 47), (33, 42), (36, 42), (41, 44), (43, 46)]
+[(0, 17), (0, 49), (1, 49), (2, 19), (3, 7), (3, 19), (3, 33), (5, 8), (5, 24), (5, 30), (5, 41), (6, 18), (6, 32), (6, 46), (7, 9), (7, 13), (8, 26), (8, 43), (8, 49), (11, 15), (11, 33), (12, 33), (12, 41), (13, 34), (14, 23), (15, 24), (15, 49), (16, 40), (17, 34), (17, 48), (19, 20), (19, 27), (19, 44), (21, 25), (21, 32), (24, 38), (24, 41), (24, 47), (25, 35), (26, 49), (27, 42), (29, 39), (31, 47), (34, 48), (35, 43), (35, 46), (38, 44), (39, 43), (42, 47)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
-======PARAMS
-1e-05
-1.15e-05
-/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:119: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
-  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
-/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
-  if (self.tau_q == None or not self.fully_observed) and not (self.graft):
-Traceback (most recent call last):
-  File "generate_nll_plots.py", line 359, in <module>
-    main()
-  File "generate_nll_plots.py", line 120, in main
-    learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-  File "/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/StructuredPriorityGraft.py", line 261, in learn_structure
-    weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
-  File "/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py", line 166, in learn
-    edge_ss = ss_test[edge]
-KeyError: (26, 47)

@@ -10,7 +10,7 @@ NUM VARIABLES
 NUM EDGES
 40
 EDGES
-[(0, 7), (0, 15), (0, 37), (1, 21), (1, 28), (2, 36), (3, 35), (4, 7), (4, 22), (4, 26), (6, 12), (6, 33), (6, 34), (8, 22), (8, 24), (9, 16), (9, 25), (9, 31), (11, 17), (11, 18), (12, 33), (13, 38), (14, 29), (15, 29), (16, 34), (17, 22), (18, 21), (19, 24), (20, 25), (20, 27), (20, 28), (20, 29), (21, 38), (22, 30), (26, 31), (26, 34), (26, 39), (27, 36), (28, 30), (30, 36)]
+[(0, 19), (0, 27), (1, 13), (1, 20), (1, 22), (2, 20), (4, 11), (4, 22), (5, 7), (5, 16), (5, 23), (5, 31), (6, 31), (7, 30), (9, 22), (10, 33), (11, 16), (11, 31), (12, 27), (13, 19), (13, 21), (15, 21), (16, 22), (16, 27), (17, 30), (18, 22), (18, 23), (18, 38), (19, 26), (21, 26), (21, 31), (21, 35), (22, 38), (23, 28), (24, 34), (26, 38), (28, 33), (30, 33), (32, 37), (33, 36)]
 >>>>>>>>>>>>>>>>>>>>>METHOD: structured
 ======PARAMS
 1e-05
@@ -19,13 +19,3 @@ EDGES
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
 /home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py:133: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if (self.tau_q == None or not self.fully_observed) and not (self.graft):
-Traceback (most recent call last):
-  File "generate_nll_plots.py", line 359, in <module>
-    main()
-  File "generate_nll_plots.py", line 120, in main
-    learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-  File "/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/StructuredPriorityGraft.py", line 261, in learn_structure
-    weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
-  File "/home/walidch/mrf_project/MRFToolBox/mrftools/mrftools/Learner.py", line 166, in learn
-    edge_ss = ss_test[edge]
-KeyError: (5, 31)
