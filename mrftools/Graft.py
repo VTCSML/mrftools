@@ -132,7 +132,8 @@ class Graft():
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
 
     def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers ):
-        tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
+        # tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
+        tmp_weights_opt = np.zeros(len(weights_opt) + vector_length_per_edge)
         for edge in self.active_set[:len(self.active_set) - 1]:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
@@ -195,8 +196,8 @@ class Graft():
             recall, precision, suff_stats_list, f1_score = [0,0], [0,0], [0,0], [0,0]
 
         metric_exec_time = 0
-
-        tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
+        tmp_weights_opt = np.zeros(self.aml_optimize.weight_dim)
+        # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
         weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
         metric_exec_time += tmp_metric_exec_time
         self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)

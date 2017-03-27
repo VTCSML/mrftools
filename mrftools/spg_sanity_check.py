@@ -18,7 +18,7 @@ METHODS = ['structured', 'queue']
 def main():
 	edge_reg = 0.009 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.01
-	len_data = 1000
+	len_data = 100
 	priority_graft_iter = 5000
 	suffstats_ratio = .05
 	training_ratio = .6
@@ -57,11 +57,6 @@ def main():
 		M_time_stamps = dict()
 		objs = dict()
 		f1_scores = dict()
-
-
-
-
-
 
 
 

@@ -62,7 +62,8 @@ def compute_likelihood(mn, num_nodes, data, variables = None):
         instance_log_likelihood = 0
         for curr_node in range(num_nodes):
             curr_node_potential = unary_potentials[variables[curr_node]]
-            inner_exp = curr_node_potential[:]
+            inner_exp = copy.deepcopy(curr_node_potential[:])
+            # inner_exp = curr_node_potential[:]
             ####################
             instance_log_likelihood += curr_node_potential[instance[variables[curr_node]]]
             ####################

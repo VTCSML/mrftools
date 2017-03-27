@@ -47,7 +47,7 @@ class StructuredPriorityGraft():
         else:
             self.search_space = [self.mn.search_space[i] for i in list_order]
         self.initial_search_space = copy.deepcopy(self.search_space)
-        
+
         self.data = data
 
         self.sufficient_stats_test = ss_test
@@ -193,7 +193,8 @@ class StructuredPriorityGraft():
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
 
     def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers ):
-        tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
+        # tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
+        tmp_weights_opt = np.zeros(len(weights_opt) + vector_length_per_edge)
         for edge in self.active_set[:len(self.active_set) - 1]:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
@@ -257,7 +258,8 @@ class StructuredPriorityGraft():
             is_ss_at_70_regeistered = False
 
         metric_exec_time = 0
-        tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
+        tmp_weights_opt = np.zeros(self.aml_optimize.weight_dim)
+        # tmp_weights_opt = np.random.randn(self.aml_optimize.weight_dim)
         weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
         metric_exec_time += tmp_metric_exec_time
         # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
@@ -391,6 +393,7 @@ class StructuredPriorityGraft():
         """
         Test edges for activation
         """
+        refill = False
         priority_min = 1e+5
         iteration_activation = 0
         tmp_list = list()
@@ -438,7 +441,7 @@ class StructuredPriorityGraft():
                         tmp_list.append( (item[0], direct_penalty) )# Store not activated edges in a temporary list
                     if self.method == 'structured':                        
                         self.frozen_list.append((edge, direct_penalty))
-                        if self.graph.degree(edge[0])>2 or self.graph.degree(edge[1])>2:
+                        if self.graph.degree(edge[0])>1 or self.graph.degree(edge[1])>1:
                             if len(list(nx.common_neighbors(self.graph, edge[0], edge[1]))) == 0:
                                 neighbors_0 = self.graph.neighbors(edge[0]) #list(bp.mn.get_neighbors(edge[0]))
                                 neighbors_1 = self.graph.neighbors(edge[1]) #list(bp.mn.get_neighbors(edge[1]))
@@ -457,6 +460,7 @@ class StructuredPriorityGraft():
                 self.is_added = False
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1] )
+                refill = True
                 self.frozen_list = list()
         return False, (0, 0), iteration_activation
 
@@ -543,11 +547,6 @@ class StructuredPriorityGraft():
         """
         Plot queue reorganization using ground truth edges
         """
-        print(loop_num)
-        print(len_search_space)
-        print(np.array(values))
-        print(np.array(rows))
-        print(np.array(columns))
         view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num + 1, len_search_space))
 
         view_queue_tmp = view_queue_tmp.todense()

@@ -19,7 +19,7 @@ def main():
 	node_reg_range = [0.05] #np.arange(0.01,0.25,0.05)
 
 	graft_iter = 2500 # Iterations per optimization over active set
-	edge_num = 10 # Allowed max number of edges in the final network
+	edge_num = 102 # Allowed max number of edges in the final network
 	data_train_ratio = .8
 
 	max_sufficient_stats_ratio = .1

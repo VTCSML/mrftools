@@ -12,8 +12,8 @@ from copy import deepcopy
 class ApproxMaxLikelihood(Learner):
     """Object that runs approximate maximum likelihood parameter training."""
 
-    # def __init__(self, markov_net, inference_type=MatrixBeliefPropagator):
-    def __init__(self, markov_net, inference_type=ConvexBeliefPropagator):
+    def __init__(self, markov_net, inference_type=MatrixBeliefPropagator):
+    # def __init__(self, markov_net, inference_type=ConvexBeliefPropagator):
         super(ApproxMaxLikelihood, self).__init__(inference_type)
         self.base_model = LogLinearModel()
         self.base_model.create_indicator_model(markov_net)
