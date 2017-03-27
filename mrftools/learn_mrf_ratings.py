@@ -19,7 +19,7 @@ def main():
 	graft_iter = 2500
 	zero_threshold = 1e-3
 	# edge_num = float('inf')
-	edge_num = 500
+	edge_num = 150
 	num_states = dict()
 	variables = range(1,101)
 	num_attributes = len(variables)
@@ -59,7 +59,6 @@ def main():
 				# print(curr_neighbors)
 				# print(len(curr_neighbors) > 0)
 				if curr_neighbors:
-					print('in')
 					predicted_nodes += 1
 					accuracy, true_states, predicted_states = compute_accuracy(learned_mn, variables, test_data, item, 5)
 					# print('HERE')

@@ -268,7 +268,6 @@ def main():
 		test_nll_list = list()
 		train_nll_list = list()
 		mn_snaps = mn_snapshots[method]
-
 		for t in M_time_stamps[method]:
 			test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
 			train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
@@ -316,7 +315,7 @@ def main():
 		ax1.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('F1 Score')
-	ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('F1 VS Time')
 	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_F1_.png')
 	plt.close()
@@ -329,7 +328,7 @@ def main():
 		ax1.plot(M_time_stamps[METHODS[i]], test_nlls[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='TestNLL-'+METHODS[i])
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('Test NLL')
-	ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('Test NLL VS Time')
 	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_NLL_.png')
 	plt.close()
@@ -343,7 +342,7 @@ def main():
 		ax1.plot(M_time_stamps[METHODS[i]], train_nlls[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='TrainNLL-'+METHODS[i])
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('Train NLL')
-	ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('Train NLL VS Time')
 	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_NLL_.png')
 	plt.close()
@@ -356,7 +355,7 @@ def main():
 		ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='LOSS-'+METHODS[i])
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('LOSS')
-	ax1.legend(loc='best', framealpha=0.5, fancybox=True,)
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('LOSS VS Time')
 	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_OBJ_.png')
 	plt.close()
