@@ -301,7 +301,7 @@ def main():
 	print('opt_params')
 	print(opt_params)
 
-	results = {'methods':METHODS, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'f1':f1_scores, 'objs':objs, 'params':params}
+	results = {'methods':METHODS, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'f1':f1_scores, 'objs':objs, 'params':params}
 	RES_SHELVE.update(results)
 	RES_SHELVE.close()
 

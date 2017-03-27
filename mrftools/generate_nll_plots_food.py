@@ -340,7 +340,7 @@ def main():
 	plt.savefig(folder_name + '/' + str(len(variables)) + '_OBJ_.png')
 	plt.close()
 
-	results = {'methods': METHODS, 'nlls': nlls, 'objs': objs, 'mn_snapshots': mn_snapshots}
+	results = {'methods': METHODS, 'nlls': nlls, 'objs': objs, 'mn_snapshots': mn_snapshots, 'time_stamps': M_time_stamps}
 	RES_SHELVE.update(results)
 	RES_SHELVE.close()
 

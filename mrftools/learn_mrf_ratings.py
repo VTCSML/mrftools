@@ -43,6 +43,7 @@ def main():
 			# print('LEARNING MRF')
 			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, None, 'structured')
 			spg.on_verbose()
+			spg.on_monitor_mn()
 			spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=graft_iter, node_l1=node_reg)
 			# spg.on_zero_treshold(zero_threshold=zero_threshold)
 			# spg.on_show_metrics()

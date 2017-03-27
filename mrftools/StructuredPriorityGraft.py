@@ -253,7 +253,7 @@ class StructuredPriorityGraft():
         old_edge_regularizers = self.edge_regularizers
 
         objec = list()
-        if self.is_show_metrics:
+        if self.is_monitor_mn:
             recall, precision, suff_stats_list, self.total_iter_num, f1_score = [0,0], [0,0], [0,0], [0,0], [0,0]
             is_ss_at_70_regeistered = False
 
