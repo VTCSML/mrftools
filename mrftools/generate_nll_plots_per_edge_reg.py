@@ -6,6 +6,7 @@ from random import shuffle
 from scipy import signal as sg
 from StructuredPriorityGraft import StructuredPriorityGraft
 from grafting_util import compute_likelihood, compute_accuracy_synthetic, compute_likelihood_1, get_all_ss, initialize_priority_queue
+from SelectiveStructuredPriorityGraft import SelectiveStructuredPriorityGraft
 import time
 from Graft import Graft
 import copy
@@ -16,22 +17,24 @@ import sys
 import argparse
 import shelve
 
-METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
+METHOD_COLORS = {'structured':'red', 'S-SSPG': 'black', 'SSPG': 'green', 'queue':'yellow', 'graft':'blue'}
 METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--nodes_num', dest='num_nodes', required=True)
-parser.add_argument('--edge_std', dest='edge_std', default=10)
-parser.add_argument('--node_std', dest='node_std', default=.01)
+parser.add_argument('--edge_reg', dest='edge_reg', required=True)
+parser.add_argument('--edge_std', dest='edge_std', default=5)
+parser.add_argument('--node_std', dest='node_std', default=.001)
 parser.add_argument('--state_num', dest='state_num', default=5)
-parser.add_argument('--len_data', dest='len_data', default=25000)
+parser.add_argument('--len_data', dest='len_data', default=10000)
 args = parser.parse_args()
 
 
-folder_name = 'compare_nll'
+folder_name = 'compare_nll_edge_reg_new'
 folder_num = 'l1_metrics'
 num_iterations = 1
 is_real_loss = False
+
 
 METHODS = ['structured', 'queue'] # DON'T INCLUDE GRAFT IT WILL AUTOMATICALLY BE INCLUDED LATER
 
@@ -39,10 +42,7 @@ def main():
 	priority_graft_iter = 5000
 	graft_iter = 5000
 	# zero_threshold = 1e-3
-	min_precision = .25
-	edge_reg_range = [ 1e-5, 2e-5, 3e-5, 4e-5, 5e-5, 6e-5, 7e-5, 8e-5, 9e-5, 1e-4, 2e-4, 3e-4, 4e-4, 5e-4, 6e-4, 7e-4, 8e-4, 9e-4, 1e-3,\
-	2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 7e-3, 8e-3, 9e-3, 1e-2, 2e-2, 3e-2, 4e-2, 5e-2, 6e-2, 7e-2, 8e-2, 9e-2, 1e-1,\
-	 2e-1, 3e-1, 4e-1, 5e-1, 6e-1, 7e-1, 8e-1, 9e-1, 1]
+	min_precision = .05
 
 	print('================================= ///////////////////START//////////////// =========================================')
 
@@ -50,6 +50,7 @@ def main():
 	num_nodes = int(args.num_nodes)
 	training_ratio = .9
 	edge_std = float(args.edge_std)
+	edge_reg = float(args.edge_reg)
 	node_std = float(args.node_std)
 	state_num = int(args.state_num)
 	mrf_density = float(2)/((num_nodes - 1))
@@ -64,7 +65,7 @@ def main():
 	test_data = data[int(training_ratio * len_data) : len_data]
 	#############################################################################################<-------------
 
-	RES_SHELVE = shelve.open('results_' + str(num_nodes))
+	RES_SHELVE = shelve.open('results_' + str(num_nodes) + '_' + str(edge_reg))
 
 	params = {'num_nodes':num_nodes, 'edge_std':edge_std, 'node_std':node_std, 'state_num':state_num, 'len_data':len_data, 'mrf_density':mrf_density}
 
@@ -94,28 +95,25 @@ def main():
 	print('EDGES')
 	print(edges)
 
-	edge_num = float('inf') # MAX NUM EDGES TO GRAFT
-	recalls, precisions, sufficientstats, mn_snapshots, f1_scores, objs, test_nlls, train_nlls, M_time_stamps = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
+	edge_num = int(2* num_nodes) # MAX NUM EDGES TO GRAFT
+
+
+	recalls, precisions, sufficientstats, mn_snapshots, recalls,f1_scores, objs, test_nlls, train_nlls, M_time_stamps = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
 
 	for method in METHODS:
 		if method == 'structured':
 			opt_reached = False
 			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
-			j = 0
 			best_params = (0,0)
 			best_nll = float('inf')
 			best_objec = float('inf')
 			best_f1 = 0
 			first_opt_found = False
-			for edge_reg in edge_reg_range:
+			for node_reg in [1.5 * edge_reg, 1.4 * edge_reg, 1.3 * edge_reg, 1.2 * edge_reg, 1.1 * edge_reg, 1 * edge_reg]:
 				pq = copy.deepcopy(original_pq)
-
-				node_reg = 1.15 * edge_reg
-
 				print('======PARAMS')
 				print(edge_reg)
 				print(node_reg)
-				j += 1
 				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict=pq, ss_test=ss_test)
 				spg.on_show_metrics()
 				# spg.on_verbose()
@@ -138,6 +136,7 @@ def main():
 					# best_graph_snapshots = copy.deepcopy(spg.graph_snapshots)
 
 					f1_scores[method] = f1_score
+					recalls[method] = recall
 					objs[method] = objec
 					mn_snapshots[method] = best_mn_snapshots
 					M_time_stamps[method] = time_stamps
@@ -244,7 +243,60 @@ def main():
 			mn_snapshots[method] = spg.mn_snapshots
 			M_time_stamps[method] = time_stamps
 			f1_scores[method] = f1_score
+			recalls[method] = recall
 			objs[method] = objec
+
+	k = int(float(num_nodes) / 5)
+
+	print('>>>>>>>>>>>>>>>>>>>>>METHOD: SSPG')
+	pq = copy.deepcopy(original_pq)
+	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	sspg.on_show_metrics()
+	sspg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
+	sspg.set_top_relvant(k=k)
+	sspg.on_monitor_mn()
+	# sspg.on_verbose()
+	# sspg.on_structured()
+	t = time.time()
+	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	exec_time = time.time() - t
+	print('---->Exec time')
+	print(exec_time)
+	print('Loss')
+	print(objec)
+	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	M_time_stamps['SSPG'] = time_stamps
+	mn_snapshots['SSPG'] = sspg.mn_snapshots
+	objs['SSPG'] = objec
+	f1_scores['SSPG'] = f1_score
+	METHODS.append('SSPG')
+	recalls['SSPG'] = recall
+
+
+	print('>>>>>>>>>>>>>>>>>>>>>METHOD: Str-SSPG')
+	pq = copy.deepcopy(original_pq)
+	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	sspg.on_show_metrics()
+	sspg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
+	sspg.set_top_relvant(k=k)
+	sspg.on_monitor_mn()
+	# sspg.on_verbose()
+	sspg.on_structured()
+	t = time.time()
+	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	exec_time = time.time() - t
+	print('---->Exec time')
+	print(exec_time)
+	print('Loss')
+	print(objec)
+	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	M_time_stamps['S-SSPG'] = time_stamps
+	mn_snapshots['S-SSPG'] = sspg.mn_snapshots
+	objs['S-SSPG'] = objec
+	f1_scores['S-SSPG'] = f1_score
+	METHODS.append('S-SSPG')
+	recalls['S-SSPG'] = recall
+
 
 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
 	grafter = Graft(variables, num_states, max_num_states, train_data, list_order)
@@ -260,6 +312,7 @@ def main():
 	mn_snapshots['graft'] = grafter.mn_snapshots
 	time_stamps = sorted(list(grafter.mn_snapshots.keys()))
 	M_time_stamps['graft'] = time_stamps
+	recalls['graft'] = recall
 
 
 
@@ -273,7 +326,21 @@ def main():
 	ax1.set_ylabel('F1 Score')
 	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('F1 VS Time')
-	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_F1.eps', format='eps', dpi=1000)
+	plt.savefig('../../../results_' + folder_name + '/res_' + str(len(variables))+ '/' + str(edge_reg) + '/' + 'F1.eps', format='eps', dpi=1000)
+	plt.close()
+
+
+	#UNCOMMENT TO PLOT Recall SCORES EVOLUTION
+	plt.close()
+	fig, ax1 = plt.subplots()
+	for i in range(len(METHODS)):
+		print(METHODS[i])
+		ax1.plot(M_time_stamps[METHODS[i]], recalls[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='Recall-'+METHODS[i])
+	ax1.set_xlabel('Time')
+	ax1.set_ylabel('Recall Score')
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
+	plt.title('Recall VS Time')
+	plt.savefig('../../../results_' + folder_name + '/res_'+ str(len(variables))+ '/' + str(edge_reg) + '/' + 'Recall.eps', format='eps', dpi=1000)
 	plt.close()
 
 
@@ -287,7 +354,7 @@ def main():
 	ax1.set_ylabel('LOSS')
 	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('LOSS VS Time')
-	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_OBJ.eps', format='eps', dpi=1000)
+	plt.savefig('../../../results_' + folder_name + '/res_'+ str(len(variables))+ '/' + str(edge_reg) + '/' 'OBJ.eps', format='eps', dpi=1000)
 	plt.close()
 
 
@@ -334,7 +401,7 @@ def main():
 	print('opt_params')
 	print(opt_params)
 
-	results = {'methods':METHODS, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'f1':f1_scores, 'objs':objs, 'params':params}
+	results = {'methods':METHODS, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'recall':recalls, 'f1':f1_scores, 'objs':objs, 'params':params}
 	RES_SHELVE.update(results)
 	RES_SHELVE.close()
 
@@ -352,7 +419,7 @@ def main():
 	ax1.set_ylabel('Test NLL')
 	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('Test NLL VS Time')
-	plt.savefig('../../../results_' + folder_name + '/' + str(len(variables)) + '_NLL.eps', format='eps', dpi=1000)
+	plt.savefig('../../../results_' + folder_name + '/res_'+ str(len(variables))+ '/' +str(len(variables))+ '/' + str(edge_reg) + '_NLL.eps', format='eps', dpi=1000)
 	plt.close()
 
 

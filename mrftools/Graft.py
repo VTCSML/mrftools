@@ -357,8 +357,8 @@ class Graft():
         """
         print('ACTIVATED EDGE')
         print(activated_edge)
-        print('CURRENT ACTIVE SPACE')
-        print(self.active_set)
+        print('LENGTH CURRENT ACTIVE SPACE')
+        print(len(self.active_set))
 
     def update_metrics(self, edges, recall, precision, f1_score, suff_stats_list):
         """

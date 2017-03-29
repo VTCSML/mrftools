@@ -19,7 +19,7 @@ def main():
 	graft_iter = 2500
 	zero_threshold = 1e-3
 	# edge_num = float('inf')
-	edge_num = 150
+	edge_num = 250
 	num_states = dict()
 	variables = range(1,101)
 	num_attributes = len(variables)
@@ -47,7 +47,7 @@ def main():
 			spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=graft_iter, node_l1=node_reg)
 			# spg.on_zero_treshold(zero_threshold=zero_threshold)
 			# spg.on_show_metrics()
-			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, _ = spg.learn_structure(edge_num)
+			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, loss, _ = spg.learn_structure(edge_num)
 			# print('TESTING')
 			# likelihood = compute_likelihood(learned_mn, variables, test_data)
 			total_accuracy = 0

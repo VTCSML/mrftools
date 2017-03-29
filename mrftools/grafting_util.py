@@ -220,7 +220,8 @@ def initialize_priority_queue(search_space=None, variables=list()):
             for var2 in variables:
                 if var1<var2:
                     edge = (var1, var2)
-                    pq.additem(edge, uniform(0,1e-5))
+                    # pq.additem(edge, uniform(0,1e-5))
+                    pq.additem(edge, uniform(0,1e-5) + 1e+5)
     else:
         for edge in search_space:
             pq.additem(edge, 0)

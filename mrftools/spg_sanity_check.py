@@ -5,6 +5,7 @@ from generate_synthetic_data import generate_synthetic_data, generate_random_syn
 from random import shuffle
 from scipy import signal as sg
 from StructuredPriorityGraft import StructuredPriorityGraft
+from SelectiveStructuredPriorityGraft import SelectiveStructuredPriorityGraft
 from grafting_util import compute_likelihood
 import time
 from Graft import Graft
@@ -13,22 +14,23 @@ import copy
 
 
 # METHODS = ['structured', 'naive', 'queue']
-METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
-METHODS = ['structured', 'queue']
+METHOD_COLORS = {'structured':'red', 'SSPG': 'blue', 'queue':'black', 'StrSSPG':'green'}
+# METHODS = ['structured', 'queue']
+METHODS = []
 def main():
-	edge_reg = 0.009 #np.arange(0.01,0.25,0.05) 
-	node_reg = 0.01
-	len_data = 100
+	edge_reg = 0.04 #np.arange(0.01,0.25,0.05) 
+	node_reg = 0.05
+	len_data = 500
 	priority_graft_iter = 5000
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 25
+	num_nodes = 55
 	state_num = 5
 	T_likelihoods = dict()
 	edge_std = 5
 	node_std = .0001
 
-	mrf_density = .01
+	mrf_density = float(2)/((num_nodes - 1))
 	print('================================= ///////////////////START//////////////// ========================================= ')
 	print('======================================Simulating data...')
 
@@ -50,7 +52,8 @@ def main():
 		print(len(real_edges))
 		print('EDGES')
 		print(real_edges)
-		edge_num = float('inf')
+
+		edge_num = int(num_nodes) # MAX NUM EDGES TO GRAFT
 		num_attributes = len(variables)
 		recalls, precisions, active_sets= dict(), dict(), dict()
 
@@ -58,49 +61,85 @@ def main():
 		objs = dict()
 		f1_scores = dict()
 
-
-
-
-		# print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
-		# grafter = Graft(variables, num_states, max_num_states, data, list_order)
-		# grafter.on_show_metrics()
-		# # grafter.on_limit_sufficient_stats(suffstats_ratio)
-		# # grafter.on_verbose()
-		# grafter.setup_learning_parameters(edge_reg, max_iter_graft=graft_iter)
-		# grafter.on_monitor_mn()
-		# grafter.on_zero_treshold(zero_threshold=zero_threshold)
-		# t = time.time()
-		# learned_mn, final_active_set, suff_stats_list, recall, precision = grafter.learn_structure(edge_num, real_edges)
-		# exec_time = time.time() - t
-		# print('exec_time')
-		# print(exec_time)
-		# active_sets['graft'] = final_active_set
-
 		################################### REMOVE THIS
 		edges = real_edges
 		# edges = final_active_set
 
-		for method in METHODS:
-			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
-			pq = copy.deepcopy(original_pq)
-			spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict = pq)
-			spg.on_show_metrics()
-			spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
-			spg.on_monitor_mn()
-			spg.on_verbose()
-			spg.on_plot_queue('../../../pq_plot')
-			t = time.time()
-			learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-			exec_time = time.time() - t
-			print('---->Exec time')
-			print(exec_time)
-			print('Loss')
-			print(objec)
-			M_time_stamps[method] = sorted(list(spg.mn_snapshots.keys()))
-			objs[method] = objec
-			f1_scores[method] = f1_score
+		# k = int(float(num_nodes) / 10)
+
+		k = 10
 
 
+		print('>>>>>>>>>>>>>>>>>>>>>METHOD: Structured SSPG')
+		pq = copy.deepcopy(original_pq)
+		sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+		sspg.on_show_metrics()
+		sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
+		sspg.set_top_relvant(k=k)
+		sspg.on_monitor_mn()
+		sspg.on_verbose()
+		sspg.on_structured()
+
+		# spg.on_plot_queue('../../../pq_plot')
+		t = time.time()
+		learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+		exec_time = time.time() - t
+		print('---->Exec time')
+		print(exec_time)
+		print('Loss')
+		print(objec)
+		M_time_stamps['StrSSPG'] = sorted(list(sspg.mn_snapshots.keys()))
+		objs['StrSSPG'] = objec
+		f1_scores['StrSSPG'] = f1_score
+
+
+
+
+		print('>>>>>>>>>>>>>>>>>>>>>METHOD: SSPG')
+		pq = copy.deepcopy(original_pq)
+		sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+		sspg.on_show_metrics()
+		sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
+		sspg.set_top_relvant(k=k)
+		sspg.on_monitor_mn()
+		sspg.on_verbose()
+		# sspg.on_structured()
+
+		# spg.on_plot_queue('../../../pq_plot')
+		t = time.time()
+		learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+		exec_time = time.time() - t
+		print('---->Exec time')
+		print(exec_time)
+		print('Loss')
+		print(objec)
+		M_time_stamps['SSPG'] = sorted(list(sspg.mn_snapshots.keys()))
+		objs['SSPG'] = objec
+		print(objs)
+		f1_scores['SSPG'] = f1_score
+
+		# for method in METHODS:
+		# 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
+		# 	pq = copy.deepcopy(original_pq)
+		# 	spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method, pq_dict = pq)
+		# 	spg.on_show_metrics()
+		# 	spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
+		# 	spg.on_monitor_mn()
+		# 	spg.on_verbose()
+		# 	# spg.on_plot_queue('../../../pq_plot')
+		# 	t = time.time()
+		# 	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = spg.learn_structure(edge_num, edges=edges)
+		# 	exec_time = time.time() - t
+		# 	print('---->Exec time')
+		# 	print(exec_time)
+		# 	print('Loss')
+		# 	print(objec)
+		# 	M_time_stamps[method] = sorted(list(spg.mn_snapshots.keys()))
+		# 	objs[method] = objec
+		# 	f1_scores[method] = f1_score
+
+
+		METHODS.extend(['StrSSPG','SSPG'])
 		plt.close()
 		fig, ax1 = plt.subplots()
 		ax2 = ax1.twinx()
@@ -114,18 +153,9 @@ def main():
 		ax2.legend(loc=4, fancybox=True, framealpha=0.5)
 		ax1.legend(loc='best', framealpha=0.5)
 		plt.title('Loss-F1')
-		plt.savefig('../../../pq_plot/' + str(len(variables)) + '_loss_.png')
+		plt.savefig('../../../pq_plot/' + str(len(variables)) + '_loss_.eps', format='eps', dpi=1000)
 		plt.close()
 
 
-
-
-		# time_stamps = sorted(list(spg.mn_snapshots.keys()))
-		# M_time_stamps[method] = time_stamps
-		# f1_scores[method] = f1_score
-
-
-	# print('Missed edges')
-	# print([x for x in active_sets['graft'] if x in real_edges and x not in active_sets['structured']])
 if __name__ == '__main__':
 	main()
