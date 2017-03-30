@@ -18,7 +18,6 @@ import argparse
 import shelve
 
 METHOD_COLORS = {'structured':'red', 'S-SSPG': 'black', 'SSPG': 'green', 'queue':'yellow', 'graft':'blue'}
-METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--nodes_num', dest='num_nodes', required=True)
@@ -246,7 +245,7 @@ def main():
 			recalls[method] = recall
 			objs[method] = objec
 
-	k = int(float(num_nodes) / 5)
+	k = 10
 
 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: SSPG')
 	pq = copy.deepcopy(original_pq)

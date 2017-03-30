@@ -1,5 +1,14 @@
 #!/bin/bash
-for i in 1e-3 2.5e-3 5e-3 7.5e-3 1e-2 2.5e-2 5e-2 7.5e-2 1e-1 2.5e-1 5e-1
+rm -r ../../../results_ratings
+mkdir ../../../results_ratings
+for edge_num in 50 100 150 200
 do
-  nohup stdbuf -oL python generate_nll_ratings.py --edge_reg $i > logs/ratings_nll_$i &
+  mkdir ../../../results_ratings/$edge_num
+  for edge_reg in 0.00001 0.0001 0.001 0.01 0.1 1
+  do
+  	mkdir ../../../results_ratings/$edge_num/$edge_reg
+  	c="$edge_num _"
+  	c=$c$edge_reg
+    nohup stdbuf -oL python generate_nll_ratings.py --edge_num $edge_num --edge_reg $edge_reg > logs/ratings_nll_"$c" &
+  done
 done

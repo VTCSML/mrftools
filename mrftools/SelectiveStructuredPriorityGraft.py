@@ -423,15 +423,15 @@ class SelectiveStructuredPriorityGraft():
 
 
         for real_neighbor in self.graph[node_0]:
-            real_edge = (min(node_0, real_neighbor), max(node_0, real_neighbor))
+            # real_edge = (min(node_0, real_neighbor), max(node_0, real_neighbor))
 
-            belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
-            gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
-            gradient_norm = np.sqrt(gradient.dot(gradient))
-            length_normalizer = np.sqrt(len(gradient))
-            real_edge_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
+            # belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
+            # gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
+            # gradient_norm = np.sqrt(gradient.dot(gradient))
+            # length_normalizer = np.sqrt(len(gradient))
+            # real_edge_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
 
-            deviation = real_edge_deviation + candidate_deviation
+            # deviation = real_edge_deviation + candidate_deviation
 
             edge = (min(node_1, real_neighbor), max(node_1, real_neighbor))
             if edge in self.pq:
@@ -446,7 +446,11 @@ class SelectiveStructuredPriorityGraft():
 
                 # print(self.pq)
                 # update = self.pq[edge] + deviation
-                self.pq.updateitem(edge, self.pq[edge] - deviation)
+
+                # self.pq.updateitem(edge, self.pq[edge] - deviation)
+
+                self.pq.updateitem(edge, self.pq[edge] + 1)
+
                 # self.pq.updateitem(edge, self.pq[edge] - 1)
                 # print('rank of edge in pq')
                 # print(sorted(list(self.pq.values())).index(self.pq[edge]))
@@ -458,14 +462,14 @@ class SelectiveStructuredPriorityGraft():
 
 
         for real_neighbor in self.graph[node_1]:
-            real_edge = (min(node_1, real_neighbor), max(node_1, real_neighbor))
-            belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
-            gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
-            gradient_norm = np.sqrt(gradient.dot(gradient))
-            length_normalizer = np.sqrt(len(gradient))
-            real_edge_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
+            # real_edge = (min(node_1, real_neighbor), max(node_1, real_neighbor))
+            # belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
+            # gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
+            # gradient_norm = np.sqrt(gradient.dot(gradient))
+            # length_normalizer = np.sqrt(len(gradient))
+            # real_edge_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
 
-            deviation = real_edge_deviation + candidate_deviation
+            # deviation = real_edge_deviation + candidate_deviation
 
             edge = (min(node_0, real_neighbor), max(node_0, real_neighbor))
             if edge in self.pq:
@@ -479,7 +483,10 @@ class SelectiveStructuredPriorityGraft():
                 # print(edge in self.edges)
                 # update = self.pq[edge] + deviation
                 # print(self.pq)
-                self.pq.updateitem(edge, self.pq[edge] - deviation)
+
+                # self.pq.updateitem(edge, self.pq[edge] - deviation)
+                self.pq.updateitem(edge, self.pq[edge] + 1)
+
                 # self.pq.updateitem(edge, self.pq[edge] - 1)
                 # print('rank of edge in pq')
                 # print(sorted(list(self.pq.values())).index(self.pq[edge]))
@@ -503,6 +510,7 @@ class SelectiveStructuredPriorityGraft():
 
         while len(self.pq)>0:
             while len(self.pq)>0:
+
                 item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
                 iteration_activation += 1
@@ -520,6 +528,7 @@ class SelectiveStructuredPriorityGraft():
                 passed = (gradient_norm / length_normalizer) > self.edge_l1
 
                 if passed:
+                    self.is_added = True
                     self.k_relevant[edge] = gradient_norm / length_normalizer
 
                     if self.structured and len(self.active_set) > 5:
@@ -534,7 +543,7 @@ class SelectiveStructuredPriorityGraft():
                         self.search_space.remove(selected_edge)
                         self.candidate_graph.setdefault(selected_edge[0], []).remove(selected_edge[1])
                         self.candidate_graph.setdefault(selected_edge[1], []).remove(selected_edge[0])
-                        self.is_added = True
+                        # self.is_added = True
                         return True, selected_edge, iteration_activation
                 else:
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)

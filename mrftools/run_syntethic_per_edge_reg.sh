@@ -1,10 +1,10 @@
 #!/bin/bash
 rm -r ../../../results_compare_nll_edge_reg_new
 mkdir ../../../results_compare_nll_edge_reg_new
-for nodes_num in 25 50
+for nodes_num in 25 50 100 
 do
   mkdir ../../../results_compare_nll_edge_reg_new/res_$nodes_num
-  for edge_reg in 1e-6 2.5e-6 5e-6 7.5e-6 1e-5 2.5e-5 5e-5 7.5e-5 1e-4 2.5e-4 5e-4 7.5e-4 1e-3 2.5e-3 5e-3 7.5e-3 1e-2 2.5e-2 5e-2 7.5e-2 1e-1 2.5e-1 5e-1 7.5e-1 1
+  for edge_reg in 0.000001 0.0000025 0.000005 0.0000075 0.00001 0.000025 0.00005 0.000075 0.0001 0.00025 0.0005 0.00075 0.001 0.0025 0.005 0.0075 0.01 0.025 0.05 0.075 0.1 0.25 0.5 0.75 1
   do
   	mkdir ../../../results_compare_nll_edge_reg_new/res_$nodes_num/$edge_reg
   	c="$nodes_num _"

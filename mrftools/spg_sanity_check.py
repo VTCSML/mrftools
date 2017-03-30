@@ -20,11 +20,11 @@ METHODS = []
 def main():
 	edge_reg = 0.04 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.05
-	len_data = 500
+	len_data = 2500
 	priority_graft_iter = 5000
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 55
+	num_nodes = 75
 	state_num = 5
 	T_likelihoods = dict()
 	edge_std = 5
@@ -53,7 +53,8 @@ def main():
 		print('EDGES')
 		print(real_edges)
 
-		edge_num = int(num_nodes) # MAX NUM EDGES TO GRAFT
+		edge_num = int(num_nodes) #MAX NUM EDGES TO GRAFT
+
 		num_attributes = len(variables)
 		recalls, precisions, active_sets= dict(), dict(), dict()
 
@@ -61,13 +62,13 @@ def main():
 		objs = dict()
 		f1_scores = dict()
 
-		################################### REMOVE THIS
+		################################## #REMOVE THIS
 		edges = real_edges
 		# edges = final_active_set
 
 		# k = int(float(num_nodes) / 10)
 
-		k = 10
+		k = 5
 
 
 		print('>>>>>>>>>>>>>>>>>>>>>METHOD: Structured SSPG')
