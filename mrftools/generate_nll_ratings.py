@@ -65,7 +65,7 @@ def main():
 	train_data = data[: int(training_ratio * len_data)]
 	test_data = data[int(training_ratio * len_data) : len_data]
 
-	RES_SHELVE = shelve.open('shelves/rating_results_' + str(edge_reg))
+	RES_SHELVE = shelve.open('shelves/rating_results_' + str(edge_num) + '_' + str(edge_reg))
 
 	node_reg = 1.05 * edge_reg
 
@@ -169,40 +169,40 @@ def main():
 	METHODS.append('S-SSPG')
 
 
-	# print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
-	# grafter = Graft(variables, num_states, max_num_states, train_data, list_order)
-	# grafter.on_show_metrics()
-	# # grafter.on_verbose()
-	# grafter.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=graft_iter, node_l1=node_reg)
-	# grafter.on_monitor_mn(is_real_loss=is_real_loss)
-	# t = time.time()
-	# learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = grafter.learn_structure(edge_num)
-	# objs['graft'] = objec
-	# f1_scores['graft'] = f1_score
-	# METHODS.append('graft')
-	# mn_snapshots['graft'] = grafter.mn_snapshots
-	# time_stamps = sorted(list(grafter.mn_snapshots.keys()))
-	# M_time_stamps['graft'] = time_stamps
+	print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
+	grafter = Graft(variables, num_states, max_num_states, train_data, list_order)
+	grafter.on_show_metrics()
+	# grafter.on_verbose()
+	grafter.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=graft_iter, node_l1=node_reg)
+	grafter.on_monitor_mn(is_real_loss=is_real_loss)
+	t = time.time()
+	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = grafter.learn_structure(edge_num)
+	objs['graft'] = objec
+	f1_scores['graft'] = f1_score
+	METHODS.append('graft')
+	mn_snapshots['graft'] = grafter.mn_snapshots
+	time_stamps = sorted(list(grafter.mn_snapshots.keys()))
+	M_time_stamps['graft'] = time_stamps
 
 
 
 
 
-	# #COMPUTE NLLS
-	# #########################################################
-	# for method in METHODS:
-	# 	print(method)
-	# 	test_nll_list = list()
-	# 	train_nll_list = list()
-	# 	mn_snaps = mn_snapshots[method]
-	# 	for t in M_time_stamps[method]:
-	# 		test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data, variables = variables)
-	# 		# train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
-	# 		test_nll_list.append(test_nll)
-	# 		# train_nll_list.append(train_nll)
-	# 	test_nlls[method] = test_nll_list
-	# 	# train_nlls[method] = train_nll_list
-	# #########################################################
+	#COMPUTE NLLS
+	#########################################################
+	for method in METHODS:
+		print(method)
+		test_nll_list = list()
+		train_nll_list = list()
+		mn_snaps = mn_snapshots[method]
+		for t in M_time_stamps[method]:
+			test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data, variables = variables)
+			# train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
+			test_nll_list.append(test_nll)
+			# train_nll_list.append(train_nll)
+		test_nlls[method] = test_nll_list
+		# train_nlls[method] = train_nll_list
+	#########################################################
 
 
 
@@ -226,22 +226,22 @@ def main():
 	# 	plt.close()
 	#########################################################
 
-	results = {'methods':METHODS, 'time_stamps': M_time_stamps, 'test_nlls':test_nlls, 'objs':objs, 'params':params}
+	results = {'methods':METHODS, 'time_stamps':M_time_stamps, 'test_nlls':test_nlls, 'objs':objs, 'params':params}
 	RES_SHELVE.update(results)
 	RES_SHELVE.close()
 
-	# #UNCOMMENT TO PLOT test nll SCORES EVOLUTION
-	# plt.close()
-	# fig, ax1 = plt.subplots()
-	# for i in range(len(METHODS)):
-	# 	print(METHODS[i])
-	# 	ax1.plot(M_time_stamps[METHODS[i]], test_nlls[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='TestNLL-'+METHODS[i])
-	# ax1.set_xlabel('Time')
-	# ax1.set_ylabel('Test NLL')
-	# ax1.legend(loc='best', framealpha=0.5, fancybox=True)
-	# plt.title('Test NLL VS Time')
-	# plt.savefig('../../../ratings_results_' + folder_name + '/' + str(edge_reg) + '_NLL_.png')
-	# plt.close()
+	#UNCOMMENT TO PLOT test nll SCORES EVOLUTION
+	plt.close()
+	fig, ax1 = plt.subplots()
+	for i in range(len(METHODS)):
+		print(METHODS[i])
+		ax1.plot(M_time_stamps[METHODS[i]], test_nlls[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=2, label='TestNLL-'+METHODS[i])
+	ax1.set_xlabel('Time')
+	ax1.set_ylabel('Test NLL')
+	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
+	plt.title('Test NLL VS Time')
+	plt.savefig('../../../' + folder_name + '/' + str(edge_num) + '/' + str(edge_reg) + '/NLL_.png')
+	plt.close()
 
 	#UNCOMMENT TO PLOT loss SCORES EVOLUTION
 	plt.close()

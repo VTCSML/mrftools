@@ -1,10 +1,10 @@
 #!/bin/bash
 rm -r ../../../results_ratings
 mkdir ../../../results_ratings
-for edge_num in 50 100 150 200
+for edge_num in 100 150 200 300 400 500
 do
   mkdir ../../../results_ratings/$edge_num
-  for edge_reg in 0.00001 0.0001 0.001 0.01 0.1 1
+  for edge_reg in 0.0001 0.001 0.01
   do
   	mkdir ../../../results_ratings/$edge_num/$edge_reg
   	c="$edge_num _"

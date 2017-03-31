@@ -108,7 +108,7 @@ def main():
 			best_objec = float('inf')
 			best_f1 = 0
 			first_opt_found = False
-			for node_reg in [1.5 * edge_reg, 1.4 * edge_reg, 1.3 * edge_reg, 1.2 * edge_reg, 1.1 * edge_reg, 1 * edge_reg]:
+			for node_reg in [1.5 * edge_reg, 1.4 * edge_reg, 1.3 * edge_reg, 1.2 * edge_reg, 1.1 * edge_reg, 1 * edge_reg, , 0]:
 				pq = copy.deepcopy(original_pq)
 				print('======PARAMS')
 				print(edge_reg)
@@ -320,12 +320,17 @@ def main():
 	fig, ax1 = plt.subplots()
 	for i in range(len(METHODS)):
 		print(METHODS[i])
+		f1 = f1_scores[METHODS[i]]
 		ax1.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
+
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('F1 Score')
 	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.title('F1 VS Time')
-	plt.savefig('../../../results_' + folder_name + '/res_' + str(len(variables))+ '/' + str(edge_reg) + '/' + 'F1.eps', format='eps', dpi=1000)
+	if f1[-1] > .4:
+		plt.savefig('../../../results_' + folder_name + '/res_' + str(len(variables))+ '/' + str(edge_reg) + '/' + 'F1*.eps', format='eps', dpi=1000)
+	else:
+		plt.savefig('../../../results_' + folder_name + '/res_' + str(len(variables))+ '/' + str(edge_reg) + '/' + 'F1.eps', format='eps', dpi=1000)
 	plt.close()
 
 
