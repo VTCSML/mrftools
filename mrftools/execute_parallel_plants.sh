@@ -1,13 +1,13 @@
 #!/bin/bash
 rm -r ../../../results_plants
 mkdir ../../../results_plants
-for edge_num in 150 200 
+for edge_num in 125 175
 do
   mkdir ../../../results_plants/$edge_num
-  for group_l1 in 0.0001 0.001 0.01 0.1 1
+  for group_l1 in 0.1 0.01 0.001 0.0001 0.00001
   do
   	mkdir ../../../results_plants/$edge_num/$group_l1
-  	for l2 in 0.1 0.5 0.9
+  	for l2 in 0.5 1.0 1.5
     do
   	  mkdir ../../../results_plants/$edge_num/$group_l1/$l2
   	  a="_"

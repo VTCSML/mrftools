@@ -118,6 +118,7 @@ class SelectiveStructuredPriorityGraft():
         self.added_edge_index = None
         self.is_grow_k = False
         self.m = 10
+        self.total_reservoir_weight = 0
 
     def on_structured(self):
         self.structured = True
@@ -422,9 +423,10 @@ class SelectiveStructuredPriorityGraft():
         if self.m > 0:
             self.centrality = nx.degree_centrality(self.graph)
             # self.m_central_nodes = [x[0] for x in sorted(self.centrality.iteritems(), key=operator.itemgetter(1), reverse=True)[:self.m]]
+            self.m_central_nodes = list()
             for i in range(self.m):
-                node = max(stats.iteritems(), key=operator.itemgetter(1))[0]
-                self.centrality.remove(nodes)
+                node = max(self.centrality.iteritems(), key=operator.itemgetter(1))[0]
+                self.centrality[node] = -1
                 self.m_central_nodes.append(node)
             for node_1 in self.m_central_nodes:
                 for node_2 in self.m_central_nodes:
@@ -470,18 +472,26 @@ class SelectiveStructuredPriorityGraft():
                 if passed:
                     self.is_added = True
                     self.k_relevant[edge] = gradient_norm / length_normalizer
-                    if len(self.k_relevant) == self.k:
-                        selected_edges_list = list()
-                        self.updated_nodes = dict()
-                        for i in range(self.select_unit):
-                            selected_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
-                            if selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
-                                self.updated_nodes[selected_edge[0]] = True
-                                self.updated_nodes[selected_edge[1]] = True
-                                self.k_relevant.pop(selected_edge, None)
-                                self.search_space.remove(selected_edge)
-                                selected_edges_list.append(selected_edge)
-                        return True, selected_edges_list, iteration_activation
+                    self.total_reservoir_weight += self.k_relevant[edge]
+                    if len(self.k_relevant) == self.k + 1:
+                        if (self.k == 1) or (self.k > 1 and gradient_norm / length_normalizer > self.total_reservoir_weight / (4 * (self.k + 1))):
+                            selected_edges_list = list()
+                            self.updated_nodes = dict()
+                            for i in range(self.select_unit):
+                                selected_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
+                                if selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
+                                    self.updated_nodes[selected_edge[0]] = True
+                                    self.updated_nodes[selected_edge[1]] = True
+                                    self.k_relevant.pop(selected_edge, None)
+                                    self.search_space.remove(selected_edge)
+                                    selected_edges_list.append(selected_edge)
+                            return True, selected_edges_list, iteration_activation
+                        else:
+                            dropped_edge = min(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
+                            direct_penalty = 1 - self.k_relevant[dropped_edge] / self.edge_l1
+                            self.total_reservoir_weight -= self.k_relevant[edge]
+                            self.frozen_list.append((edge, direct_penalty))
+                            self.k_relevant.pop(dropped_edge, None)
                 else:
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
                     self.frozen_list.append((edge, direct_penalty))
