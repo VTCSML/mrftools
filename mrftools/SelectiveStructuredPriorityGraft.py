@@ -48,25 +48,15 @@ class SelectiveStructuredPriorityGraft():
         else:
             self.search_space = [self.mn.search_space[i] for i in list_order]
         self.initial_search_space = copy.deepcopy(self.search_space)
-
         self.data = data
-
         self.sufficient_stats_test = ss_test
-
-        # for edge in self.search_space:
-        #     self.sufficient_stats_test[edge], _ = self.get_sufficient_stats_per_edge(self.mn, edge)
-
         self.sufficient_stats, self.padded_sufficient_stats = self.mn.get_unary_sufficient_stats(self.data , self.max_num_states)
-
         if pq_dict == None:
             self.pq = initialize_priority_queue(search_space=self.search_space)
         else:
             self.pq = pq_dict
-
         self.search_space = set(self.search_space)
-
         self.edges_list = list()
-
         if method == 'queue':
             while len(self.pq) > 0:
                 item = self.pq.popitem()
@@ -133,7 +123,6 @@ class SelectiveStructuredPriorityGraft():
         self.k = k
         self.select_unit = min(self.k, self.select_unit)
 
-
     def set_select_unit(self, select_unit=5):
         self.select_unit = select_unit
         self.select_unit = min(self.k, self.select_unit)
@@ -170,8 +159,6 @@ class SelectiveStructuredPriorityGraft():
         """
         self.is_monitor_mn = True
         self.is_real_loss = is_real_loss
-        # self.full_mn = MarkovNet()
-        # self.full_mn.mn.initialize_unary_factors(variables, num_states)
 
     def on_freeze_neighbors(self):
         """
@@ -208,7 +195,6 @@ class SelectiveStructuredPriorityGraft():
     def save_mn(self, exec_time=0):
         learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
         learned_mn.load_factors_from_matrices()
-        # nll = compute_likelihood(learned_mn, len(self.variables), self.data)
         self.mn_snapshots[exec_time] = learned_mn
 
     def save_graph(self, exec_time=0):
@@ -223,35 +209,28 @@ class SelectiveStructuredPriorityGraft():
 
     def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers ,  num_added_edges):
 
-        # tmp_weights_opt = np.random.randn(len(weights_opt) + num_added_edges * vector_length_per_edge)
         tmp_weights_opt = np.zeros(len(weights_opt) + num_added_edges * vector_length_per_edge)
         for edge in self.active_set:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
                 tmp_weights_opt[list(self.edge_regularizers[edge].flatten())] = weights_opt[list(old_edge_regularizers[edge].flatten())]
-                # print(tmp_weights_opt)
             except:
                 self.added_edge_index = list(self.edge_regularizers[edge].flatten())
-                # print(tmp_weights_opt[self.added_edge_index])
         if len(old_node_regularizers) > 0:
             for node in self.variables:
-                # self.node_regularizers.extend(unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]])
                 self.node_regularizers[node] = unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]]
                 try:
                     tmp_weights_opt[list(self.node_regularizers[node])] = weights_opt[list(old_node_regularizers[node])]
-                    # print(tmp_weights_opt)
                 except:
                     pass
         old_edge_regularizers = copy.deepcopy(self.edge_regularizers)
         old_node_regularizers = copy.deepcopy(self.node_regularizers)
 
-        # print(tmp_weights_opt)
-
-        # tmp_weights_opt += .001 * np.random.randn(len(weights_opt) + vector_length_per_edge)
-
         return tmp_weights_opt, old_node_regularizers, old_edge_regularizers
 
-
+    def continue_graft(self, break_grafting, is_activated_edge, num_edges):
+        return (not break_grafting) and (len(self.pq) > 0 or is_activated_edge or len(self.k_relevant)>0 ) and \
+                len(self.active_set) < num_edges and self.is_limit_sufficient_stats_reached()
 
     def learn_structure(self, num_edges, edges=list()):
         """
@@ -260,18 +239,15 @@ class SelectiveStructuredPriorityGraft():
         data_len = len(self.data)
         np.random.seed(0)
         self.edges = edges
-
         num_features = 0
-
         for var in self.variables:
             num_features += len(self.mn.unary_potentials[var]) 
         for edge in self.search_space:
             num_features += len(self.mn.unary_potentials[edge[0]]) *  len(self.mn.unary_potentials[edge[1]])
-
         if self.is_monitor_mn:
             exec_time_origin = time.time()
-        self.aml_optimize = self.setup_grafting_learner(len(self.data))
 
+        self.aml_optimize = self.setup_grafting_learner(len(self.data))
         vector_length_per_var = self.max_num_states
         vector_length_per_edge = self.max_num_states ** 2
         len_search_space = len(self.search_space)
@@ -307,19 +283,15 @@ class SelectiveStructuredPriorityGraft():
 
         is_activated_edge, activated_edges_list, iter_number = self.activation_test()
 
-        old_edge_regularizers = []
+        old_edge_regularizers = list()
 
         break_grafting = False
 
-        while (not break_grafting) and (len(self.pq) > 0 or is_activated_edge or len(self.k_relevant)>0 ) and len(self.active_set) < num_edges and self.is_limit_sufficient_stats_reached(): # Stop if all edges are added or no edge is added at the previous iteration
+        while self.continue_graft(break_grafting, is_activated_edge, num_edges):
             
             if len(self.pq) == 0 and not is_activated_edge :
-                # activated_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
-                # self.k_relevant.pop(activated_edge, None)
-                print('here')
                 activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)[ : num_edges - len(self.active_set) + 1]]
                 break_grafting = True
-                # [self.search_space.remove(activated_edge) for activated_edge in activated_edges_list]
 
             for activated_edge in activated_edges_list:
                 if self.is_grow_k:
@@ -370,7 +342,6 @@ class SelectiveStructuredPriorityGraft():
             self.active_set = final_active_set
 
         if self.is_plot_queue:
-            # self.make_queue_plot_ground_truth(values, rows, columns, loop_num, len_search_space)
             self.make_queue_plot_synthetic_truth(pq_history, final_active_set, loop_num, len_search_space)
 
         learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
@@ -378,12 +349,6 @@ class SelectiveStructuredPriorityGraft():
 
         if self.is_show_metrics:
             self.print_metrics(recall, precision, f1_score)
-            print('Correctly re-ordered')
-            try:
-                print(float(self.reordered) )
-                print( float(self.correctly_reordered) / float(self.reordered) )
-            except:
-                print('N/A')
             return learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, False
 
         if self.is_verbose:
@@ -422,7 +387,6 @@ class SelectiveStructuredPriorityGraft():
     def update_pq(self):
         if self.m > 0:
             self.centrality = nx.degree_centrality(self.graph)
-            # self.m_central_nodes = [x[0] for x in sorted(self.centrality.iteritems(), key=operator.itemgetter(1), reverse=True)[:self.m]]
             self.m_central_nodes = list()
             for i in range(self.m):
                 node = max(self.centrality.iteritems(), key=operator.itemgetter(1))[0]
@@ -570,16 +534,11 @@ class SelectiveStructuredPriorityGraft():
                     columns.append(c + t)
                     rows.append(t )
                     values.append(1)
-        # print(loop_num)
-        # print(np.array(columns))
-        # print(np.array(rows))
-        # print(np.array(values))
         view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num, len_search_space))
         view_queue_tmp = view_queue_tmp.todense()
         view_queue_tmp[view_queue_tmp==0] = .2
         view_queue = np.zeros((loop_num+2, len_search_space+2))
         view_queue[1:loop_num+1, 1:len_search_space+1] = view_queue_tmp
-        # plt.imshow(view_queue,interpolation='none',cmap='binary')
         plt.imshow(view_queue, interpolation='none',cmap='binary', aspect='auto')
         plt.title(self.method + ' Synthetic truth')
         # plt.colorbar()
@@ -652,14 +611,9 @@ class SelectiveStructuredPriorityGraft():
         self.aml_optimize.belief_propagators[0].mn.update_edge_tensor()
         unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
         final_active_set = list()
-        # print('REMOVING ZERO EDGES')
         for edge in self.active_set:
-            # print('EDGE')
-            # print(edge)
             i = self.aml_optimize.belief_propagators[0].mn.edge_index[edge]
             edge_weights = self.aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:self.aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :self.aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
-            # length_normalizer = float(1) / len(edge_weights)
-            # print(np.sqrt(edge_weights.dot(edge_weights)))
             if np.sqrt(edge_weights.dot(edge_weights)) / np.sqrt(len(edge_weights))  > self.zero_threshold:
                 final_active_set.append(edge)
         return final_active_set
