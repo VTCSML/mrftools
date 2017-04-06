@@ -112,6 +112,8 @@ class CentralEdgeGraft():
             self.centrality[var] = 0
         self.alpha = .5
 
+        self.m = 5
+
     def set_alpha(self, alpha):
         self.alpha = alpha
 
@@ -308,7 +310,6 @@ class CentralEdgeGraft():
                 loop_num = self.update_plot_info(loop_num, columns, rows, values, pq_history, edges)
 
             self.graph.add_edge(activated_edge[0], activated_edge[1])
-            self.centrality = nx.betweenness_centrality(self.graph)
             self.aml_optimize = self.setup_grafting_learner(len(self.data))
 
             unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
@@ -413,9 +414,15 @@ class CentralEdgeGraft():
     #                         print('//////////////////')
 
     def update_pq(self, bp, candidate_edge):
+
+        self.centrality = nx.betweenness_centrality(self.graph)
+        self.m_central_nodes = [x[0] for x in sorted(self.centrality.iteritems(), key=operator.itemgetter(1), reverse=True)[:self.m]]
+                for node_1 in self.m_central_nodes:
+                    for node_2 in self.m_central_nodes:
+                        if (node_1,node_2) in self.pq:
+                            self.pq.updateitem((node_1,node_2), self.pq[(node_1,node_2)] - 1)
         node_0 = candidate_edge[0]
         node_1 = candidate_edge[1]
-
         belief = bp.var_beliefs[candidate_edge[0]] + np.matrix(bp.var_beliefs[candidate_edge[1]]).T
         gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[candidate_edge]) / len(self.data)).squeeze()
         gradient_norm = np.sqrt(gradient.dot(gradient))
@@ -532,7 +539,8 @@ class CentralEdgeGraft():
 
                 if passed:
                     self.is_added = True
-                    self.k_relevant[edge] = (float(self.centrality[edge[0]] + self.centrality[edge[1]]) / 2, normalized_gradient)
+                    # self.k_relevant[edge] = (float(self.centrality[edge[0]] + self.centrality[edge[1]]) / 2, normalized_gradient)
+                    self.k_relevant[edge] = normalized_gradient
 
                     if self.structured and len(self.active_set) > 5:
                         self.update_pq(bp, edge)
@@ -541,18 +549,16 @@ class CentralEdgeGraft():
                     self.candidate_graph.setdefault(edge[1], []).append(edge[0])
 
                     if len(self.k_relevant) == self.k:
-                        print(self.k_relevant)
-                        print([self.k_relevant[x][0] for x in self.k_relevant.keys()])
-                        centrality_normalizer = sum([self.k_relevant[x][0] for x in self.k_relevant.keys()])
-                        gradient_normalizer = sum([self.k_relevant[x][1] for x in self.k_relevant.keys()])
-                        if centrality_normalizer == 0:
-                            centrality_normalizer = 1
-                        max_score = 0
-                        for edge in self.k_relevant.keys():
-                            edge_score = self.alpha * self.k_relevant[edge][0] / centrality_normalizer + (1 - self.alpha ) * self.k_relevant[edge][1] / gradient_normalizer
-                            if edge_score > max_score:
-                                max_score = edge_score
-                                selected_edge = edge
+                        # centrality_normalizer = sum([self.k_relevant[x][0] for x in self.k_relevant.keys()])
+                        # gradient_normalizer = sum([self.k_relevant[x][1] for x in self.k_relevant.keys()])
+                        # if centrality_normalizer == 0:
+                        #     centrality_normalizer = 1
+                        # max_score = 0
+                        # for edge in self.k_relevant.keys():
+                        #     edge_score = self.alpha * self.k_relevant[edge][0] / centrality_normalizer + (1 - self.alpha ) * self.k_relevant[edge][1] / gradient_normalizer
+                        #     if edge_score > max_score:
+                        #         max_score = edge_score
+                        #         selected_edge = edge
 
                         selected_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
                         self.k_relevant.pop(selected_edge, None)

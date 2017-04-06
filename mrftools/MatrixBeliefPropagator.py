@@ -3,6 +3,7 @@ import numpy as np
 import time
 from MarkovNet import MarkovNet
 from Inference import Inference
+import copy
 
 
 class MatrixBeliefPropagator(Inference):
@@ -13,6 +14,7 @@ class MatrixBeliefPropagator(Inference):
         self.mn = markov_net
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
+        self.unormalized_var_beliefs = dict()
 
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -63,6 +65,8 @@ class MatrixBeliefPropagator(Inference):
             self.belief_mat = self.mn.unary_mat + self.conditioning_mat
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
+            self.unormalized_belief_mat = copy.deepcopy(self.belief_mat)
+
             self.belief_mat -= logsumexp(self.belief_mat, 0)
 
     def compute_pairwise_beliefs(self):
@@ -76,6 +80,10 @@ class MatrixBeliefPropagator(Inference):
             from_messages = adjusted_message_prod[:, self.mn.num_edges:].reshape((1, self.mn.max_states, self.mn.num_edges))
 
             beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
+
+
+            # self.unormalized_pair_belief_tensor = beliefs
+
 
             beliefs -= logsumexp(beliefs, (0, 1))
 
@@ -136,6 +144,7 @@ class MatrixBeliefPropagator(Inference):
 
         for (var, i) in self.mn.var_index.items():
             self.var_beliefs[var] = self.belief_mat[:len(self.mn.unary_potentials[var]), i]
+            self.unormalized_var_beliefs[var] = self.unormalized_belief_mat[:len(self.mn.unary_potentials[var]), i]
 
         for edge, i in self.mn.edge_index.items():
             (var, neighbor) = edge

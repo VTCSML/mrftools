@@ -1,14 +1,22 @@
 #!/bin/bash
 rm -r ../../../results_compare_nll_edge_reg_new
 mkdir ../../../results_compare_nll_edge_reg_new
+a="_"
 for nodes_num in 50 100 150 200
 do
-  mkdir ../../../results_compare_nll_edge_reg_new/res_$nodes_num
-  for edge_reg in 0.000001 0.0000025 0.000005 0.0000075 0.00001 0.000025 0.00005 0.000075 0.0001 0.00025 0.0005 0.00075 0.001 0.0025 0.005 0.0075 0.01
+  mkdir ../../../results_compare_nll_edge_reg_new/$nodes_num
+  for group_l1 in 0.1 0.01 0.001 0.0001 0.00001
   do
-  	mkdir ../../../results_compare_nll_edge_reg_new/res_$nodes_num/$edge_reg
-  	c="$nodes_num _"
-  	c=$c$edge_reg
-    nohup stdbuf -oL python generate_nll_plots_per_edge_reg.py --nodes_num $nodes_num --edge_reg $edge_reg > logs/nll_"$c" &
+  	mkdir ../../../results_compare_nll_edge_reg_new/$nodes_num/$group_l1
+  	for l2 in 0.5 1.0 1.5
+  	do
+  	  c=$nodes_num
+      c=$c$a
+  	  c=$c$group_l1
+  	  c=$c$a
+  	  c=$c$l2
+	  mkdir ../../../results_compare_nll_edge_reg_new/$nodes_num/$group_l1/$l2
+	  nohup stdbuf -oL python generate_nll_plots_per_edge_reg.py --nodes_num $nodes_num --group_l1 $group_l1 --l2 $l2 > logs/nll_"$c" &
+	done
   done
 done

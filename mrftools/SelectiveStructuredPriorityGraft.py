@@ -16,6 +16,7 @@ import networkx as nx
 import random
 from scipy.misc import logsumexp
 from grafting_util import compute_likelihood, sanity_check_likelihood
+import operator
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # + Functionality:
@@ -113,12 +114,28 @@ class SelectiveStructuredPriorityGraft():
         self.k_relevant = dict()
         self.candidate_graph = dict()
         self.structured = False
+        self.select_unit = 5
+        self.added_edge_index = None
+        self.is_grow_k = False
+        self.m = 10
 
     def on_structured(self):
         self.structured = True
 
+    def set_reassigned_nodes(self, m=10):
+        self.m = m
+
+    def on_grow_k(self):
+        self.is_grow_k = True
+
     def set_top_relvant(self, k=5):
         self.k = k
+        self.select_unit = min(self.k, self.select_unit)
+
+
+    def set_select_unit(self, select_unit=5):
+        self.select_unit = select_unit
+        self.select_unit = min(self.k, self.select_unit)
 
     def on_synthetic(self, precison_threshold=.7, start_num=4):
         self.is_synthetic = True
@@ -203,16 +220,18 @@ class SelectiveStructuredPriorityGraft():
         for edge in self.active_set:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
 
-    def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers ):
-        # tmp_weights_opt = np.random.randn(len(weights_opt) + vector_length_per_edge)
-        tmp_weights_opt = np.zeros(len(weights_opt) + vector_length_per_edge)
-        for edge in self.active_set[:len(self.active_set) - 1]:
+    def reinit_weight_vec(self, unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers ,  num_added_edges):
+
+        # tmp_weights_opt = np.random.randn(len(weights_opt) + num_added_edges * vector_length_per_edge)
+        tmp_weights_opt = np.zeros(len(weights_opt) + num_added_edges * vector_length_per_edge)
+        for edge in self.active_set:
             self.edge_regularizers[edge] = pairwise_indices[:, :, self.aml_optimize.belief_propagators[0].mn.edge_index[edge]]
             try:
                 tmp_weights_opt[list(self.edge_regularizers[edge].flatten())] = weights_opt[list(old_edge_regularizers[edge].flatten())]
                 # print(tmp_weights_opt)
             except:
-                pass
+                self.added_edge_index = list(self.edge_regularizers[edge].flatten())
+                # print(tmp_weights_opt[self.added_edge_index])
         if len(old_node_regularizers) > 0:
             for node in self.variables:
                 # self.node_regularizers.extend(unary_indices[:, self.aml_optimize.belief_propagators[0].mn.var_index[node]])
@@ -226,6 +245,8 @@ class SelectiveStructuredPriorityGraft():
         old_node_regularizers = copy.deepcopy(self.node_regularizers)
 
         # print(tmp_weights_opt)
+
+        # tmp_weights_opt += .001 * np.random.randn(len(weights_opt) + vector_length_per_edge)
 
         return tmp_weights_opt, old_node_regularizers, old_edge_regularizers
 
@@ -267,7 +288,7 @@ class SelectiveStructuredPriorityGraft():
 
         metric_exec_time = 0
         tmp_weights_opt = np.zeros(self.aml_optimize.weight_dim)
-        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
+        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
         metric_exec_time += tmp_metric_exec_time
 
         objec.extend(objec)
@@ -283,54 +304,59 @@ class SelectiveStructuredPriorityGraft():
             loop_num = 0
             pq_history = dict()
 
-        is_activated_edge, activated_edge, iter_number = self.activation_test()
+        is_activated_edge, activated_edges_list, iter_number = self.activation_test()
 
         old_edge_regularizers = []
 
-        while (len(self.pq) > 0 or is_activated_edge or len(self.k_relevant)>0 ) and len(self.active_set) < num_edges and self.is_limit_sufficient_stats_reached(): # Stop if all edges are added or no edge is added at the previous iteration
+        break_grafting = False
+
+        while (not break_grafting) and (len(self.pq) > 0 or is_activated_edge or len(self.k_relevant)>0 ) and len(self.active_set) < num_edges and self.is_limit_sufficient_stats_reached(): # Stop if all edges are added or no edge is added at the previous iteration
             
             if len(self.pq) == 0 and not is_activated_edge :
-                activated_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
-                self.k_relevant.pop(activated_edge, None)
+                # activated_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
+                # self.k_relevant.pop(activated_edge, None)
+                print('here')
+                activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)[ : num_edges - len(self.active_set) + 1]]
+                break_grafting = True
+                # [self.search_space.remove(activated_edge) for activated_edge in activated_edges_list]
 
-            self.active_set.append(activated_edge)
+            for activated_edge in activated_edges_list:
+                if self.is_grow_k:
+                    self.k += 1
+                self.active_set.append(activated_edge)
+                self.graph.add_edge(activated_edge[0], activated_edge[1])
+
+            if self.structured and len(self.active_set) > 5:
+                self.update_pq()
+
             if self.is_verbose:
-                # print(precision)
-                self.print_update(activated_edge)
+                self.print_update(activated_edges_list)
 
             if self.is_synthetic and precision[-1] < self.precison_threshold and len(self.active_set) > self.start_num:
                 learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
                 learned_mn.load_factors_from_matrices()
                 return learned_mn, None, suff_stats_list, recall, precision, f1_score, objec, True
 
-            if self.is_plot_queue:
-                loop_num = self.update_plot_info(loop_num, columns, rows, values, pq_history, edges)
-
-            self.graph.add_edge(activated_edge[0], activated_edge[1])
             self.aml_optimize = self.setup_grafting_learner(len(self.data))
-
             unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
             self.set_regularization_indices(unary_indices, pairwise_indices)
-
-            tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers)
-
-            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
+            tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers, len(activated_edges_list))
+            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
             metric_exec_time += tmp_metric_exec_time
-
 
             if self.is_monitor_mn:
                 exec_time = time.time() - exec_time_origin - metric_exec_time
                 self.save_mn(exec_time=exec_time)
                 self.save_graph(exec_time=exec_time)
-
             self.total_iter_num.append(iter_number)
+
             if self.is_show_metrics:
                 self.update_metrics(edges, recall, precision, f1_score, suff_stats_list)
                 if f1_score[-1] >= .7:
                     self.ss_at_70 = (len(self.sufficient_stats) - len(self.variables)) / len(self.initial_search_space)
                     is_ss_at_70_regeistered = True
             
-            is_activated_edge, activated_edge, iter_number = self.activation_test()
+            is_activated_edge, activated_edges_list, iter_number = self.activation_test()
 
         if is_activated_edge == False:
                 self.is_converged = True
@@ -367,132 +393,43 @@ class SelectiveStructuredPriorityGraft():
 
     def update_k_relevant(self, bp):
         #Update relevant edges
+        dropped = 0
+        update = False
         for rel_edge in self.k_relevant.keys():
-            sufficient_stat_edge = self.sufficient_stats[rel_edge]
-            belief = bp.var_beliefs[rel_edge[0]] + np.matrix(bp.var_beliefs[rel_edge[1]]).T
-            gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(self.data)).squeeze()
-            gradient_norm = np.sqrt(gradient.dot(gradient))
-            length_normalizer = np.sqrt(len(gradient))
-            passed = (gradient_norm / length_normalizer) > self.edge_l1
-            if not passed:
-                direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
-                self.frozen_list.append((rel_edge, direct_penalty))
-                self.k_relevant.pop(rel_edge, None)
-                self.candidate_graph.setdefault(rel_edge[0], []).remove(rel_edge[1])
-                self.candidate_graph.setdefault(rel_edge[1], []).remove(rel_edge[0])
+            for node in self.updated_nodes.keys():
+                if nx.has_path(self.graph, node, rel_edge[0]) or nx.has_path(self.graph, node, rel_edge[0]):
+                    update = True
+                    break
+            if not update:       
+                continue
             else:
-                self.k_relevant[rel_edge] = (gradient_norm / length_normalizer)
+                sufficient_stat_edge = self.sufficient_stats[rel_edge]
+                unormalized_belief = bp.unormalized_var_beliefs[rel_edge[0]] + np.matrix(bp.unormalized_var_beliefs[rel_edge[1]]).T
+                belief = unormalized_belief - logsumexp(unormalized_belief)
+                gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len(self.data)).squeeze()
+                gradient_norm = np.sqrt(gradient.dot(gradient))
+                length_normalizer = np.sqrt(len(gradient))
+                passed = (gradient_norm / length_normalizer) > self.edge_l1
+                if not passed:
+                    dropped += 1
+                    direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
+                    self.frozen_list.append((rel_edge, direct_penalty))
+                    self.k_relevant.pop(rel_edge, None)
+                else:
+                    self.k_relevant[rel_edge] = (gradient_norm / length_normalizer)
 
-    # def update_pq(self, bp):
-    #     for node in self.candidate_graph.keys():
-    #         if len(self.candidate_graph[node])>0 and self.graph.degree(node)>0:
-    #             for cand_neighbor in self.candidate_graph[node]:
-    #                 candidate_edge = (min(node, cand_neighbor), max(node, cand_neighbor))
-    #                 for real_neighbor in self.graph[node]:
-    #                     real_edge = (min(node, real_neighbor), max(node, real_neighbor))
-    #                     edge = (min(cand_neighbor, real_neighbor), max(cand_neighbor, real_neighbor))
-    #                     belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
-    #                     # belief = np.exp(belief.T.reshape((-1, 1)).tolist()).squeeze()
-    #                     gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
-    #                     gradient_norm = np.sqrt(gradient.dot(gradient))
-    #                     length_normalizer = np.sqrt(len(gradient))
-    #                     deviation = (gradient_norm / (length_normalizer * self.edge_l1))
-    #                     if edge in self.pq:
-    #                         print('//////////////////')
-    #                         print('edge to update')
-    #                         print(edge)
-    #                         print('rel edge gradient')
-    #                         print(deviation)
-    #                         self.pq.updateitem(edge, self.pq[edge] + 1 - (self.k_relevant[(min(node, cand_neighbor), max(node, cand_neighbor))] / self.edge_l1))
-    #                         print('candidate edge energy')
-    #                         print(self.k_relevant[candidate_edge]/ self.edge_l1)
-    #                         print('is relevant')
-    #                         print(edge in self.edges)
-    #                         print('//////////////////')
-
-    def update_pq(self, bp, candidate_edge):
-        node_0 = candidate_edge[0]
-        node_1 = candidate_edge[1]
-
-        belief = bp.var_beliefs[candidate_edge[0]] + np.matrix(bp.var_beliefs[candidate_edge[1]]).T
-        gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[candidate_edge]) / len(self.data)).squeeze()
-        gradient_norm = np.sqrt(gradient.dot(gradient))
-        length_normalizer = np.sqrt(len(gradient))
-        candidate_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
-
-
-
-        for real_neighbor in self.graph[node_0]:
-            # real_edge = (min(node_0, real_neighbor), max(node_0, real_neighbor))
-
-            # belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
-            # gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
-            # gradient_norm = np.sqrt(gradient.dot(gradient))
-            # length_normalizer = np.sqrt(len(gradient))
-            # real_edge_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
-
-            # deviation = real_edge_deviation + candidate_deviation
-
-            edge = (min(node_1, real_neighbor), max(node_1, real_neighbor))
-            if edge in self.pq:
-                # print('//////////////////////')
-                # print('updated edge')
-                # print(edge)
-                # print(self.pq[edge])
-                # # print('deviation')
-                # # print(deviation)
-                # print('Is relevant?')
-                # print(edge in self.edges)
-
-                # print(self.pq)
-                # update = self.pq[edge] + deviation
-
-                # self.pq.updateitem(edge, self.pq[edge] - deviation)
-
-                self.pq.updateitem(edge, self.pq[edge] + 1)
-
-                # self.pq.updateitem(edge, self.pq[edge] - 1)
-                # print('rank of edge in pq')
-                # print(sorted(list(self.pq.values())).index(self.pq[edge]))
-                # print('len pq')
-                # print(self.pq[edge])
-                # print('//////////////////////')
-
-
-
-
-        for real_neighbor in self.graph[node_1]:
-            # real_edge = (min(node_1, real_neighbor), max(node_1, real_neighbor))
-            # belief = bp.var_beliefs[real_edge[0]] + np.matrix(bp.var_beliefs[real_edge[1]]).T
-            # gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(self.sufficient_stats[real_edge]) / len(self.data)).squeeze()
-            # gradient_norm = np.sqrt(gradient.dot(gradient))
-            # length_normalizer = np.sqrt(len(gradient))
-            # real_edge_deviation = (gradient_norm / (length_normalizer * self.edge_l1))
-
-            # deviation = real_edge_deviation + candidate_deviation
-
-            edge = (min(node_0, real_neighbor), max(node_0, real_neighbor))
-            if edge in self.pq:
-                # print('//////////////////////')
-                # print('updated edge')
-                # print(edge)
-                # print(self.pq[edge])
-                # # print('deviation')
-                # # print(deviation)
-                # print('Is relevant?')
-                # print(edge in self.edges)
-                # update = self.pq[edge] + deviation
-                # print(self.pq)
-
-                # self.pq.updateitem(edge, self.pq[edge] - deviation)
-                self.pq.updateitem(edge, self.pq[edge] + 1)
-
-                # self.pq.updateitem(edge, self.pq[edge] - 1)
-                # print('rank of edge in pq')
-                # print(sorted(list(self.pq.values())).index(self.pq[edge]))
-                # print('len pq')
-                # print(self.pq[edge])
-                # print('//////////////////////')
+    def update_pq(self):
+        if self.m > 0:
+            self.centrality = nx.degree_centrality(self.graph)
+            # self.m_central_nodes = [x[0] for x in sorted(self.centrality.iteritems(), key=operator.itemgetter(1), reverse=True)[:self.m]]
+            for i in range(self.m):
+                node = max(stats.iteritems(), key=operator.itemgetter(1))[0]
+                self.centrality.remove(nodes)
+                self.m_central_nodes.append(node)
+            for node_1 in self.m_central_nodes:
+                for node_2 in self.m_central_nodes:
+                    if (node_1,node_2) in self.pq:
+                        self.pq.updateitem((node_1,node_2), self.pq[(node_1,node_2)] - 1)
 
     def activation_test(self):
         """
@@ -505,12 +442,9 @@ class SelectiveStructuredPriorityGraft():
         bp = self.aml_optimize.belief_propagators[0]
         bp.load_beliefs()
         len_data = len(self.data)
-
         self.update_k_relevant(bp)
-
         while len(self.pq)>0:
             while len(self.pq)>0:
-
                 item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
                 iteration_activation += 1
@@ -521,41 +455,43 @@ class SelectiveStructuredPriorityGraft():
                     sufficient_stat_edge, padded_sufficient_stat_edge =  self.get_sufficient_stats_per_edge(self.aml_optimize.belief_propagators[0].mn,edge)
                     self.sufficient_stats[edge] = sufficient_stat_edge
                     self.padded_sufficient_stats[edge] = padded_sufficient_stat_edge
-                belief = bp.var_beliefs[edge[0]] + np.matrix(bp.var_beliefs[edge[1]]).T
+                unormalized_belief = bp.unormalized_var_beliefs[edge[0]] + np.matrix(bp.unormalized_var_beliefs[edge[1]]).T
+                belief = unormalized_belief - logsumexp(unormalized_belief)
                 gradient = (np.exp(belief.T.reshape((-1, 1)).tolist()) - np.asarray(sufficient_stat_edge) / len_data).squeeze()
+                grad = np.abs(gradient) - self.l1_coeff
+                if self.l1_coeff > 0:
+                    grad = np.abs(gradient) - self.l1_coeff
+                    grad[grad<0] = 0
+                    grad *= np.sign(gradient) 
+                    gradient = grad
                 gradient_norm = np.sqrt(gradient.dot(gradient))
                 length_normalizer = np.sqrt(len(gradient))
                 passed = (gradient_norm / length_normalizer) > self.edge_l1
-
                 if passed:
                     self.is_added = True
                     self.k_relevant[edge] = gradient_norm / length_normalizer
-
-                    if self.structured and len(self.active_set) > 5:
-                        self.update_pq(bp, edge)
-
-                    self.candidate_graph.setdefault(edge[0], []).append(edge[1])
-                    self.candidate_graph.setdefault(edge[1], []).append(edge[0])
-
                     if len(self.k_relevant) == self.k:
-                        selected_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
-                        self.k_relevant.pop(selected_edge, None)
-                        self.search_space.remove(selected_edge)
-                        self.candidate_graph.setdefault(selected_edge[0], []).remove(selected_edge[1])
-                        self.candidate_graph.setdefault(selected_edge[1], []).remove(selected_edge[0])
-                        # self.is_added = True
-                        return True, selected_edge, iteration_activation
+                        selected_edges_list = list()
+                        self.updated_nodes = dict()
+                        for i in range(self.select_unit):
+                            selected_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
+                            if selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
+                                self.updated_nodes[selected_edge[0]] = True
+                                self.updated_nodes[selected_edge[1]] = True
+                                self.k_relevant.pop(selected_edge, None)
+                                self.search_space.remove(selected_edge)
+                                selected_edges_list.append(selected_edge)
+                        return True, selected_edges_list, iteration_activation
                 else:
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
                     self.frozen_list.append((edge, direct_penalty))
-
             if self.is_added:
                 self.is_added = False
                 for frozen_items in self.frozen_list:
-                    self.pq.additem(frozen_items[0], frozen_items[1] )
+                    self.pq.additem(frozen_items[0], frozen_items[1])
                 refill = True
                 self.frozen_list = list()
-        return False, (0, 0), iteration_activation
+        return False, [(0, 0)], iteration_activation
 
 
     def setup_grafting_learner(self, len_data):
@@ -582,66 +518,12 @@ class SelectiveStructuredPriorityGraft():
         aml_optimize.set_sufficient_stats(tau_q)
         return aml_optimize
 
-    def get_linked_inactive_tested_edges(self, edge):
-        linked_inactive_tested_edges = list()
-
-        reachable_nodes = self.update_subgraphs(edge)
-
-        for node in reachable_nodes:
-            linked_inactive_tested_edges.extend(self.frozen[node]) # GET ALL FROZEN EDGES THAT INCLUDE node as one end
-            for item in self.frozen[node]:# REMOVE all FROZEN EDGES THAT INCLUDE node as one end
-                edge = item[0]
-                if edge[0] != node:
-                    self.frozen.setdefault(edge[0], []).remove(item)
-                else:
-                    self.frozen.setdefault(edge[1], []).remove(item)
-            # print(self.frozen[node])
-            self.frozen[node] = list() # REMOVE all FROZEN EDGES THAT INCLUDE node as one end
-
-        linked_inactive_tested_edges = list(set(linked_inactive_tested_edges))
-
-        return linked_inactive_tested_edges
-
-
-
-    def update_subgraphs(self, edge):
-
-        descendants = list(set(list(nx.shortest_path(self.graph,source=edge[0])) + list(nx.shortest_path(self.graph,source=edge[1]))))
-
-        # subgraph_0, subgraph_1 = None, None # MERGE SUBGRAPHS TOGETHER
-        # key_0, key_1 = 'k1', 'k2'
-        # for subgraph_key in self.subgraphs.keys():
-        #     if edge[0] in self.subgraphs[subgraph_key]:
-        #         subgraph_0 = self.subgraphs[subgraph_key]
-        #         key_0 = subgraph_key
-        #     if edge[1] in self.subgraphs[subgraph_key]:
-        #         subgraph_1 = self.subgraphs[subgraph_key]
-        #         key_1 = subgraph_key
-        # if key_0 == key_1:
-        #     return []
-        # descendants = list()
-        # if subgraph_0 == None and subgraph_1 == None:
-        #     self.subgraphs[edge[0]] = [edge[0], edge[1]]
-        # if subgraph_0 == None and subgraph_1 != None:
-        #     self.subgraphs.setdefault(key_1, []).append(edge[0])
-        #     descendants = self.subgraphs[key_1]
-        # if subgraph_0 != None and subgraph_1 == None:
-        #     self.subgraphs.setdefault(key_0, []).append(edge[1])
-        #     descendants = self.subgraphs[key_0]
-        # if subgraph_0 != None and subgraph_1 != None:
-        #     self.subgraphs.setdefault(key_0, []).extend(self.subgraphs[key_1])
-        #     self.subgraphs.pop(key_1, None)
-        #     descendants = self.subgraphs[key_0]
-
-        return descendants # RETURN nodes that can be reachable from any of edge's two nodes
-
 
     def make_queue_plot_ground_truth(self, values, rows, columns, loop_num, len_search_space):
         """
         Plot queue reorganization using ground truth edges
         """
         view_queue_tmp = sps.csr_matrix((np.array(values), (np.array(rows), np.array(columns))) , (loop_num + 1, len_search_space))
-
         view_queue_tmp = view_queue_tmp.todense()
         view_queue_tmp[view_queue_tmp==0] = .2
         view_queue = np.zeros((loop_num+2, len_search_space+2))
@@ -740,21 +622,16 @@ class SelectiveStructuredPriorityGraft():
         except:
             curr_recall = 0
         recall.append(curr_recall)
-
         try:
             curr_precision = float(len([x for x in edges if x in self.active_set]))/len(self.active_set)
         except:
             curr_precision = 0
-
         precision.append(curr_precision)
-
         if curr_precision==0 or curr_recall==0:
             curr_f1_score = 0
         else:
             curr_f1_score = (2 * curr_precision * curr_recall) / (curr_precision + curr_recall)
-
         f1_score.append(curr_f1_score)
-
         suff_stats_list.append(float(len(self.sufficient_stats) - len(self.variables))/ len(self.initial_search_space))
 
     def remove_zero_edges(self):
@@ -769,7 +646,6 @@ class SelectiveStructuredPriorityGraft():
         for edge in self.active_set:
             # print('EDGE')
             # print(edge)
-
             i = self.aml_optimize.belief_propagators[0].mn.edge_index[edge]
             edge_weights = self.aml_optimize.belief_propagators[0].mn.edge_pot_tensor[:self.aml_optimize.belief_propagators[0].mn.num_states[edge[1]], :self.aml_optimize.belief_propagators[0].mn.num_states[edge[0]], i].flatten()
             # length_normalizer = float(1) / len(edge_weights)

@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
@@ -20,7 +21,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
                     # default_counting_numbers[(var, neighbor)] = 5
                     #########
 
-                    default_counting_numbers[(var, neighbor)] = 1.5
+                    default_counting_numbers[(var, neighbor)] = 1
 
         if counting_numbers:
             self._set_counting_numbers(counting_numbers)
@@ -91,6 +92,8 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
             self.belief_mat /= self.unary_coefficients.T
+            self.unormalized_belief_mat = copy.deepcopy(self.belief_mat)
+
             log_z = logsumexp(self.belief_mat, 0)
 
             self.belief_mat = self.belief_mat - log_z

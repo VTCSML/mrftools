@@ -2,6 +2,7 @@
 from LogLinearModel import LogLinearModel
 from Learner import Learner
 from PairedDual import PairedDual
+from BeliefPropagator import BeliefPropagator
 from MatrixBeliefPropagator import MatrixBeliefPropagator
 from ConvexBeliefPropagator import ConvexBeliefPropagator
 import numpy as np
@@ -11,7 +12,7 @@ from copy import deepcopy
 
 class ApproxMaxLikelihood(Learner):
     """Object that runs approximate maximum likelihood parameter training."""
-
+    # def __init__(self, markov_net, inference_type=BeliefPropagator):
     def __init__(self, markov_net, inference_type=MatrixBeliefPropagator):
     # def __init__(self, markov_net, inference_type=ConvexBeliefPropagator):
         super(ApproxMaxLikelihood, self).__init__(inference_type)

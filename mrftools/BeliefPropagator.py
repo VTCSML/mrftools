@@ -42,6 +42,11 @@ class BeliefPropagator(Inference):
                 belief = belief - log_z
                 self.pair_beliefs[(var, neighbor)] = belief
 
+    def graft_condition(self):
+        self.compute_beliefs()
+        self.compute_pairwise_beliefs()
+        self.fully_conditioned = True
+
     def compute_beliefs(self):
         """Compute unary beliefs based on current messages."""
         for var in self.mn.variables:

@@ -10,22 +10,22 @@ import time
 from Graft import Graft
 
 
-# METHODS = ['structured', 'naive', 'queue']
+METHODS = ['graft']
 METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'black', 'graft':'blue'}
 METHODS = ['graft']
 def main():
-	edge_reg = 0.04 #np.arange(0.01,0.25,0.05) 
+	edge_reg = 0.02 #np.arange(0.01,0.25,0.05) 
 	node_reg = 0.05
 	len_data = 1000
 	priority_graft_iter = 2500
-	graft_iter = 100
+	graft_iter = 5000
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 10
+	num_nodes = 25
 	state_num = 5
 	T_likelihoods = dict()
 	edge_std = 5
-	node_std = .0001
+	node_std = .001
 
 	mrf_density = float(1)/((num_nodes - 1))
 	print('================================= ///////////////////START//////////////// ========================================= ')
@@ -72,31 +72,31 @@ def main():
 		exec_time = time.time() - t
 		precisions['graft'] = precision
 		recalls['graft'] = recall
-		# mn_snapshots['graft'] = grafter.mn_snapshots
-		# time_stamps = sorted(list(grafter.mn_snapshots.keys()))
-		# M_time_stamps['graft'] = time_stamps
-		# method_likelihoods = []
-		# print(len(time_stamps))
+		mn_snapshots['graft'] = grafter.mn_snapshots
+		time_stamps = sorted(list(grafter.mn_snapshots.keys()))
+		M_time_stamps['graft'] = time_stamps
+		method_likelihoods = []
+		print(len(time_stamps))
 		print(objec)
 
 		################################### REMOVE THIS
 		# edges = final_active_set
 
-		# plt.close()
-		# fig, ax1 = plt.subplots()
-		# ax2 = ax1.twinx()
-		# for i in range(len(METHODS)):
-		# 	print(METHODS[i])
-		# 	ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
-		# 	ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
-		# ax1.set_xlabel('Time')
-		# ax1.set_ylabel('Normalized Loss')
-		# ax2.set_ylabel('F1 Score')
-		# ax2.legend(loc=4, fancybox=True, framealpha=0.5)
-		# ax1.legend(loc='best', framealpha=0.5)
-		# plt.title('Loss-F1')
-		# plt.savefig('../../../pq_plot/' + str(len(variables)) + '_loss_.png')
-		# plt.close()
+		plt.close()
+		fig, ax1 = plt.subplots()
+		ax2 = ax1.twinx()
+		for i in range(len(METHODS)):
+			print(METHODS[i])
+			ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
+			ax2.plot(M_time_stamps[METHODS[i]], f1_scores[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='F1-'+METHODS[i])
+		ax1.set_xlabel('Time')
+		ax1.set_ylabel('Normalized Loss')
+		ax2.set_ylabel('F1 Score')
+		ax2.legend(loc=4, fancybox=True, framealpha=0.5)
+		ax1.legend(loc='best', framealpha=0.5)
+		plt.title('Loss-F1')
+		plt.savefig('../../../pq_plot/' + str(len(variables)) + 'Graftloss_.png')
+		plt.close()
 
 
 

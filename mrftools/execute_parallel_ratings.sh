@@ -1,14 +1,22 @@
 #!/bin/bash
 rm -r ../../../results_ratings
 mkdir ../../../results_ratings
-for edge_num in 100 150 200 300 400 500
+for edge_num in 250 500 
 do
   mkdir ../../../results_ratings/$edge_num
-  for edge_reg in 0.0001 0.001 0.01
+  for group_l1 in 0.0001 0.001 0.01 0.1 1
   do
-  	mkdir ../../../results_ratings/$edge_num/$edge_reg
-  	c="$edge_num _"
-  	c=$c$edge_reg
-    nohup stdbuf -oL python generate_nll_ratings.py --edge_num $edge_num --edge_reg $edge_reg > logs/ratings_nll_"$c" &
+  	mkdir ../../../results_ratings/$edge_num/$group_l1
+  	for l2 in 0.1 0.5 0.9
+    do
+  	  mkdir ../../../results_ratings/$edge_num/$group_l1/$l2
+  	  a="_"
+  	  c=$edge_num
+  	  c=$c$a
+  	  c=$c$group_l1
+  	  c=$c$a
+  	  c=$c$l2
+      nohup stdbuf -oL python generate_nll_ratings.py --edge_num $edge_num --group_l1 $group_l1 --l2 $l2 > logs/ratings_nll_"$c" &
+    done
   done
 done

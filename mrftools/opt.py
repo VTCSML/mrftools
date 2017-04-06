@@ -18,23 +18,48 @@ def sgd(func, grad, x, args, callback):
 
     return x
 
-def ada_grad(func, grad, x, args, callback, iter_num = 500):
+def ada_grad(func, grad, x, args, callback, added_edge, iter_num):
+    weights = np.ones(len(x))
+    if added_edge is not None:
+        weights[added_edge] = .9
     t = 1
-    tolerance = 1e-6
+    g_tolerance = 1e-15
+    f_tolerance = 1e-15
     max_iter = iter_num
     grad_norm = np.inf
     grad_sum = 0
+    old_f = float('inf')
     f = func(x, args)
-    while grad_norm > tolerance and t < max_iter:
+    f_change = float('inf')
+
+    while grad_norm > g_tolerance and f_change > f_tolerance and t < max_iter:
         f = func(x, args)
+        if f > 10000:
+            print('ERORRR!!!!!!')
+            print(f)
+            print('ERORRR!!!!!!')
+        f_change = np.abs(old_f - f)
+        old_f = f
         old_x = x
         g = grad(x, args)
+        # print('g')
+        # print(g)
         grad_sum += g * g
-        x = x - 0.1 * g / (np.sqrt(grad_sum) + 0.5)
+        # x = x - 0.1 * g / (1 + np.sqrt(grad_sum))
+        x = x - g / (1e-5 + np.sqrt(grad_sum) * weights) 
+        # x = x - g / (1 + t)
         grad_norm = np.sqrt(g.dot(g))
         t += 1
         if callback:
             callback(x)
+    print('weights norm')
+    print(np.sqrt(x.dot(x)))
+    print('iter num')
+    print(t)
+    print('gradient norm')
+    print(grad_norm/len(x))
+    print('obj change')
+    print(f_change)
     return x
 
 def ada_grad_1(func, grad, x, zero_index, args, callback, tot_grad):
@@ -42,53 +67,23 @@ def ada_grad_1(func, grad, x, zero_index, args, callback, tot_grad):
     tolerance = 1e-6
     max_iter = 1500
     grad_norm = np.inf
-    # print(zero_index)
-    # x[zero_index] = 0
-    # print('start')
-    # print(zero_index)
-    # tot_grad = np.zeros(len(x))
     grad_sum = 0
     g = grad(x, args)
-    # g[zero_index] = 0
-    # print('First gradient')
-    # print(g)
-    # print(np.sqrt(g.dot(g)))
     while grad_norm > tolerance and t < max_iter:
         x[zero_index] = 0
         f = func(x, args)
-        # print(f)
         old_x = x
         g = grad(x, args)
         full_grad = copy.deepcopy(g)
-        # print('///')
-        # print(g)
-        # g[zero_index] = 0
-        # print(g)
         grad_norm = g * g
         grad_sum += grad_norm
         tot_grad += np.abs(g)
-        ##########
-        # x = x - 0.1 * g / (np.sqrt(grad_sum) + 0.001)
-        ###########
-        x = x - (0.1 /(tot_grad + 0.001)) * g
-
+        x = x - g/tot_grad
         grad_norm = np.sqrt(g.dot(g))
         t += 1
         if callback:
             callback(x)
-    # print(x)
-    tot_grad[zero_index] = 0
-    print('iter')
-    print(t)
-    # print('out')
-    # print(full_grad)
-    # print(f)
-    # print('Last gradient')
-    # print(g)
-    # print(np.sqrt(g.dot(g)))
     return x, tot_grad
-import matplotlib.pyplot as plt
-import time
 
 class WeightRecord(object):
     def __init__(self):

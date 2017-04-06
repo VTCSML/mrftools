@@ -5,7 +5,7 @@ from GibbsSamplerMod import GibbsSamplerMod
 import itertools
 import random
 from scipy.stats import rv_continuous
-
+import networkx as nx
 import matplotlib.pyplot as plt
 
 def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_std, mrf_density=.1):
@@ -34,13 +34,21 @@ def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_
         # print(np.random.normal(0, node_std, num_states_dict[node]))
 
         # model.set_unary_factor(node, np.zeros(num_states_dict[node]))
-        model.set_unary_factor(node, np.random.normal(0, node_std, num_states_dict[node]))
+        model.set_unary_factor(node, np.random.normal(100, node_std, num_states_dict[node]))
 
         # model.set_unary_factor(node, np.random.randint(30, size=num_states_dict[node]))
-    
-    all_possible_edges = [x for x in list(itertools.product(variables, variables)) if x[0] < x[1]]
 
-    edges = [all_possible_edges[i] for i in sorted(random.sample(xrange(len(all_possible_edges)), max(int(mrf_density * len(all_possible_edges)), 1)))]
+    ws = nx.barabasi_albert_graph(nodes_num, 2)
+    edges = list()
+
+    for node in ws.nodes():
+        for neighbor in ws[node]:
+            if node < neighbor:
+                edges.append((node, neighbor))
+    
+    # all_possible_edges = [x for x in list(itertools.product(variables, variables)) if x[0] < x[1]]
+
+    # edges = [all_possible_edges[i] for i in sorted(random.sample(xrange(len(all_possible_edges)), max(int(mrf_density * len(all_possible_edges)), 1)))]
     
     for edge in edges:
         #######################
@@ -51,7 +59,7 @@ def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_
         #######################
 
         # factor = random.sample(range(-100,100,10),  (num_states_dict[edge[0]], num_states_dict[edge[1]]))
-        factor = np.random.normal(10, edge_std, (num_states_dict[edge[0]], num_states_dict[edge[1]]))
+        factor = np.random.normal(100, edge_std, (num_states_dict[edge[0]], num_states_dict[edge[1]]))
         # print(factor)
         x = []
         [x.append(factor[i,j]) for i in range(num_states_dict[edge[0]]) for j in range(num_states_dict[edge[1]])]
@@ -61,8 +69,8 @@ def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_
         # print(np.random.randn(num_states_dict[num_states_dict[edge[0]], num_states_dict[edge[1]]))
         # print(np.random.randint(5, size=(num_states_dict[edge[0]], num_states_dict[edge[1]])))
 
-        plt.plot(x, linewidth=1)
-        plt.savefig('../../../factor.png')
+        # plt.plot(x, linewidth=1)
+        # plt.savefig('../../../factor.png')
 
     return model, max_num_states, num_states_dict, variables, edges
 
