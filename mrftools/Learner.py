@@ -124,15 +124,15 @@ class Learner(object):
         return self.objective(weights)
 
     def subgrad_obj_dual(self, weights, options=None):
-        if self.feature_graft:
-            weights[self.zero_feature_indices] = 0
+        # if self.feature_graft:
+        #     weights[self.zero_feature_indices] = 0
         if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
-        if self.feature_graft:
-            weights[self.zero_feature_indices] = 0
+        # if self.feature_graft:
+            # weights[self.zero_feature_indices] = 0
         if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
@@ -142,10 +142,9 @@ class Learner(object):
         g[:] = self.subgrad_grad(x)
         return obj
 
-    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data, verbose=False, callback_f=None):
+    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data, verbose=False, callback_f=None, loss=None):
         self.edge_regularizers = edge_regularizers
         self.var_regularizers = var_regularizers
-        self.feature_graft = is_feature_graft
         self.data = data
         self.len_data = len(data)
 
@@ -155,7 +154,8 @@ class Learner(object):
 
         res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter, 'gtol': 1e-15, 'ftol': 1e-15})
         new_weights = res.x
-        loss.append(self.objec)
+        if loss is not None:
+            loss.append(self.objec)
         print(self.objec)
         t = 0
         if verbose:
@@ -188,8 +188,8 @@ class Learner(object):
         return self.get_feature_expectations(belief_propagators)
 
     def objective(self, weights, options=None):
-        if self.feature_graft:
-            weights[self.zero_feature_indices] = 0
+        # if self.feature_graft:
+        #     weights[self.zero_feature_indices] = 0
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
         if not self.fully_observed:
@@ -227,8 +227,8 @@ class Learner(object):
 
     def gradient(self, weights, options=None):
 
-        if self.feature_graft:
-            weights[self.zero_feature_indices] = 0
+        # if self.feature_graft:
+        #     weights[self.zero_feature_indices] = 0
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, False) 
         grad = np.zeros(len(weights))
         grad += self.l1_regularization * np.sign(weights)

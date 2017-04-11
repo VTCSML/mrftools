@@ -16,7 +16,7 @@ do
   	  c=$c$group_l1
   	  c=$c$a
   	  c=$c$l2
-      nohup stdbuf -oL python generate_nll_food.py --edge_num $edge_num --group_l1 $group_l1 --l2 $l2 > logs/food_nll_"$c" &
+      nohup stdbuf -oL python generate_nll_plots_food.py --edge_num $edge_num --group_l1 $group_l1 --l2 $l2 > logs/food_nll_"$c" &
     done
   done
 done

@@ -109,15 +109,31 @@ class SelectiveStructuredPriorityGraft():
         self.is_grow_k = False
         self.m = 10
         self.total_reservoir_weight = 0
+        self.is_reservoir_full = False
+        self.max_update_step = 50
+        self.current_update_step = 0
+        self.is_shrink_k = False
+        self.alpha = .99
+
+        self.updated_nodes = dict()
 
     def on_structured(self):
         self.structured = True
+
+    def set_alpha(self, alpha=.9):
+        self.alpha = alpha
+
+    def set_max_update_step(self, max_update_step=50):
+        self.max_update_step = max_update_step
 
     def set_reassigned_nodes(self, m=10):
         self.m = m
 
     def on_grow_k(self):
         self.is_grow_k = True
+
+    def on_shrink_k(self):
+        self.is_shrink_k = True
 
     def set_top_relvant(self, k=5):
         self.k = k
@@ -265,7 +281,7 @@ class SelectiveStructuredPriorityGraft():
 
         metric_exec_time = 0
         tmp_weights_opt = np.zeros(self.aml_optimize.weight_dim)
-        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
+        weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=False, loss=objec)
         metric_exec_time += tmp_metric_exec_time
 
         objec.extend(objec)
@@ -290,12 +306,14 @@ class SelectiveStructuredPriorityGraft():
         while self.continue_graft(break_grafting, is_activated_edge, num_edges):
             
             if len(self.pq) == 0 and not is_activated_edge :
-                activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)[ : num_edges - len(self.active_set) + 1]]
+                activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)[ : num_edges - len(self.active_set)]]
                 break_grafting = True
 
             for activated_edge in activated_edges_list:
                 if self.is_grow_k:
                     self.k += 1
+                if self.is_shrink_k:
+                    self.k -= 1
                 self.active_set.append(activated_edge)
                 self.graph.add_edge(activated_edge[0], activated_edge[1])
 
@@ -314,7 +332,7 @@ class SelectiveStructuredPriorityGraft():
             unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
             self.set_regularization_indices(unary_indices, pairwise_indices)
             tmp_weights_opt, old_node_regularizers, old_edge_regularizers= self.reinit_weight_vec(unary_indices, pairwise_indices, weights_opt, vector_length_per_edge, old_node_regularizers, old_edge_regularizers, len(activated_edges_list))
-            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=False, loss=objec, ss_test = self.sufficient_stats_test, search_space = self.search_space, len_data = data_len, bp = self.aml_optimize.belief_propagators[0], is_real_loss = self.is_real_loss)
+            weights_opt, tmp_metric_exec_time = self.aml_optimize.learn(tmp_weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=False, loss=objec)
             metric_exec_time += tmp_metric_exec_time
 
             if self.is_monitor_mn:
@@ -361,6 +379,8 @@ class SelectiveStructuredPriorityGraft():
         #Update relevant edges
         dropped = 0
         update = False
+        print('updated')
+        print(self.updated_nodes)
         for rel_edge in self.k_relevant.keys():
             for node in self.updated_nodes.keys():
                 if nx.has_path(self.graph, node, rel_edge[0]) or nx.has_path(self.graph, node, rel_edge[0]):
@@ -383,6 +403,8 @@ class SelectiveStructuredPriorityGraft():
                     self.k_relevant.pop(rel_edge, None)
                 else:
                     self.k_relevant[rel_edge] = (gradient_norm / length_normalizer)
+        print('reservoir')
+        print(self.k_relevant)
 
     def update_pq(self):
         if self.m > 0:
@@ -411,6 +433,8 @@ class SelectiveStructuredPriorityGraft():
         self.update_k_relevant(bp)
         while len(self.pq)>0:
             while len(self.pq)>0:
+                # print('pq')
+                # print(len(self.pq))
                 item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
                 iteration_activation += 1
@@ -434,28 +458,43 @@ class SelectiveStructuredPriorityGraft():
                 length_normalizer = np.sqrt(len(gradient))
                 passed = (gradient_norm / length_normalizer) > self.edge_l1
                 if passed:
-                    self.is_added = True
                     self.k_relevant[edge] = gradient_norm / length_normalizer
-                    self.total_reservoir_weight += self.k_relevant[edge]
                     if len(self.k_relevant) == self.k + 1:
-                        if (self.k == 1) or (self.k > 1 and gradient_norm / length_normalizer > self.total_reservoir_weight / (4 * (self.k + 1))):
+                        self.is_reservoir_full = True
+
+                    if self.is_reservoir_full:
+                        if self.current_update_step == self.max_update_step:
+                            self.current_update_step = 0
                             selected_edges_list = list()
                             self.updated_nodes = dict()
-                            for i in range(self.select_unit):
-                                selected_edge = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
-                                if selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
+                            max_weight = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[1]
+                            mean_weight = np.mean(self.k_relevant.values())
+                            threshold = (1 - self.alpha) * mean_weight + self.alpha * max_weight
+                            is_threshold_reached = False
+                            while not is_threshold_reached:
+                                (selected_edge, selected_weight) = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))
+                                if selected_weight >= threshold and selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
                                     self.updated_nodes[selected_edge[0]] = True
                                     self.updated_nodes[selected_edge[1]] = True
                                     self.k_relevant.pop(selected_edge, None)
                                     self.search_space.remove(selected_edge)
                                     selected_edges_list.append(selected_edge)
+                                else:
+                                    is_threshold_reached = True
+                                    # self.k -= 1
+                            if not self.is_added:
+                                self.is_added = True
                             return True, selected_edges_list, iteration_activation
                         else:
-                            dropped_edge = min(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0]
-                            direct_penalty = 1 - self.k_relevant[dropped_edge] / self.edge_l1
-                            self.total_reservoir_weight -= self.k_relevant[edge]
-                            self.frozen_list.append((edge, direct_penalty))
-                            self.k_relevant.pop(dropped_edge, None)
+                            self.current_update_step += 1
+                            # print('reservoir')
+                            # print(len(self.k_relevant))
+                            #####################################################
+                            if len(self.k_relevant) > self.k:
+                                dropped_edge = min(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0] #DROP THE ITEM
+                                direct_penalty = 1 - self.k_relevant[dropped_edge] / self.edge_l1
+                                self.frozen_list.append((dropped_edge, direct_penalty))
+                                self.k_relevant.pop(dropped_edge, None)
                 else:
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
                     self.frozen_list.append((edge, direct_penalty))
@@ -587,12 +626,12 @@ class SelectiveStructuredPriorityGraft():
         UPDATE METRICS
         """
         try:
-            curr_recall = float(len([x for x in self.active_set if x in edges]))/len(edges)
+            curr_recall = float(len([x for x in set(self.active_set) if x in edges]))/len(edges)
         except:
             curr_recall = 0
         recall.append(curr_recall)
         try:
-            curr_precision = float(len([x for x in edges if x in self.active_set]))/len(self.active_set)
+            curr_precision = float(len([x for x in edges if x in set(self.active_set)]))/len(set(self.active_set))
         except:
             curr_precision = 0
         precision.append(curr_precision)

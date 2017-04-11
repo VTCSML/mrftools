@@ -7,7 +7,7 @@ def read_ingredients():
 
     start_time = time.time()
 
-    with open('../data/food.json') as data_file:
+    with open('../../../food.json') as data_file:
         recipes = json.load(data_file)
 
     # get variable values

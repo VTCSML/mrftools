@@ -1,4 +1,7 @@
 import time
+import matplotlib
+# matplotlib.rcParams['text.usetex'] = True
+# matplotlib.rcParams['text.latex.unicode'] = True
 import matplotlib.pyplot as plt
 import numpy as np
 from generate_synthetic_data import generate_synthetic_data, generate_random_synthetic_data
@@ -18,17 +21,17 @@ METHOD_COLORS = {'queue':'red', 'best_k': 'blue', 'struct_best_k':'black', 'StrS
 # METHODS = ['structured', 'queue']
 METHODS = []
 def main():
-	len_data = 5000
-	priority_graft_iter = 5000
+	len_data = 500
+	priority_graft_iter = 100
 	suffstats_ratio = .05
 	training_ratio = .6
-	num_nodes = 50
+	num_nodes = 25
 	state_num = 5
 	T_likelihoods = dict()
 	edge_std = 5
 	node_std = 1
 
-	edge_reg = 0.1 #np.arange(0.01,0.25,0.05) 
+	edge_reg = 0.01 #np.arange(0.01,0.25,0.05) 
 	node_reg = edge_reg
 	l2 = .5
 
@@ -62,7 +65,7 @@ def main():
 	METHODS = list()
 
 
-	edge_num = int(2 * num_nodes) #MAX NUM EDGES TO GRAFT
+	edge_num = int(num_nodes) #MAX NUM EDGES TO GRAFT
 
 
 
@@ -91,14 +94,22 @@ def main():
 	# recalls[meth] = recall
 	# METHOD_COLORS[meth] = 'green'
 
-	k = int(float(edge_num) / 3)
-	meth = 'best_' + str(k)
+
+
+	k = len(variables)/4
+	alpha = 1
+	max_update_step = len(variables)
+	meth = str(alpha) + '_best_' + str(k)
 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
 	pq = copy.deepcopy(original_pq)
 	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
 	sspg.on_show_metrics()
-	sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=0, l2_coeff=l2)
+	sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l2_coeff=l2)
 	sspg.set_top_relvant(k=k)
+	sspg.on_structured()
+	# sspg.set_select_unit(select_unit=select_unit)
+	sspg.set_alpha(alpha=alpha)
+	sspg.set_max_update_step(max_update_step=max_update_step)
 	sspg.on_monitor_mn()
 	sspg.on_verbose()
 	t = time.time()
@@ -117,31 +128,31 @@ def main():
 	METHOD_COLORS[meth] = 'red'
 
 
-	k = int(float(edge_num) / 3)
-	meth = 'struct_best_' + str(k)
-	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
-	pq = copy.deepcopy(original_pq)
-	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
-	sspg.on_show_metrics()
-	sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=0, l2_coeff=l2)
-	sspg.set_top_relvant(k=k)
-	sspg.on_monitor_mn()
-	sspg.on_verbose()
-	sspg.on_structured()
-	t = time.time()
-	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
-	exec_time = time.time() - t
-	print('---->Exec time')
-	print(exec_time)
-	print('Loss')
-	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
-	M_time_stamps[meth] = time_stamps
-	objs[meth] = objec
-	f1_scores[meth] = f1_score
-	METHODS.append(meth)
-	recalls[meth] = recall
-	METHOD_COLORS[meth] = 'black'
+	# k = int(float(edge_num) / 3)
+	# meth = 'struct_best_' + str(k)
+	# print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
+	# pq = copy.deepcopy(original_pq)
+	# sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	# sspg.on_show_metrics()
+	# sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=0, l2_coeff=l2)
+	# sspg.set_top_relvant(k=k)
+	# sspg.on_monitor_mn()
+	# sspg.on_verbose()
+	# sspg.on_structured()
+	# t = time.time()
+	# learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	# exec_time = time.time() - t
+	# print('---->Exec time')
+	# print(exec_time)
+	# print('Loss')
+	# print(objec)
+	# time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	# M_time_stamps[meth] = time_stamps
+	# objs[meth] = objec
+	# f1_scores[meth] = f1_score
+	# METHODS.append(meth)
+	# recalls[meth] = recall
+	# METHOD_COLORS[meth] = 'black'
 
 
 	# k = int(float(edge_num) / 3)
@@ -169,12 +180,13 @@ def main():
 	# recalls[meth] = recall
 	# METHOD_COLORS[meth] = 'black'
 
+	var = 'jndn'
 	plt.close()
 	fig, ax1 = plt.subplots()
 	ax2 = ax1.twinx()
 	for i in range(len(METHODS)):
 		print(METHODS[i])
-		ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='Loss-' + METHODS[i], linewidth=1)
+		ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label=r'$ \alpha = A $' + var, linewidth=1)
 		ax2.plot(M_time_stamps[METHODS[i]], recalls[METHODS[i]], METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker='o', label='Recall-'+METHODS[i])
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('Loss')

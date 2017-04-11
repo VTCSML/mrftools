@@ -38,7 +38,9 @@ def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_
 
         # model.set_unary_factor(node, np.random.randint(30, size=num_states_dict[node]))
 
-    ws = nx.barabasi_albert_graph(nodes_num, 2)
+    # ws = nx.scale_free_graph(nodes_num)
+    ws = nx.gaussian_random_partition_graph(nodes_num, int(float(nodes_num)/2),10,.25,.1)
+    # ws = nx.barabasi_albert_graph(nodes_num, 2)
     edges = list()
 
     for node in ws.nodes():
