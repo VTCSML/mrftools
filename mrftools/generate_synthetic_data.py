@@ -8,7 +8,7 @@ from scipy.stats import rv_continuous
 import networkx as nx
 import matplotlib.pyplot as plt
 
-def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_std, mrf_density=.1):
+def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_std, mrf_density=.1, mean_degree=2):
     np.random.seed(0)
     model = MarkovNet()
     edges, variables = list(), list()
@@ -39,8 +39,12 @@ def create_custom_random_model(nodes_num, state_min, max_states, edge_std, node_
         # model.set_unary_factor(node, np.random.randint(30, size=num_states_dict[node]))
 
     # ws = nx.scale_free_graph(nodes_num)
-    ws = nx.gaussian_random_partition_graph(nodes_num, int(float(nodes_num)/2),10,.25,.1)
-    # ws = nx.barabasi_albert_graph(nodes_num, 2)
+    # ws = nx.gaussian_random_partition_graph(nodes_num, int(float(nodes_num)/2),int(float(nodes_num)/5),.1,.01)
+    ws = nx.barabasi_albert_graph(nodes_num, mean_degree)
+
+    centrality = nx.degree_centrality(ws)
+    print(centrality)
+
     edges = list()
 
     for node in ws.nodes():
@@ -85,9 +89,9 @@ def generate_synthetic_data(data_points, clusters, nodes_per_cluster, max_states
     return model, variables, data, max_num_states, num_states_dict, edges
 
 
-def generate_random_synthetic_data(data_points, nodes_num, edge_std = 1, node_std = 1, mrf_density=.1, state_min=2, state_max=4):
+def generate_random_synthetic_data(data_points, nodes_num, edge_std = 1, node_std = 1, mrf_density=.1, state_min=2, state_max=4, mean_degree=2):
     print('> Creating model')
-    model, max_num_states, num_states_dict, variables, edges = create_custom_random_model(nodes_num, state_min, state_min, edge_std, node_std, mrf_density=mrf_density)
+    model, max_num_states, num_states_dict, variables, edges = create_custom_random_model(nodes_num, state_min, state_min, edge_std, node_std, mrf_density=mrf_density, mean_degree=mean_degree)
     print('> Generating data')
     data = sample_data(model, data_points)
     return model, variables, data, max_num_states, num_states_dict, edges

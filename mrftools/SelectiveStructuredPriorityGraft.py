@@ -84,9 +84,11 @@ class SelectiveStructuredPriorityGraft():
         self.k_graph = nx.Graph()
         self.frozen = dict()
         self.total_iter_num = list()
+        self.not_connected = dict()
         for var in self.variables:
             self.graph.add_node(var)
             self.frozen[var] = list()
+            self.not_connected[var] = True
         self.subgraphs = dict()
         self.is_remove_zero_edges = False
         self.is_synthetic = False
@@ -107,13 +109,15 @@ class SelectiveStructuredPriorityGraft():
         self.select_unit = 5
         self.added_edge_index = None
         self.is_grow_k = False
-        self.m = 10
+        self.m = 5
         self.total_reservoir_weight = 0
         self.is_reservoir_full = False
         self.max_update_step = 50
         self.current_update_step = 0
         self.is_shrink_k = False
         self.alpha = .99
+
+        self.treated_hub = dict()
 
         self.updated_nodes = dict()
 
@@ -316,8 +320,10 @@ class SelectiveStructuredPriorityGraft():
                     self.k -= 1
                 self.active_set.append(activated_edge)
                 self.graph.add_edge(activated_edge[0], activated_edge[1])
+                self.not_connected[activated_edge[0]] = False
+                self.not_connected[activated_edge[1]] = False
 
-            if self.structured and len(self.active_set) > 5:
+            if self.structured and len(self.active_set) > 25:
                 self.update_pq()
 
             if self.is_verbose:
@@ -379,8 +385,8 @@ class SelectiveStructuredPriorityGraft():
         #Update relevant edges
         dropped = 0
         update = False
-        print('updated')
-        print(self.updated_nodes)
+        # print('updated')
+        # print(self.updated_nodes)
         for rel_edge in self.k_relevant.keys():
             for node in self.updated_nodes.keys():
                 if nx.has_path(self.graph, node, rel_edge[0]) or nx.has_path(self.graph, node, rel_edge[0]):
@@ -403,21 +409,59 @@ class SelectiveStructuredPriorityGraft():
                     self.k_relevant.pop(rel_edge, None)
                 else:
                     self.k_relevant[rel_edge] = (gradient_norm / length_normalizer)
-        print('reservoir')
-        print(self.k_relevant)
+        # print('reservoir')
+        # print(self.k_relevant)
+
+    # def update_pq(self):
+    #     if self.m > 0:
+    #         self.centrality = nx.degree_centrality(self.graph)
+    #         # self.centrality = nx.betweenness_centrality(self.graph)
+    #         self.m_central_nodes = list()
+    #         for i in range(self.m):
+    #             node = max(self.centrality.iteritems(), key=operator.itemgetter(1))[0]
+    #             self.centrality[node] = -1
+    #             self.m_central_nodes.append(node)
+            
+    #         for node_1 in self.m_central_nodes:
+    #             for node_2 in self.m_central_nodes:
+    #                 if (node_1,node_2) in self.pq:
+                        # self.pq.updateitem((node_1,node_2), self.pq[(node_1,node_2)] - 1)
+
 
     def update_pq(self):
         if self.m > 0:
             self.centrality = nx.degree_centrality(self.graph)
             self.m_central_nodes = list()
             for i in range(self.m):
-                node = max(self.centrality.iteritems(), key=operator.itemgetter(1))[0]
-                self.centrality[node] = -1
-                self.m_central_nodes.append(node)
-            for node_1 in self.m_central_nodes:
-                for node_2 in self.m_central_nodes:
-                    if (node_1,node_2) in self.pq:
-                        self.pq.updateitem((node_1,node_2), self.pq[(node_1,node_2)] - 1)
+                hub = max(self.centrality.iteritems(), key=operator.itemgetter(1))[0]
+                # print('hub')
+                # print(hub)
+                max_score = self.centrality[hub]
+                if max_score > .05:
+                    if hub not in self.treated_hub:
+                        print('hub')
+                        print(hub)
+                        print(self.centrality[hub])
+                        self.treated_hub[hub] = True
+                        print('neighbors')
+                        print(self.graph[hub])
+                        for neighbor1 in self.graph[hub]: # deprioritize neighbors of one hub
+                            for neighbor2 in self.graph[hub]:
+                                edge = (min(neighbor1,neighbor2),max(neighbor1,neighbor2))
+                                if edge in self.pq:
+                                    self.pq.updateitem(edge, self.pq[edge] + self.centrality[hub])
+                                    print('deprioritize')
+                                    print(edge in self.edges)
+                        for node in self.variables: # prioritize edges for hubs
+                            edge = (min(hub,node),max(hub,node))
+                            print('prioritize')
+                            print(edge in self.edges)
+                            if edge in self.pq:
+                                self.pq.updateitem(edge, self.pq[edge] - self.centrality[hub])
+                else:
+                    break
+                self.centrality[hub] = -1
+
 
     def activation_test(self):
         """
@@ -433,8 +477,8 @@ class SelectiveStructuredPriorityGraft():
         self.update_k_relevant(bp)
         while len(self.pq)>0:
             while len(self.pq)>0:
-                # print('pq')
-                # print(len(self.pq))
+                print('pq')
+                print(len(self.pq))
                 item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
                 iteration_activation += 1
@@ -500,6 +544,7 @@ class SelectiveStructuredPriorityGraft():
                     self.frozen_list.append((edge, direct_penalty))
             if self.is_added:
                 self.is_added = False
+                print('refilling')
                 for frozen_items in self.frozen_list:
                     self.pq.additem(frozen_items[0], frozen_items[1])
                 refill = True
