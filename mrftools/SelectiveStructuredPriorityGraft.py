@@ -308,9 +308,16 @@ class SelectiveStructuredPriorityGraft():
         break_grafting = False
 
         while self.continue_graft(break_grafting, is_activated_edge, num_edges):
+
             
-            if len(self.pq) == 0 and not is_activated_edge :
-                activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)[ : num_edges - len(self.active_set)]]
+            if len(self.pq) == 0 and not is_activated_edge:
+                if num_edges < float('inf'):
+                    activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)[ : num_edges - len(self.active_set)]]
+                if num_edges == float('inf'):
+                    print('damping reservoir')
+                    print(len(self.frozen_list))
+                    activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)]
+
                 break_grafting = True
 
             for activated_edge in activated_edges_list:
@@ -323,7 +330,11 @@ class SelectiveStructuredPriorityGraft():
                 self.not_connected[activated_edge[0]] = False
                 self.not_connected[activated_edge[1]] = False
 
-            if self.structured and len(self.active_set) > 25:
+            print(is_activated_edge)
+            print('active edges')
+            print(len(self.active_set))
+
+            if self.structured and len(self.active_set) > 15:
                 self.update_pq()
 
             if self.is_verbose:
@@ -354,6 +365,12 @@ class SelectiveStructuredPriorityGraft():
                     is_ss_at_70_regeistered = True
             
             is_activated_edge, activated_edges_list, iter_number = self.activation_test()
+
+
+        self.sufficient_stats.clear()
+        self.padded_sufficient_stats.clear()
+        self.edge_regularizers.clear()
+        self.node_regularizers.clear()
 
         if is_activated_edge == False:
                 self.is_converged = True
@@ -431,36 +448,50 @@ class SelectiveStructuredPriorityGraft():
     def update_pq(self):
         if self.m > 0:
             self.centrality = nx.degree_centrality(self.graph)
-            self.m_central_nodes = list()
-            for i in range(self.m):
-                hub = max(self.centrality.iteritems(), key=operator.itemgetter(1))[0]
-                # print('hub')
-                # print(hub)
-                max_score = self.centrality[hub]
-                if max_score > .05:
+            # self.centrality = self.graph.degree
+
+            # sorted_centrality= sorted(self.centrality.items(), key=operator.itemgetter(1))
+
+            max_score = max(self.centrality.iteritems(), key=operator.itemgetter(1))[1]
+            mean_score = np.mean(self.centrality.values())
+            alpha = 0
+            threshold = (1 - alpha) * mean_score + alpha * max_score
+
+            # for i in range(1, len(sorted_centrality)):
+            for i in range(1, len(self.variables)):
+
+                (node, node_score) = max(self.centrality.iteritems(), key=operator.itemgetter(1))
+                # node, node_score = sorted_centrality[-i]
+                if node_score > threshold:
+                    self.centrality.pop(node, None)
+                    hub = node
+                    hub_score = node_score
                     if hub not in self.treated_hub:
-                        print('hub')
-                        print(hub)
-                        print(self.centrality[hub])
                         self.treated_hub[hub] = True
-                        print('neighbors')
-                        print(self.graph[hub])
-                        for neighbor1 in self.graph[hub]: # deprioritize neighbors of one hub
-                            for neighbor2 in self.graph[hub]:
-                                edge = (min(neighbor1,neighbor2),max(neighbor1,neighbor2))
-                                if edge in self.pq:
-                                    self.pq.updateitem(edge, self.pq[edge] + self.centrality[hub])
-                                    print('deprioritize')
-                                    print(edge in self.edges)
                         for node in self.variables: # prioritize edges for hubs
+                            # node_score = self.centrality[node]
+                            # if self.graph.degree(node) < 2:
                             edge = (min(hub,node),max(hub,node))
-                            print('prioritize')
-                            print(edge in self.edges)
+                            # print('prioritize')
+                            # print(edge in self.edges)
                             if edge in self.pq:
-                                self.pq.updateitem(edge, self.pq[edge] - self.centrality[hub])
-                else:
-                    break
-                self.centrality[hub] = -1
+                                self.pq.updateitem(edge, self.pq[edge] -1)
+                else: break
+
+                # elif node_score < .01:
+                #     leaf = node
+                #     leaf_score = node_score
+                #     # if hub not in self.treated_hub:
+                #         # self.treated_hub[hub] = True
+                #     for node in self.variables: # prioritize edges for hubs
+                #         node_score = self.centrality[node]
+                #         if node_score<.01:
+                #             edge = (min(leaf,node),max(leaf,node))
+                #             print('deprioritize')
+                #             print(edge in self.edges)
+                #             if edge in self.pq:
+                #                 # self.pq.updateitem(edge, max(self.pq[edge], 1 - leaf_score))
+                #                 self.pq.updateitem(edge, max(self.pq[edge], +1))
 
 
     def activation_test(self):
@@ -475,10 +506,19 @@ class SelectiveStructuredPriorityGraft():
         bp.load_beliefs()
         len_data = len(self.data)
         self.update_k_relevant(bp)
+
+        if len(self.pq) == 0 and len(self.frozen_list) > 1:
+                self.is_added = False
+                print('refilling')
+                for frozen_items in self.frozen_list:
+                    self.pq.additem(frozen_items[0], frozen_items[1])
+                refill = True
+                self.frozen_list = list()
+
         while len(self.pq)>0:
             while len(self.pq)>0:
-                print('pq')
-                print(len(self.pq))
+                # print('pq')
+                # print(len(self.pq))
                 item = self.pq.popitem()# Get edges by order of priority
                 edge = item[0]
                 iteration_activation += 1
@@ -502,46 +542,47 @@ class SelectiveStructuredPriorityGraft():
                 length_normalizer = np.sqrt(len(gradient))
                 passed = (gradient_norm / length_normalizer) > self.edge_l1
                 if passed:
+                    if not self.is_added:
+                            self.is_added = True 
                     self.k_relevant[edge] = gradient_norm / length_normalizer
                     if len(self.k_relevant) == self.k + 1:
+                        dropped_edge = min(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0] #DROP THE ITEM
+                        direct_penalty = 1 - self.k_relevant[dropped_edge] / self.edge_l1
+                        self.frozen_list.append((dropped_edge, direct_penalty))
+                        self.k_relevant.pop(dropped_edge, None)
                         self.is_reservoir_full = True
-
-                    if self.is_reservoir_full:
-                        if self.current_update_step == self.max_update_step:
-                            self.current_update_step = 0
-                            selected_edges_list = list()
-                            self.updated_nodes = dict()
-                            max_weight = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[1]
-                            mean_weight = np.mean(self.k_relevant.values())
-                            threshold = (1 - self.alpha) * mean_weight + self.alpha * max_weight
-                            is_threshold_reached = False
-                            while not is_threshold_reached:
-                                (selected_edge, selected_weight) = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))
-                                if selected_weight >= threshold and selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
-                                    self.updated_nodes[selected_edge[0]] = True
-                                    self.updated_nodes[selected_edge[1]] = True
-                                    self.k_relevant.pop(selected_edge, None)
-                                    self.search_space.remove(selected_edge)
-                                    selected_edges_list.append(selected_edge)
-                                else:
-                                    is_threshold_reached = True
-                                    # self.k -= 1
-                            if not self.is_added:
-                                self.is_added = True
-                            return True, selected_edges_list, iteration_activation
-                        else:
-                            self.current_update_step += 1
-                            # print('reservoir')
-                            # print(len(self.k_relevant))
-                            #####################################################
-                            if len(self.k_relevant) > self.k:
-                                dropped_edge = min(self.k_relevant.iteritems(), key=operator.itemgetter(1))[0] #DROP THE ITEM
-                                direct_penalty = 1 - self.k_relevant[dropped_edge] / self.edge_l1
-                                self.frozen_list.append((dropped_edge, direct_penalty))
-                                self.k_relevant.pop(dropped_edge, None)
                 else:
                     direct_penalty = 1 - gradient_norm/(length_normalizer * self.edge_l1)
                     self.frozen_list.append((edge, direct_penalty))
+
+                if iteration_activation == self.max_update_step:
+                    if len(self.k_relevant) > 0:
+                        self.current_update_step = 0
+                        selected_edges_list = list()
+                        self.updated_nodes = dict()
+                        max_weight = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))[1]
+                        mean_weight = np.mean(self.k_relevant.values())
+                        threshold = (1 - self.alpha) * mean_weight + self.alpha * max_weight
+                        is_threshold_reached = False
+                        while not is_threshold_reached and len(self.k_relevant) > 0:
+                            (selected_edge, selected_weight) = max(self.k_relevant.iteritems(), key=operator.itemgetter(1))
+                            if selected_weight >= threshold and selected_edge[0] not in self.updated_nodes and selected_edge[1] not in self.updated_nodes:
+                                self.updated_nodes[selected_edge[0]] = True
+                                self.updated_nodes[selected_edge[1]] = True
+                                self.k_relevant.pop(selected_edge, None)
+                                self.search_space.remove(selected_edge)
+                                selected_edges_list.append(selected_edge)
+                            else:
+                                is_threshold_reached = True
+                                # self.k -= 1
+                        # print('activate')
+                        # print(len(self.pq))
+                        # print(len(self.frozen_list))
+                        return True, selected_edges_list, iteration_activation
+                    else:
+                        iteration_activation = 0
+            print('Done')
+            print(self.is_added)
             if self.is_added:
                 self.is_added = False
                 print('refilling')

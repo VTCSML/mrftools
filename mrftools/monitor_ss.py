@@ -1,267 +1,385 @@
 import time
-import matplotlib.pyplot as plt
 import numpy as np
 from generate_synthetic_data import generate_synthetic_data, generate_random_synthetic_data
 from random import shuffle
 from scipy import signal as sg
 from StructuredPriorityGraft import StructuredPriorityGraft
-from grafting_util import compute_likelihood, compute_accuracy_synthetic, compute_likelihood_1
+from grafting_util import compute_likelihood, compute_accuracy_synthetic, compute_likelihood_1, get_all_ss, initialize_priority_queue
+from SelectiveStructuredPriorityGraft import SelectiveStructuredPriorityGraft
 import time
 from Graft import Graft
 import copy
 import itertools
+import networkx as nx
+import os
+import sys
+import argparse
+import shelve
 
-np.set_printoptions(threshold=np.nan)
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 
-METHOD_COLORS = {'structured':'red', 'naive': 'green', 'queue':'blue', 'graft':'blue'}
-METHOD_COLORS_i = {'structured':'r', 'naive': 'g', 'queue':'y', 'graft':'b'}
+METHOD_COLORS = {'best_10':'yellow', 'queue':'green', 'graft':'blue'}
 
-folder_num = 'monitor_ss'
+METHOD_legend = dict()
+
+METHOD_marker = dict()
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--nodes_num', dest='num_nodes', required=True)
+parser.add_argument('--group_l1', dest='group_l1', required=True)
+parser.add_argument('--l2', dest='l2', default=0.5)
+# parser.add_argument('--node_std', dest='node_std', default=.01)
+parser.add_argument('--state_num', dest='state_num', default=5)
+parser.add_argument('--len_data', dest='len_data', default=5000)
+args = parser.parse_args()
+
+
+folder_name = 'monitor_ss'
+folder_num = 'l1_metrics'
 num_iterations = 1
+is_real_loss = False
+
+
+METHODS = [] # DON'T INCLUDE GRAFT IT WILL AUTOMATICALLY BE INCLUDED LATER
 
 def main():
+	priority_graft_iter = 2500
+	graft_iter = 2500
+	# zero_threshold = 1e-3
+	# min_precision = .05
 
-	# edge_reg = .1
-	# node_reg = .5
-	priority_graft_iter = 5000
-	graft_iter = 5000
-	# num_nodes_range = range(8, 500, 8)
-	T_likelihoods = dict()
-	zero_threshold = 1e-3
-
-	training_ratio = .7
-	mrf_density = .01
-	edge_std = 2.5
-	node_std = .0001
-	state_num = 4
-	l2_coeff = 0
-	num_nodes_range = range(25, 100, 10)
-	min_precision = .15
-
-	# num_nodes_range = range(16, 500, 8)
-	# num_nodes_range = [10]
-	# num_nodes_range = range(5, 500, 10)
-
-	edge_reg_range = [1e-5, 2.5e-5, 5e-5, 7.5e-5, 1e-4, 2.5e-4, 5e-4, 7.5e-4, 1e-3, 2.5e-3, 5e-3, 7.5e-3, 1e-2, 2.5e-2, 5e-2, 7.5e-2, 1e-1] #np.arange(1e-5, 5e-2, 5e-5)#[.04]#[1, 5e-1, 1e-1]
-	# node_reg_range = [1e-2] #np.arange(1e-3, 1e-1, 1e-3)#[.06]#[1, 9e-1, 6e-1, 3e-1, 1e-1]
-
-	# reg_range = np.arange(0,1,0.01)
-
-	# edge_reg_range = np.arange(50,500,10)#[.04]#[1, 5e-1, 1e-1]
-	# node_reg_range = np.arange(50,500,10)
-
-	T_likelihoods = dict()
-	M_time_stamps = dict()
-	suff_stats_at_70 = dict()
 	print('================================= ///////////////////START//////////////// =========================================')
 
-	# for num_cluster in num_cluster_range:
-	for num_nodes in num_nodes_range:
+	################################################################### DATA PREPROCESSING GOES HERE --------->
+	num_nodes = int(args.num_nodes)
+	group_l1 = float(args.group_l1)
+	l2 = float(args.l2)
+	edge_reg = group_l1
+	node_reg = group_l1
+	l1 = 0
 
-		mrf_density = float(1)/(num_nodes-1)
+	print('edge_reg')
+	print(edge_reg)
 
-		len_data = num_nodes * 1000
+	print('l2')
+	print(l2)
 
-		time_likelihoods = dict()
-		mean_time_likelihoods = dict()
-		std_time_likelihoods = dict()
+	training_ratio = .9
+	# edge_std = float(args.edge_std)
+	# node_std = float(args.node_std)
+	edge_std = 1
+	node_std = .5
 
-		time_recall = dict()
-		mean_time_recall = dict()
-		std_time_recall = dict()
+	state_num = int(args.state_num)
+	mrf_density = float(2)/((num_nodes - 1))
+	len_data = int(args.len_data)
+	M_accuracies = dict()
+	sorted_timestamped_mn = dict()
+	edge_likelihoods = dict()
+	print('======================================Simulating data...')
+	model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(len_data, num_nodes, mrf_density=mrf_density, state_min=state_num, state_max=state_num, edge_std=edge_std, node_std = node_std)
+	shuffle(data)
+	train_data = data[: int(training_ratio * len_data)]
+	test_data = data[int(training_ratio * len_data) : len_data]
+	#############################################################################################<-------------
 
-		time_precision = dict()
-		mean_time_precision = dict()
-		std_time_precision = dict()
+	RES_SHELVE = shelve.open('results_' + str(num_nodes) + '_' + str(edge_reg) + '_' + str(l2))
 
-		time_num_edges = dict()
-		mean_time_num_edges = dict()
-		std_time_num_edges = dict()
+	params = {'num_nodes':num_nodes, 'edge_std':edge_std, 'node_std':node_std, 'state_num':state_num, 'len_data':len_data, 'mrf_density':mrf_density}
 
-		max_time = 0
+	list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
+	shuffle(list_order)
 
-		# METHODS = ['naive', 'structured', 'queue']
-		METHODS = ['structured', 'queue']
+	ss_test = dict()
 
-		M_accuracies = dict()
-		sorted_timestamped_mn = dict()
-		edge_likelihoods = dict()
-		print('======================================Simulating data...')
-		model, variables, data, max_num_states, num_states, edges = generate_random_synthetic_data(len_data, num_nodes, mrf_density=mrf_density, state_min=state_num, state_max=state_num, edge_std=edge_std, node_std = node_std)
-		target_vars = list(set(itertools.chain.from_iterable(edges)))
-
-		train_data = data[: int(training_ratio * len_data)]
-		test_data = data[int(training_ratio * len_data) : len_data]
-		list_order = range(0,(len(variables) ** 2 - len(variables)) / 2, 1)
-		shuffle(list_order)
-
-		print(variables)
-		print(num_states)
-		print(max_num_states)
-
-		print('NUM VARIABLES')
-		print(len(variables))
-
-		print('NUM EDGES')
-		print(len(edges))
-
-		print('EDGES')
-		print(edges)
-		edge_num = float('inf')
-		# edge_num = len(edges) + 10
-		num_attributes = len(variables)
-		recalls, precisions, sufficientstats, mn_snapshots, f1_scores, cumm_iters = dict(), dict(), dict(), dict(), dict(), dict()
-
-		opt_edge_reg = edge_reg_range[0]
-		opt_node_reg = 1.5 * edge_reg_range[0]
-		
-		for method in METHODS:
-			print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + method)
-			if method == 'structured':
-				max_recall = -1
-				pass_loop = False
-				for edge_reg in edge_reg_range:
-					node_reg = 1.15 * edge_reg
-					print('//////////////')
-					print('reg params')
-					print(edge_reg)
-					print(node_reg)
-					spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
-					spg.on_show_metrics()
-					# spg.on_verbose()
-
-					spg.on_synthetic(precison_threshold = min_precision, start_num = 10)
-					spg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg)
-					# spg.on_zero_treshold(zero_threshold=zero_threshold)
-					spg.on_monitor_mn()
-					t = time.time()
-					# print(edges)
-					learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, _, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-					# print(final_active_set)
-					# print(recall)
-					print(not is_early_stop)
-					if not is_early_stop:
-						print('Success')
-						print(f1_score[-1])
-						# f1_score = []
-						# for i in range(len(precision)):
-						# 	if precision[i]==0 and recall[i]==0:
-						# 		f1_score.append(0)
-						# 	else:
-						# 		f1_score.append((2 * precision[i] * recall[i]) / (precision[i] + recall[i]))
-
-						suff_stats_at_70[num_nodes] = spg.ss_at_70
-
-						exec_time = time.time() - t
-						# print('exec_time')
-						# print(exec_time)
-						# print('Converged')
-						# print(spg.is_converged)
-						mn_snapshots[method] = spg.mn_snapshots
-						time_stamps = sorted(list(spg.mn_snapshots.keys()))
-						M_time_stamps[method] = time_stamps
-						last_f1score = f1_score[-1]
-						# for t in time_stamps:
-						# 	nll = compute_likelihood_1(spg.mn_snapshots[t], len(variables), tesiterationst_data)
-						# last_f1score = f1_score[-1]
-						if recall[-1] > max_recall:
-							print('New best')
-							# print(last_f1score)
-							opt_edge_reg = edge_reg
-							opt_node_reg = node_reg
-							max_recall = recall[-1]
-							best_mn_snapshots = spg.mn_snapshots
-							cumm_iter = [spg.total_iter_num[0]]
-							[cumm_iter.append(cumm_iter[i-1] + spg.total_iter_num[i]) for i in range(1,len(spg.total_iter_num))]
-							cumm_iters[method] = cumm_iter
-							f1_scores[method] = f1_score
-							sufficientstats[method] = suff_stats_list
-							precisions[method] = precision
-							recalls[method] = recall
-							if last_f1score > .9:
-								print('OPT found')
-								pass_loop = True
-								break
-
-				# time_stamps = sorted(list(best_mn_snapshots.keys()))
-				# M_time_stamps[method] = time_stamps
-			else:
-				spg = StructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, method)
-				spg.on_show_metrics()
-				spg.setup_learning_parameters(edge_l1=opt_edge_reg, max_iter_graft=priority_graft_iter, node_l1=opt_node_reg)
-				# spg.on_zero_treshold(zero_threshold=zero_threshold)
-				spg.on_monitor_mn()
-				t = time.time()
-				# print(edges)
-				learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, _, is_early_stop = spg.learn_structure(edge_num, edges=edges)
-				f1_scores[method] = f1_score
-				sufficientstats[method] = suff_stats_list
-				precisions[method] = precision
-				recalls[method] = recall
-				cumm_iter = [spg.total_iter_num[0]]
-				[cumm_iter.append(cumm_iter[i-1] + spg.total_iter_num[i]) for i in range(1,len(spg.total_iter_num))]
-				cumm_iters[method] = cumm_iter
-
-		plt.close()
-		for i in range(len(METHODS)):
-			print(METHODS[i])
-			print(sufficientstats[METHODS[i]])
-			print(recalls[METHODS[i]])
-			# ax1.plot(M_time_stamps[METHODS[i]], M_accuracies[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='accuracy_' +METHODS[i], linewidth=1)
-			plt.plot(recalls[METHODS[i]], sufficientstats[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=2)
-
-		plt.xlabel('Recall')
-		plt.ylabel('Suff Stats')
-
-		plt.legend(loc='best')
-		plt.title('Recall-SS')
-		plt.savefig('../../../results_' + folder_num + '/' + str(len(variables)) + '_ReacllVSss_.png')
-		plt.close()
-
-		for i in range(len(METHODS)):
-			print(METHODS[i])
-			print(sufficientstats[METHODS[i]])
-			print(recalls[METHODS[i]])
-			# ax1.plot(M_time_stamps[METHODS[i]], M_accuracies[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='accuracy_' +METHODS[i], linewidth=1)
-			plt.plot(sufficientstats[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=2)
-
-		plt.xlabel('# active edges')
-		plt.ylabel('Suff Stats')
-
-		plt.legend(loc='best')
-		plt.title('Edges-SS')
-		plt.savefig('../../../results_' + folder_num + '/' + str(len(variables)) + '_EdgesVSss_.png')
-		plt.close()
+	# #Uncomment if real loss computation is required
+	#########################
+	# ss_test = get_all_ss(variables, num_states, train_data)
+	#########################
 
 
-		for i in range(len(METHODS)):
-			print(METHODS[i])
-			print(sufficientstats[METHODS[i]])
-			print(recalls[METHODS[i]])
-			# ax1.plot(M_time_stamps[METHODS[i]], M_accuracies[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label='accuracy_' +METHODS[i], linewidth=1)
-			plt.plot(recalls[METHODS[i]], cumm_iters[METHODS[i]], color=METHOD_COLORS[METHODS[i]], label=METHODS[i], linewidth=2)
+	original_pq = initialize_priority_queue(variables=variables)
 
-		plt.xlabel('Recall')
-		plt.ylabel('cumm_iter')
+	print(variables)
+	print(num_states)
+	print(max_num_states)
 
-		plt.legend(loc='best')
-		plt.title('Recall-SearchIterations')
-		plt.savefig('../../../results_' + folder_num + '/' + str(len(variables)) + '_ReacllVsIter_.png')
-		plt.close()
+	print('NUM VARIABLES')
+	print(len(variables))
 
-	pernode_sufficientstats = []
-	[pernode_sufficientstats.append(suff_stats_at_70[num_nodes]) for num_nodes in num_nodes_range]
+	print('NUM EDGES')
+	print(len(edges))
 
-	for i in range(len(METHODS)):
-		plt.plot(num_nodes_range, pernode_sufficientstats, color=METHOD_COLORS[METHODS[i]], label='suff_stats_' + METHODS[i], linewidth=2)
+	print('EDGES')
+	print(edges)
 
-	plt.xlabel('num_nodes')
-	plt.ylabel('suff_stats')
+	edge_num = int(4 * num_nodes) # MAX NUM EDGES TO GRAFT
 
-	plt.legend(loc='best')
-	plt.title('suff_stats VS num_nodes')
-	plt.savefig('../../../results_' + folder_num + '/' + 'numnodes_ss_.png')
+	recalls, precisions, sufficientstats, mn_snapshots, graph_snapshots, recalls, f1_scores, objs, test_nlls, train_nlls, M_time_stamps =  dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
+
+
+	max_update_step = int(np.sqrt(len(variables)))
+
+	k = len(variables)
+
+	# k = len(variables)
+	alpha = 1
+	# max_update_step = int(np.sqrt(len(variables)))
+	meth = '$ '+ str(alpha) + ' $'
+	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
+	pq = copy.deepcopy(original_pq)
+	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	sspg.on_show_metrics()
+	sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=l1, l2_coeff=l2)
+	sspg.set_top_relvant(k=k)
+	# sspg.on_structured()
+	# sspg.set_select_unit(select_unit=select_unit)
+	sspg.set_alpha(alpha=alpha)
+	sspg.set_max_update_step(max_update_step=max_update_step)
+	sspg.on_monitor_mn()
+	# sspg.on_verbose()
+	t = time.time()
+	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	exec_time = time.time() - t
+	print('---->Exec time')
+	print(exec_time)
+	print('Loss')
+	print(objec)
+	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	sufficientstats[meth] = suff_stats_list
+	M_time_stamps[meth] = time_stamps
+	mn_snapshots[meth] = sspg.mn_snapshots
+	graph_snapshots[meth] = sspg.graph_snapshots
+	objs[meth] = objec
+	f1_scores[meth] = f1_score
+	METHODS.append(meth)
+	recalls[meth] = recall
+	METHOD_COLORS[meth] = [1, 0.5, 0.0]
+	METHOD_legend[meth] = meth
+	METHOD_marker[meth] = 'o'
+
+
+
+
+	# k = len(variables)
+	alpha = .5
+	# max_update_step = int(np.sqrt(len(variables)))
+	meth = '$ '+ str(alpha) + '$'
+	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
+	pq = copy.deepcopy(original_pq)
+	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	sspg.on_show_metrics()
+	sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=l1, l2_coeff=l2)
+	sspg.set_top_relvant(k=k)
+	# sspg.set_select_unit(select_unit=select_unit)
+	sspg.set_alpha(alpha=alpha)
+	sspg.set_max_update_step(max_update_step=max_update_step)
+	sspg.on_monitor_mn()
+	# sspg.on_structured()
+	# sspg.on_verbose()
+	t = time.time()
+	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	exec_time = time.time() - t
+	print('---->Exec time')
+	print(exec_time)
+	print('Loss')
+	print(objec)
+	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	sufficientstats[meth] = suff_stats_list
+	graph_snapshots[meth] = sspg.graph_snapshots
+	M_time_stamps[meth] = time_stamps
+	mn_snapshots[meth] = sspg.mn_snapshots
+	objs[meth] = objec
+	f1_scores[meth] = f1_score
+	METHODS.append(meth)
+	recalls[meth] = recall
+	METHOD_COLORS[meth] = [0.2, 0.6, .7]
+	METHOD_legend[meth] = meth
+	METHOD_marker[meth] = 'o'
+
+
+
+	# # k = len(variables)
+	# alpha = .25
+	# # max_update_step = int(np.sqrt(len(variables)))
+	# meth = '$ '+ str(alpha) + '$'
+	# print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
+	# pq = copy.deepcopy(original_pq)
+	# sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	# sspg.on_show_metrics()
+	# sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=l1, l2_coeff=l2)
+	# sspg.set_top_relvant(k=k)
+	# # sspg.set_select_unit(select_unit=select_unit)
+	# sspg.set_alpha(alpha=alpha)
+	# sspg.set_max_update_step(max_update_step=max_update_step)
+	# sspg.on_monitor_mn()
+	# sspg.on_structured()
+	# # sspg.on_verbose()
+	# t = time.time()
+	# learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	# exec_time = time.time() - t
+	# print('---->Exec time')
+	# print(exec_time)
+	# print('Loss')
+	# print(objec)
+	# time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	# M_time_stamps[meth] = time_stamps
+	# mn_snapshots[meth] = sspg.mn_snapshots
+	# objs[meth] = objec
+	# f1_scores[meth] = f1_score
+	# METHODS.append(meth)
+	# recalls[meth] = recall
+	# METHOD_COLORS[meth] = [.9, .3, .7]
+	# METHOD_legend[meth] = meth
+	# METHOD_marker[meth] = '>'
+
+
+
+	# k = len(variables)
+	alpha = 0
+	# max_update_step = int(np.sqrt(len(variables)))
+	meth = '$ '+ str(alpha) + '$ '
+	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
+	pq = copy.deepcopy(original_pq)
+	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
+	sspg.on_show_metrics()
+	sspg.setup_learning_parameters(edge_l1=edge_reg, max_iter_graft=priority_graft_iter, node_l1=node_reg , l1_coeff=l1, l2_coeff=l2)
+	sspg.set_top_relvant(k=k)
+	# sspg.set_select_unit(select_unit=select_unit)
+	sspg.set_alpha(alpha=alpha)
+	sspg.set_max_update_step(max_update_step=max_update_step)
+	sspg.on_monitor_mn()
+	# sspg.on_structured()
+	# sspg.on_verbose()
+	t = time.time()
+	learned_mn, final_active_set, suff_stats_list, recall, precision, f1_score, objec, is_early_stop = sspg.learn_structure(edge_num, edges=edges)
+	exec_time = time.time() - t
+	print('---->Exec time')
+	print(exec_time)
+	print('Loss')
+	print(objec)
+	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	sufficientstats[meth] = suff_stats_list
+	graph_snapshots[meth] = sspg.graph_snapshots
+	M_time_stamps[meth] = time_stamps
+	mn_snapshots[meth] = sspg.mn_snapshots
+	objs[meth] = objec
+	f1_scores[meth] = f1_score
+	METHODS.append(meth)
+	recalls[meth] = recall
+	METHOD_COLORS[meth] = [.5, .7, .2]
+	METHOD_legend[meth] = meth
+	METHOD_marker[meth] = 'o'
+
+
+	
+
+
+
+
+	# #UNCOMMENT TO PLOT Recall SCORES EVOLUTION
+	# plt.close()
+	# fig, ax1 = plt.subplots()
+	# for i in range(len(METHODS)):
+	# 	print(METHODS[i])
+	# 	if METHODS[i] == 'EG' or METHODS[i] == 'First Hit':
+	# 		ax1.plot(M_time_stamps[METHODS[i]], sufficientstats[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker=METHOD_marker[METHODS[i]], label=METHOD_legend[METHODS[i]])
+	# 	else:
+	# 		ax1.plot(M_time_stamps[METHODS[i]], sufficientstats[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker=METHOD_marker[METHODS[i]], label=r'$\alpha = $'+ METHOD_legend[METHODS[i]])
+	# ax1.set_xlabel('Time')
+	# ax1.set_ylabel('Sufficient Stats Tables')
+	# lgd = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+	# # plt.title('Sufficient Stats VS Time')
+	# plt.savefig('../../../results_' + folder_name + '/'+ str(len(variables)) + '/' + str(group_l1) + '/' + str(l2) +'/SufficientStats.eps', format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	# plt.close()
+
+
+	#UNCOMMENT TO PLOT Recall SCORES EVOLUTION
 	plt.close()
+	fig, ax1 = plt.subplots()
+	for i in range(len(METHODS)):
+		print(METHODS[i])
+		if METHODS[i] == 'EG' or METHODS[i] == 'First Hit':
+			ax1.plot(recalls[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker=METHOD_marker[METHODS[i]], label=METHOD_legend[METHODS[i]])
+		else:
+			ax1.plot(recalls[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker=METHOD_marker[METHODS[i]], label=r'$\alpha = $'+ METHOD_legend[METHODS[i]])
+	ax1.set_xlabel('Iter')
+	ax1.set_ylabel('Recall Score')
+	lgd = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+	# plt.title('Recall VS Iter')
+	plt.savefig('../../../results_' + folder_name + '/'+ str(len(variables)) + '/' + str(group_l1) + '/' + str(l2) +'/IterRecall.eps', format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	plt.close()
+
+
+	#UNCOMMENT TO PLOT Recall SCORES EVOLUTION
+	plt.close()
+	fig, ax1 = plt.subplots()
+	for i in range(len(METHODS)):
+		grahs = graph_snapshots[METHODS[i]].values()
+		num_nodes = list()
+		sorted_edge_num = sorted([x.number_of_edges() for x in grahs])
+		ss = [10*x for x in sufficientstats[METHODS[i]][1:]]
+		print(METHODS[i])
+		print('lengths')
+		print(sorted_edge_num)
+		print(len(sorted_edge_num))
+		print(len(sufficientstats[METHODS[i]]))
+		print('plotting')
+		ax1.plot(sorted_edge_num, ss, color=METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker=METHOD_marker[METHODS[i]], label=r'$\alpha = $'+ METHOD_legend[METHODS[i]])
+	
+	ax1.set_xlabel('Activated edges')
+	ax1.set_ylabel('Percentage of Sufficient Stats Tables')
+	lgd = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+	# plt.title('Recall VS Iter')
+	plt.savefig('../../../results_' + folder_name + '/'+ str(len(variables)) + '/' + str(group_l1) + '/' + str(l2) +'/SufficientStats.eps', format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	plt.close()
+
+
+	#UNCOMMENT TO PLOT Recall SCORES EVOLUTION
+	plt.close()
+	fig, ax1 = plt.subplots()
+	for i in range(len(METHODS)):
+		grahs = graph_snapshots[METHODS[i]].values()
+		num_nodes = list()
+		sorted_edge_num = sorted([x.number_of_edges() for x in grahs])
+		ss = [100*x for x in sufficientstats[METHODS[i]]]
+		print(METHODS[i])
+		print('lengths')
+		print(sorted_edge_num)
+		print(len(sorted_edge_num))
+		print(len(sufficientstats[METHODS[i]]))
+		print('plotting')
+		ax1.plot(recalls[METHODS[i]], ss, color=METHOD_COLORS[METHODS[i]], linewidth=1, linestyle=':', marker=METHOD_marker[METHODS[i]], label=r'$\alpha = $'+ METHOD_legend[METHODS[i]])
+	
+	ax1.set_xlabel('Recall')
+	ax1.set_ylabel('Percentage of Sufficient Stats Tables')
+	lgd = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+	# plt.title('Recall VS Iter')
+	plt.savefig('../../../results_' + folder_name + '/'+ str(len(variables)) + '/' + str(group_l1) + '/' + str(l2) +'/SufficientStatsRecall.eps', format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	plt.close()
+
+
+
+
+	# #UNCOMMENT TO PLOT nll SCORES EVOLUTION
+	# plt.close()
+	# fig, ax1 = plt.subplots()
+	# for i in range(len(METHODS)):
+	# 	print(METHODS[i])
+	# 	if METHODS[i] == 'EG' or METHODS[i] == 'First Hit':
+	# 		ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=2, label=METHOD_legend[METHODS[i]])
+	# 	else:
+	# 		ax1.plot(M_time_stamps[METHODS[i]], objs[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=2, label=r'$\alpha = $'+ METHOD_legend[METHODS[i]])
+	# ax1.set_xlabel('Time')
+	# ax1.set_ylabel('LOSS')
+	# lgd = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+	# plt.title('LOSS VS Time')
+	# plt.savefig('../../../results_' + folder_name + '/'+ str(len(variables)) + '/' + str(group_l1) + '/' + str(l2) + '/OBJ.eps', format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	# plt.close()
+
+
 
 if __name__ == '__main__':
 	main()
+

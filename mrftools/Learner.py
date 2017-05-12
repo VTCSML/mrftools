@@ -117,22 +117,22 @@ class Learner(object):
         return bethe
 
     def subgrad_obj(self, weights, options=None):
-        # if self.feature_graft:
-        #     weights[self.zero_feature_indices] = 0
+        if self.feature_graft:
+            weights[self.zero_feature_indices] = 0
         if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective(weights)
 
     def subgrad_obj_dual(self, weights, options=None):
-        # if self.feature_graft:
-        #     weights[self.zero_feature_indices] = 0
+        if self.feature_graft:
+            weights[self.zero_feature_indices] = 0
         if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         return self.objective_dual(weights)
 
     def subgrad_grad(self, weights, options=None):
-        # if self.feature_graft:
-            # weights[self.zero_feature_indices] = 0
+        if self.feature_graft:
+            weights[self.zero_feature_indices] = 0
         if (self.tau_q is None or not self.fully_observed) and not (self.graft):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
@@ -142,21 +142,62 @@ class Learner(object):
         g[:] = self.subgrad_grad(x)
         return obj
 
-    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data, verbose=False, callback_f=None, loss=None):
+    def learn(self, weights, max_iter, edge_regularizers, var_regularizers, data, verbose=False, callback_f=None, loss=None, is_feature_graft=False, zero_feature_indices = None):
+        self.feature_graft = is_feature_graft
+        self.zero_feature_indices = zero_feature_indices
         self.edge_regularizers = edge_regularizers
         self.var_regularizers = var_regularizers
         self.data = data
         self.len_data = len(data)
-
         if self.is_initialize_grad_sum == True:
             self.grad_sum = np.zeros(len(weights))
             self.is_initialize_grad_sum = False
 
-        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter, 'gtol': 1e-15, 'ftol': 1e-15})
+        if self.feature_graft:
+            # lbfgs.min_step = 1e-30
+            # lbfgs.max_iterations = max_iter
+            # lbfgs.gtol = 1e-5
+            # lbfgs.orthantwise_c = self.l1_regularization
+            # bfgs.orthantwise_start = 0
+            # bfgs.orthantwise_end = min(self.zero_feature_indices)
+            # lbfgs.max_linesearch = 20
+            # lbfgs.backtrace = 'LBFGS_LINESEARCH_BACKTRACKING'
+
+            # new_weights = lbfgs.fmin_lbfgs(self.function_owlqn, weights)
+
+
+            res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter, 'gtol': 1e-7, 'ftol': 1e-6})
+            new_weights = res.x
+
+            new_weights[self.zero_feature_indices] = 0
+            gradient_vec = np.zeros(len(self.curr_gradient))
+            gradient_vec[self.zero_feature_indices] = self.curr_gradient[self.zero_feature_indices]
+            # print(gradient_vec)
+            activated_feature = np.array(np.abs(gradient_vec)).argmax(axis=0)
+            max_grad = max(np.abs(gradient_vec))
+            diff = self.tau_q - self.tau_p
+            # print(max_grad)
+            # print(self.l1_regularization )
+            # print(len(self.tau_p))
+            # diff_norm = diff.dot(diff)
+            # diff_norm = np.sqrt(diff_norm) / len(diff)
+            loss.append(self.objec)
+            if max_grad > self.l1_regularization and len(self.zero_feature_indices) > 0:
+                 self.zero_feature_indices.remove(activated_feature)
+                 return new_weights, activated_feature
+            else:
+                 return new_weights, None
+
+
+        res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f, options={'maxiter': max_iter, 'gtol': 1e-7, 'ftol': 1e-6})
         new_weights = res.x
+
+
+        print(self.objec)
+
         if loss is not None:
             loss.append(self.objec)
-        print(self.objec)
+
         t = 0
         if verbose:
             print('Iter')
@@ -188,8 +229,10 @@ class Learner(object):
         return self.get_feature_expectations(belief_propagators)
 
     def objective(self, weights, options=None):
-        # if self.feature_graft:
-        #     weights[self.zero_feature_indices] = 0
+        if self.feature_graft:
+            weights[self.zero_feature_indices] = 0
+            # self.l1_regularization = 0
+
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
         term_p = sum([x.compute_energy_functional() for x in self.belief_propagators]) / len(self.belief_propagators)
         if not self.fully_observed:
@@ -209,26 +252,21 @@ class Learner(object):
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
-
             length_normalizer = np.sqrt(len(self.edge_regularizers[edge]))
-
             objec += length_normalizer * self.edges_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
-
             length_normalizer = np.sqrt(len(self.var_regularizers[var]))
-
             objec += length_normalizer * self.var_group_regularizers * np.sqrt(curr_reg.dot(curr_reg))
 
         self.objec = objec
         return objec
 
     def gradient(self, weights, options=None):
-
-        # if self.feature_graft:
-        #     weights[self.zero_feature_indices] = 0
+        if self.feature_graft:
+            weights[self.zero_feature_indices] = 0
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, False) 
         grad = np.zeros(len(weights))
         grad += self.l1_regularization * np.sign(weights)
@@ -236,7 +274,8 @@ class Learner(object):
         grad -= np.squeeze(self.tau_q)
         grad += np.squeeze(self.tau_p)
         grad_reg = np.zeros(len(weights))
-
+        if self.feature_graft:
+            self.curr_gradient = grad
         for edge in self.edge_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.edge_regularizers[edge]] = weights[self.edge_regularizers[edge]]
@@ -246,8 +285,6 @@ class Learner(object):
             edge_grad_norm = np.sqrt(edge_grad.dot(edge_grad))
             edge_reg = length_normalizer * self.edges_group_regularizers * (curr_reg / (edge_norm + 1e-10))
             grad_reg += edge_reg
-
-
         for var in self.var_regularizers.keys():
             curr_reg = np.zeros(len(weights))
             curr_reg[self.var_regularizers[var]] = weights[self.var_regularizers[var]]
@@ -256,15 +293,16 @@ class Learner(object):
             var_grad = copy.deepcopy(grad[self.var_regularizers[var]])
             var_grad_norm = np.sqrt(var_grad.dot(var_grad))
             grad_reg += length_normalizer * self.var_group_regularizers * (curr_reg / (var_norm + 1e-10)) #IF NORM IS ZERO
-
         grad += grad_reg
         self.grad = grad
+
+        # print('i')
 
         return grad
 
     def dual_obj(self, weights, options=None):
-        # if self.feature_graft:
-        #     weights[self.zero_feature_indices] = 0
+        if self.feature_graft:
+            weights[self.zero_feature_indices] = 0
         self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         if self.tau_q == None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)

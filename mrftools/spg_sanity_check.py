@@ -22,7 +22,7 @@ METHOD_COLORS = {'queue':'red', 'best_k': 'blue', 'struct_best_k':'black', 'StrS
 # METHODS = ['structured', 'queue']
 METHODS = []
 def main():
-	len_data = 500
+	len_data = 1000
 	priority_graft_iter = 2500
 	suffstats_ratio = .05
 	training_ratio = .9
@@ -32,7 +32,7 @@ def main():
 	edge_std = 1
 	node_std = 1
 
-	edge_reg = 0.1 #np.arange(0.01,0.25,0.05) 
+	edge_reg = 0.01 #np.arange(0.01,0.25,0.05) 
 	node_reg = edge_reg
 	l2 = .5
 	l1 = 0
@@ -74,9 +74,9 @@ def main():
 
 
 	k = len(variables)
-	alpha = 0.9
-	max_update_step = len(variables)
-	meth = str(alpha) + 'SOEG '
+	alpha = 0.75
+	max_update_step = int(np.sqrt(len(variables)))
+	meth = str(alpha) + ' SOEG '
 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
 	pq = copy.deepcopy(original_pq)
 	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)
@@ -109,9 +109,9 @@ def main():
 
 
 	k = len(variables)
-	alpha = 0.9
-	max_update_step = len(variables)
-	meth = str(alpha) + 'OEG '
+	alpha = 0.75
+	max_update_step =  int(np.sqrt(len(variables)))
+	meth = str(alpha) + ' OEG '
 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: ' + meth)
 	pq = copy.deepcopy(original_pq)
 	sspg = SelectiveStructuredPriorityGraft(variables, num_states, max_num_states, train_data, list_order, 'structured', pq_dict = pq)

@@ -96,7 +96,6 @@ class FeatureGraft():
         self.edge_l1 = edge_l1
         self.max_iter_graft = max_iter_graft
 
-
     def on_monitor_mn(self):
         """
         Enable monitoring Markrov net
@@ -143,61 +142,41 @@ class FeatureGraft():
         np.random.seed(0)
         if self.is_monitor_mn:
             exec_time_origin = time.time()
-
         for activated_edge in self.search_space:
             self.mn.set_edge_factor(activated_edge, np.zeros((len(self.mn.unary_potentials[activated_edge[0]]), len(self.mn.unary_potentials[activated_edge[1]]))))
             self.active_set.append(activated_edge)
-
-
         for edge in self.search_space:
             self.sufficient_stats[edge], self.padded_sufficient_stats[edge] = self.get_sufficient_stats_per_edge(self.mn, edge)
         self.aml_optimize = self.setup_grafting_learner()
-
         unary_indices, pairwise_indices = self.aml_optimize.belief_propagators[0].mn.get_weight_factor_index()
         self.get_edge_indices(pairwise_indices)
-
         for feature in self.feature2edge.keys():
             if self.feature2edge[feature] in self.edges:
                 self.relevant_features.append(feature)
-
         if self.is_monitor_mn:
             self.save_mn()
-
         weights_opt = np.random.randn(self.aml_optimize.weight_dim)
-
         if self.is_full_l1:
             self.zero_feature_indices = []
-
         objec = list()
-
         weights_opt[self.zero_feature_indices] = 0
-
-        weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices, loss=objec)
+        weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices, loss=objec)
         self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
         objec.extend(objec)
         if self.is_monitor_mn:
             exec_time =  time.time() - exec_time_origin
             self.save_mn()
             self.save_mn(exec_time=exec_time)
-
         if self.is_show_metrics:
             recall, precision, f1_score = [0,0], [0,0], [0,0]
-
-
         while activated_feature and len(self.active_features) < num_features:
-
             self.active_features.append(activated_feature)
-            
             self.active_set.append(self.feature2edge[activated_feature])
-
             self.active_set = list(set(self.active_set))
-
             if self.is_show_metrics and activated_feature:
                 self.update_metrics(edges, recall, precision, f1_score)
-
             if self.is_verbose:
                 self.print_update(activated_feature, precision[-1])
-
             if self.is_synthetic and precision[-1] < self.precison_threshold and len(self.active_features) > 5:
                 learned_mn = self.aml_optimize.belief_propagators[0].mn
                 learned_mn.load_factors_from_matrices()
@@ -205,16 +184,12 @@ class FeatureGraft():
 
             weights_opt[self.zero_feature_indices] = 0
             weights_opt[activated_feature] = 0
-            weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, data_len, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices, loss=objec)
+            weights_opt, activated_feature = self.aml_optimize.learn(weights_opt, self.max_iter_graft, self.edge_regularizers, self.node_regularizers, self.data, verbose=True, is_feature_graft=True, zero_feature_indices = self.zero_feature_indices, loss=objec)
             self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
-
-
-            self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
-
+            # self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
             if self.is_monitor_mn:
                 exec_time = time.time() - exec_time_origin
                 self.save_mn(exec_time=exec_time)
-
         self.aml_optimize.belief_propagators[0].mn.set_weights(weights_opt)
         learned_mn = self.aml_optimize.belief_propagators[0].mn
         learned_mn.load_factors_from_matrices()
