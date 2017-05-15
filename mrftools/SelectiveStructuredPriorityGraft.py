@@ -116,6 +116,7 @@ class SelectiveStructuredPriorityGraft():
         self.current_update_step = 0
         self.is_shrink_k = False
         self.alpha = .99
+        self.snapshot_count = 0
 
         self.treated_hub = dict()
 
@@ -213,9 +214,28 @@ class SelectiveStructuredPriorityGraft():
         return not self.is_limit_sufficient_stats or ( (len(self.sufficient_stats) - len(self.variables) ) / float(len(self.search_space)) < self.sufficient_stats_ratio )
 
     def save_mn(self, exec_time=0):
+        MAX_SNAPSHOTS = 200
         learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
         learned_mn.load_factors_from_matrices()
-        self.mn_snapshots[exec_time] = learned_mn
+        if exec_time != 0:
+            self.snapshot_count += 1
+        # hacked to do reservoir sampling
+        if exec_time==0 or len(self.mn_snapshots) < MAX_SNAPSHOTS:
+            self.mn_snapshots[exec_time] = learned_mn
+        else:
+            # print "Snapshot reservior full."
+            if random.randint(0, self.snapshot_count) <= MAX_SNAPSHOTS:
+                to_replace = random.choice(self.mn_snapshots.keys())
+                while to_replace == 0:
+                    to_replace = random.choice(self.mn_snapshots.keys())
+                # print "Replacing snapshot from time " + repr(to_replace)
+                # print "\t with snapshot from time " + repr(exec_time)
+                del(self.mn_snapshots[to_replace])
+                self.mn_snapshots[exec_time] = learned_mn
+
+                # print "Current snapshots: "
+                # print sorted(self.mn_snapshots.keys())
+
 
     def save_graph(self, exec_time=0):
         graph = copy.deepcopy(self.graph)
@@ -294,7 +314,7 @@ class SelectiveStructuredPriorityGraft():
             exec_time =  time.time() - exec_time_origin - metric_exec_time
             self.save_mn()
             self.save_mn(exec_time=exec_time)
-            self.save_graph(exec_time=exec_time)
+            # self.save_graph(exec_time=exec_time)
 
         if self.is_plot_queue:
             columns, rows, values = list(), list(), list()
@@ -355,7 +375,7 @@ class SelectiveStructuredPriorityGraft():
             if self.is_monitor_mn:
                 exec_time = time.time() - exec_time_origin - metric_exec_time
                 self.save_mn(exec_time=exec_time)
-                self.save_graph(exec_time=exec_time)
+                # self.save_graph(exec_time=exec_time)
             self.total_iter_num.append(iter_number)
 
             if self.is_show_metrics:
