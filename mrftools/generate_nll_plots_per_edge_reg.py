@@ -123,8 +123,8 @@ def main():
 	print('EDGES')
 	print(edges)
 
-	# edge_num = int(5 * num_nodes) # MAX NUM EDGES TO GRAFT
-	edge_num = float('inf')
+	edge_num = int(3 * num_nodes) # MAX NUM EDGES TO GRAFT
+	# edge_num = float('inf')
 
 	recalls, precisions, sufficientstats, mn_snapshots, recalls,f1_scores, objs, test_nlls, train_nlls, M_time_stamps = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
 
