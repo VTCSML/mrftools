@@ -2,7 +2,7 @@
 rm -r ../../../results_compare_nll_edge_reg_new
 mkdir ../../../results_compare_nll_edge_reg_new
 a="_"
-for nodes_num in 100
+for nodes_num in 400
 do
   mkdir ../../../results_compare_nll_edge_reg_new/$nodes_num
   for group_l1 in 0.05

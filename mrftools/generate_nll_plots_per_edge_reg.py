@@ -1,3 +1,7 @@
+import matplotlib as mpl
+mpl.use('Agg')
+
+
 import time
 import numpy as np
 from generate_synthetic_data import generate_synthetic_data, generate_random_synthetic_data
@@ -16,7 +20,9 @@ import sys
 import argparse
 import shelve
 
+
 import matplotlib.pyplot as plt
+
 from matplotlib.font_manager import FontProperties
 
 METHOD_COLORS = {'best_10':'yellow', 'queue':'green', 'graft':'blue'}
@@ -122,6 +128,18 @@ def main():
 
 	recalls, precisions, sufficientstats, mn_snapshots, recalls,f1_scores, objs, test_nlls, train_nlls, M_time_stamps = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
 
+	def get_test_nll(method):
+		print(method)
+		test_nll_list = list()
+		train_nll_list = list()
+		mn_snaps = mn_snapshots[method]
+		for t in M_time_stamps[method]:
+			test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
+			# train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
+			test_nll_list.append(test_nll)
+			# train_nll_list.append(train_nll)
+		return test_nll_list
+
 	# k = len(variables)
 	alpha = 1
 	# max_update_step = int(np.sqrt(len(variables)))
@@ -156,7 +174,8 @@ def main():
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = 'o'
 
-
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
 
 	# k = len(variables)
 	alpha = .75
@@ -192,7 +211,8 @@ def main():
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = 'v'
 
-
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
 
 	# k = len(variables)
 	alpha = .5
@@ -227,6 +247,9 @@ def main():
 	METHOD_COLORS[meth] = [0.2, 0.6, .7]
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = '<'
+
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
 
 
 	# k = len(variables)
@@ -263,6 +286,8 @@ def main():
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = '>'
 
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
 
 
 	# k = len(variables)
@@ -298,6 +323,9 @@ def main():
 	METHOD_COLORS[meth] = [.5, .7, .2]
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = 's'
+
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
 	
 
     ###########################################################################
@@ -331,6 +359,9 @@ def main():
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = '8'
 
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
+
 
 	print('>>>>>>>>>>>>>>>>>>>>>METHOD: Graft' )
 	meth = 'EG'
@@ -351,6 +382,9 @@ def main():
 	METHOD_COLORS[meth] = [0.75, 0.75, 0.75]
 	METHOD_legend[meth] = meth
 	METHOD_marker[meth] = 'h'
+
+	test_nlls[meth] = get_test_nll(meth)
+	del(mn_snapshots[meth])
 
 
 	#UNCOMMENT TO PLOT F1 SCORES EVOLUTION
@@ -433,22 +467,6 @@ def main():
 	RES_SHELVE.update(results)
 	RES_SHELVE.close()
 
-
-	#COMPUTE NLLS
-	#########################################################
-	for method in METHODS:
-		print(method)
-		test_nll_list = list()
-		train_nll_list = list()
-		mn_snaps = mn_snapshots[method]
-		for t in M_time_stamps[method]:
-			test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
-			# train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
-			test_nll_list.append(test_nll)
-			# train_nll_list.append(train_nll)
-		test_nlls[method] = test_nll_list
-		# train_nlls[method] = train_nll_list
-	#########################################################
 
 	#UNCOMMENT TO PLOT test nll SCORES EVOLUTION
 	plt.close()
