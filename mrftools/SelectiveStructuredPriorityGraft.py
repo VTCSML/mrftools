@@ -117,6 +117,7 @@ class SelectiveStructuredPriorityGraft():
         self.is_shrink_k = False
         self.alpha = .99
         self.snapshot_count = 0
+        self.timestamps = set()
 
         self.treated_hub = dict()
 
@@ -214,11 +215,12 @@ class SelectiveStructuredPriorityGraft():
         return not self.is_limit_sufficient_stats or ( (len(self.sufficient_stats) - len(self.variables) ) / float(len(self.search_space)) < self.sufficient_stats_ratio )
 
     def save_mn(self, exec_time=0):
-        MAX_SNAPSHOTS = 200
+        MAX_SNAPSHOTS = 100
         learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
         learned_mn.load_factors_from_matrices()
         if exec_time != 0:
             self.snapshot_count += 1
+        self.timestamps.add(exec_time)
         # hacked to do reservoir sampling
         if exec_time==0 or len(self.mn_snapshots) < MAX_SNAPSHOTS:
             self.mn_snapshots[exec_time] = learned_mn

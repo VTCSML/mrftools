@@ -127,13 +127,14 @@ def main():
 	# edge_num = float('inf')
 
 	recalls, precisions, sufficientstats, mn_snapshots, recalls,f1_scores, objs, test_nlls, train_nlls, M_time_stamps = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
+	subsampled_time_stamps = dict()
 
 	def get_test_nll(method):
 		print(method)
 		test_nll_list = list()
 		train_nll_list = list()
 		mn_snaps = mn_snapshots[method]
-		for t in M_time_stamps[method]:
+		for t in subsampled_time_stamps[method]:
 			test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
 			# train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
 			test_nll_list.append(test_nll)
@@ -163,8 +164,9 @@ def main():
 	print(exec_time)
 	print('Loss')
 	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	time_stamps = sorted(sspg.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(sspg.mn_snapshots.keys())
 	mn_snapshots[meth] = sspg.mn_snapshots
 	objs[meth] = objec
 	f1_scores[meth] = f1_score
@@ -200,8 +202,9 @@ def main():
 	print(exec_time)
 	print('Loss')
 	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	time_stamps = sorted(sspg.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(sspg.mn_snapshots.keys())
 	mn_snapshots[meth] = sspg.mn_snapshots
 	objs[meth] = objec
 	f1_scores[meth] = f1_score
@@ -237,8 +240,9 @@ def main():
 	print(exec_time)
 	print('Loss')
 	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	time_stamps = sorted(sspg.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(sspg.mn_snapshots.keys())
 	mn_snapshots[meth] = sspg.mn_snapshots
 	objs[meth] = objec
 	f1_scores[meth] = f1_score
@@ -275,8 +279,9 @@ def main():
 	print(exec_time)
 	print('Loss')
 	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	time_stamps = sorted(sspg.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(sspg.mn_snapshots.keys())
 	mn_snapshots[meth] = sspg.mn_snapshots
 	objs[meth] = objec
 	f1_scores[meth] = f1_score
@@ -313,8 +318,9 @@ def main():
 	print(exec_time)
 	print('Loss')
 	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	time_stamps = sorted(sspg.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(sspg.mn_snapshots.keys())
 	mn_snapshots[meth] = sspg.mn_snapshots
 	objs[meth] = objec
 	f1_scores[meth] = f1_score
@@ -348,8 +354,9 @@ def main():
 	print(exec_time)
 	print('Loss')
 	print(objec)
-	time_stamps = sorted(list(sspg.mn_snapshots.keys()))
+	time_stamps = sorted(sspg.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(sspg.mn_snapshots.keys())
 	mn_snapshots[meth] = sspg.mn_snapshots
 	objs[meth] = objec
 	f1_scores[meth] = f1_score
@@ -376,8 +383,9 @@ def main():
 	f1_scores[meth] = f1_score
 	METHODS.append(meth)
 	mn_snapshots[meth] = grafter.mn_snapshots
-	time_stamps = sorted(list(grafter.mn_snapshots.keys()))
+	time_stamps = sorted(grafter.timestamps)
 	M_time_stamps[meth] = time_stamps
+	subsampled_time_stamps[meth] = sorted(grafter.mn_snapshots.keys())
 	recalls[meth] = recall
 	METHOD_COLORS[meth] = [0.75, 0.75, 0.75]
 	METHOD_legend[meth] = meth
@@ -474,9 +482,9 @@ def main():
 	for i in range(len(METHODS)):
 		print(METHODS[i])
 		if METHODS[i] == 'EG' or METHODS[i] == 'First Hit':
-			ax1.plot(M_time_stamps[METHODS[i]], test_nlls[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=2.5, label=METHOD_legend[METHODS[i]])
+			ax1.plot(subsampled_time_stamps[METHODS[i]], test_nlls[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=2.5, label=METHOD_legend[METHODS[i]])
 		else:
-			ax1.plot(M_time_stamps[METHODS[i]], test_nlls
+			ax1.plot(subsampled_time_stamps[METHODS[i]], test_nlls
 				[METHODS[i]], color=METHOD_COLORS[METHODS[i]], linewidth=2.5, label=r'$\alpha = $'+ METHOD_legend[METHODS[i]])
 	ax1.set_xlabel('Time')
 	ax1.set_ylabel('Test NPLL')

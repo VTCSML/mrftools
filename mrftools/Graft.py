@@ -75,6 +75,9 @@ class Graft():
         self.new_edge = None
         self.added_edge_index = None
 
+        self.snapshot_count = 0
+        self.timestamps = set()
+
     def on_limit_sufficient_stats(self, max_sufficient_stats_ratio):
         """
         Reduce search space by selecting a random subset of edges
@@ -121,9 +124,28 @@ class Graft():
         self.is_verbose = True
 
     def save_mn(self, exec_time=0):
+        MAX_SNAPSHOTS = 100
         learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
         learned_mn.load_factors_from_matrices()
-        self.mn_snapshots[exec_time] = learned_mn
+        if exec_time != 0:
+            self.snapshot_count += 1
+        self.timestamps.add(exec_time)
+        # hacked to do reservoir sampling
+        if exec_time==0 or len(self.mn_snapshots) < MAX_SNAPSHOTS:
+            self.mn_snapshots[exec_time] = learned_mn
+        else:
+            # print "Snapshot reservior full."
+            if random.randint(0, self.snapshot_count) <= MAX_SNAPSHOTS:
+                to_replace = random.choice(self.mn_snapshots.keys())
+                while to_replace == 0:
+                    to_replace = random.choice(self.mn_snapshots.keys())
+                # print "Replacing snapshot from time " + repr(to_replace)
+                # print "\t with snapshot from time " + repr(exec_time)
+                del(self.mn_snapshots[to_replace])
+                self.mn_snapshots[exec_time] = learned_mn
+
+                # print "Current snapshots: "
+                # print sorted(self.mn_snapshots.keys())
 
     def save_graph(self, exec_time=0):
         graph = copy.deepcopy(self.graph)
