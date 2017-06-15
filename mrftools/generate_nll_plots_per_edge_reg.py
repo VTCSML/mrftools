@@ -117,8 +117,8 @@ def main():
 	print('EDGES')
 	print(edges)
 
-	# edge_num = int(5 * num_nodes) # MAX NUM EDGES TO GRAFT
-	edge_num = float('inf')
+	edge_num = int(3 * num_nodes) # MAX NUM EDGES TO GRAFT
+	# edge_num = float('inf')
 
 	recalls, precisions, sufficientstats, mn_snapshots, recalls,f1_scores, objs, test_nlls, train_nlls, M_time_stamps = dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict(), dict()
 
@@ -429,10 +429,6 @@ def main():
 	plt.savefig('../../../results_' + folder_name + '/'+ str(len(variables)) + '/' + str(group_l1) + '/' + str(l2) + '/OBJ.eps', format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
 	plt.close()
 
-	results = {'methods':METHODS, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'recall':recalls, 'f1':f1_scores, 'objs':objs, 'params':params}
-	RES_SHELVE.update(results)
-	RES_SHELVE.close()
-
 
 	#COMPUTE NLLS
 	#########################################################
@@ -441,6 +437,9 @@ def main():
 		test_nll_list = list()
 		train_nll_list = list()
 		mn_snaps = mn_snapshots[method]
+		t_range = M_time_stamps[method]
+		t = [t_range[i] for i in range(len(t_range)) if i==0 or i==1 or i%10==0 or i==len(t_range)]
+		M_time_stamps[method] = t
 		for t in M_time_stamps[method]:
 			test_nll = compute_likelihood(mn_snaps[t], len(variables), test_data)
 			# train_nll = compute_likelihood(mn_snaps[t], len(variables), train_data)
@@ -449,6 +448,11 @@ def main():
 		test_nlls[method] = test_nll_list
 		# train_nlls[method] = train_nll_list
 	#########################################################
+
+
+	results = {'methods':METHODS, 'train_data': train_data, 'test_data': test_data, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'recall':recalls, 'f1':f1_scores, 'objs':objs, 'params':params}
+	RES_SHELVE.update(results)
+	RES_SHELVE.close()
 
 	#UNCOMMENT TO PLOT test nll SCORES EVOLUTION
 	plt.close()
