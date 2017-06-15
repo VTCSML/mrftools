@@ -6,7 +6,6 @@ from LogLinearModel import LogLinearModel
 import math
 from opt import ada_grad, ada_grad_1
 import time
-import lbfgs
 import random
 
 
