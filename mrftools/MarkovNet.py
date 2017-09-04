@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.sparse import csc_matrix, dok_matrix
 
+
 class MarkovNet(object):
     """Object containing the definition of a pairwise Markov net."""
 
@@ -16,7 +17,10 @@ class MarkovNet(object):
         self.tree_probabilities = dict()
 
     def set_unary_factor(self, variable, potential):
-        """Set the potential function for the unary factor. Implicitly declare variable. Must be called before setting edge factors."""
+        """
+        Set the potential function for the unary factor. Implicitly declare variable. 
+        Must be called before setting edge factors.
+        """
         self.unary_potentials[variable] = potential
         if variable not in self.variables:
             self.declare_variable(variable, np.size(potential))
@@ -30,8 +34,14 @@ class MarkovNet(object):
             print("Warning: declaring a variable %s that was previously declared." % repr(variable))
 
     def set_edge_factor(self, edge, potential):
-        """Set a factor by inputting the involved variables then the potential function. The potential function should be a np matrix."""
-        assert np.shape(potential) == (len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]])), "potential size %d, %d incompatible with unary sizes %d, %d" % (np.shape(potential)[0], np.shape(potential)[1], len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]]))
+        """
+        Set a factor by inputting the involved variables then the potential function. 
+        The potential function should be a np matrix.
+        """
+        assert np.shape(potential) == (len(self.unary_potentials[edge[0]]), len(self.unary_potentials[edge[1]])), \
+            "potential size %d, %d incompatible with unary sizes %d, %d" % \
+            (np.shape(potential)[0], np.shape(potential)[1], len(self.unary_potentials[edge[0]]),
+             len(self.unary_potentials[edge[1]]))
 
         if edge[0] < edge[1]:
             self.edge_potentials[edge] = potential
@@ -42,7 +52,10 @@ class MarkovNet(object):
         self.neighbors[edge[1]].add(edge[0])
 
     def get_potential(self, pair):
-        """Return the potential between pair[0] and pair[1]. If (pair[1], pair[0]) is in our dictionary instead, return the transposed potential."""
+        """
+        Return the potential between pair[0] and pair[1]. If (pair[1], pair[0]) is in our dictionary instead, 
+        return the transposed potential.
+        """
         if pair in self.edge_potentials:
             return self.edge_potentials[pair]
         else:
@@ -64,11 +77,9 @@ class MarkovNet(object):
 
         return energy
 
-
     def set_unary_mat(self, unary_mat):
         assert np.array_equal(self.unary_mat.shape, unary_mat.shape)
         self.unary_mat[:, :] = unary_mat
-
 
     def set_edge_tensor(self, edge_tensor):
         if np.array_equal(self.edge_pot_tensor.shape, edge_tensor.shape):
@@ -78,7 +89,6 @@ class MarkovNet(object):
             assert np.array_equal(self.edge_pot_tensor.shape, mirrored_edge_tensor.shape)
 
             self.edge_pot_tensor[:, :, :] = mirrored_edge_tensor
-
 
     def create_matrices(self):
         self.matrix_mode = True

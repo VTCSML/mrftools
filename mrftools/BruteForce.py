@@ -6,7 +6,8 @@ import operator
 
 
 class BruteForce(object):
-    """Object that can do inference via ugly brute force. Recommended only for sanity checking and debugging using tiny examples."""
+    """Object that can do inference via ugly brute force. 
+    Recommended only for sanity checking and debugging using tiny examples."""
 
     def __init__(self, markov_net):
         """Initialize belief propagator for markov_net."""
