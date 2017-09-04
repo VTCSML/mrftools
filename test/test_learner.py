@@ -91,7 +91,7 @@ class TestLearner(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights,wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         l = (weight_record.shape)[0]
@@ -109,7 +109,7 @@ class TestLearner(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         l = (weight_record.shape)[0]
@@ -128,7 +128,7 @@ class TestLearner(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         l = (weight_record.shape)[0]
@@ -147,7 +147,7 @@ class TestLearner(unittest.TestCase):
         self.set_up_learner(learner, latent=False)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         l = (weight_record.shape)[0]

@@ -155,7 +155,7 @@ class TestImageSegmentation(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         l = (weight_record.shape)[0]
@@ -173,7 +173,7 @@ class TestImageSegmentation(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = learner.time_record
         l = (weight_record.shape)[0]
@@ -188,7 +188,7 @@ class TestImageSegmentation(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         l = (weight_record.shape)[0]
@@ -204,7 +204,7 @@ class TestImageSegmentation(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         subgrad_weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         t = wr_obj.time_record[0]
@@ -227,7 +227,7 @@ class TestImageSegmentation(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         em_weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         t = time_record[0]
@@ -250,7 +250,7 @@ class TestImageSegmentation(unittest.TestCase):
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
-        learner.learn(weights, wr_obj.callback)
+        learner.learn(weights, callback=wr_obj.callback)
         em_weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
         t = time_record[0]

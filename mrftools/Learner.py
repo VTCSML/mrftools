@@ -119,7 +119,6 @@ class Learner(object):
         bethe = bethe / self.num_examples
         return bethe
 
-
     def subgrad_obj(self, weights, options=None):
         if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
@@ -130,12 +129,9 @@ class Learner(object):
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, False)
         return self.gradient(weights)
 
-    def learn(self, weights, optimzer ,callback_f=None):
-        # res = minimize(self.subgrad_obj, weights, method='L-BFGS-B', jac=self.subgrad_grad, callback=callback_f)
-        # new_weights = res.x
+    def learn(self, weights, optimizer=ada_grad, callback=None, opt_args=None):
         self.start = time.time()
-        res = optimzer(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
-        # res = rms_prop(self.subgrad_obj, self.subgrad_grad, weights, None, callback=callback_f)
+        res = optimizer(self.subgrad_obj, self.subgrad_grad, weights, opt_args, callback=callback)
         new_weights = res
 
         return new_weights

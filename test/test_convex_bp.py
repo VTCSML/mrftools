@@ -198,13 +198,23 @@ class TestConvexBP(unittest.TestCase):
 
     def test_exactness(self):
         mn = self.create_chain_model()
-        bp = ConvexBeliefPropagator(mn)
+
+        sharp_counting_numbers = dict()
+        for var in mn.variables:
+            sharp_counting_numbers[var] = 0.01
+            for neighbor in mn.neighbors[var]:
+                if var < neighbor:
+                    sharp_counting_numbers[(var, neighbor)] = 0.01
+
+        bp = ConvexBeliefPropagator(mn, sharp_counting_numbers)
         bp.infer(display='full')
         bp.load_beliefs()
         print bp.var_beliefs
 
         bf = BruteForce(mn)
-        print bf.map_inference ( )
-        assert (np.array_equal(np.exp(bp.belief_mat),np.exp(bf.map_inference()))), "beliefs are not exact"
+        print bf.map_inference()
+        assert (np.allclose(np.exp(bp.belief_mat), np.exp(bf.map_inference()))), "beliefs are not exact"
+
+
 if __name__ == '__main__':
     unittest.main()

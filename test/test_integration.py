@@ -6,13 +6,12 @@ import matplotlib.pyplot as plt
 import copy
 
 
-
 class TestIntegration(unittest.TestCase):
-
     def test_loading_and_learning(self):
-        loader = ImageLoader(20, 20)
+        loader = ImageLoader(10, 10)
 
-        images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train'), 2, 3)
+        images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__),
+                                                                                       'train'), 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 
@@ -27,7 +26,9 @@ class TestIntegration(unittest.TestCase):
 
         weights = np.zeros(d_unary * num_states + d_edge * num_states**2)
 
-        new_weights = learner.learn(weights)
+        args = {'max_iter': 200}
+
+        new_weights = learner.learn(weights, opt_args=args)
 
         unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
         pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states**2))
@@ -196,8 +197,10 @@ class TestIntegration(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
+        args = {'max_iter': 100}
+
         start = time.time()
-        subgrad_weights = learner.learn(weights, None)
+        subgrad_weights = learner.learn(weights, optimizer=ada_grad, opt_args=args)
         subgrad_time = time.time() - start
         print "Learner took %f seconds" % subgrad_time
 
@@ -207,132 +210,20 @@ class TestIntegration(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
+        args = {'max_iter': 500}
+
         start = time.time()
-        paired_weights = learner.learn(weights, None)
+        paired_weights = learner.learn(weights, optimizer=ada_grad, opt_args=args)
         pd_time = time.time() - start
         print "PD took %f seconds" % pd_time
 
         assert pd_time < subgrad_time, "Paired dual learning took longer than subgradient"
 
-    def test_repeating_optimizer(self):
-        loader = ImageLoader ( 20, 20 )
+        print learner.subgrad_obj(subgrad_weights), learner.subgrad_obj(paired_weights)
 
-        images, models, labels, names = loader.load_all_images_and_labels (
-            os.path.join ( os.path.dirname ( __file__ ), 'train' ), 2, 3 )
+        assert learner.subgrad_obj(subgrad_weights) >= learner.subgrad_obj(paired_weights), \
+            "subgrad reached lower minimum than paired dual"
 
-        treu_labels = copy.deepcopy(labels)
-
-        ## every other row is latent
-        for l in range ( len ( labels ) ):
-            for k, v in labels[l].items ( ):
-                if (np.remainder ( k[0], 2 ) == 0):
-                    for jj in range ( 20 ):
-                        labels[l][k[0], jj] = -100
-
-            for lbl in labels[l].keys ( ):
-                if labels[l][lbl] == -100:
-                    del labels[l][lbl]
-
-        learner = EM ( MatrixBeliefPropagator )
-
-        learner.set_regularization ( 0.0, 0.00001 )
-
-        for model, states in zip ( models, labels ):
-            learner.add_data ( states, model )
-
-        d_unary = 65
-        num_states = 2
-        d_edge = 11
-
-        weights = np.zeros ( d_unary * num_states + d_edge * num_states ** 2 )
-        # weights = np.random.rand ( d_unary * num_states + d_edge * num_states ** 2 ) * 0.001
-        new_weights = learner.learn ( weights )
-
-        i = 1
-
-        models[i].set_weights(new_weights)
-        bp = MatrixBeliefPropagator(models[i])
-        bp.infer(display='final')
-        bp.load_beliefs()
-
-        beliefs = np.zeros((images[i].height, images[i].width))
-        label_img = np.zeros((images[i].height, images[i].width))
-        errors = 0
-        baseline = 0
-        num_latent = 0
-        for x in range(images[i].width):
-            for y in range(images[i].height):
-                beliefs[y, x] = np.argmax(np.exp(bp.var_beliefs[(x, y)]))
-                label_img[y, x] = treu_labels[i][(x, y)]
-                if (x,y) in labels[i]:
-                    print 'yes'
-                    if beliefs[y, x] != label_img[y, x]:
-                        errors += 1
-                else:
-                    num_latent += 1
-
-        errors = np.true_divide ( errors, images[i].width * images[i].height - num_latent )
-
-
-
-
-        # plt.subplot(131)
-        # plt.imshow(images[i], interpolation="nearest")
-        # plt.subplot(132)
-        # plt.imshow(label_img, interpolation="nearest")
-        # plt.subplot(133)
-        # plt.imshow(beliefs, interpolation="nearest")
-        # plt.show()
-
-
-
-        learner_1 = EM ( MatrixBeliefPropagator )
-
-        learner_1.set_regularization ( 0.0, 0.00001 )
-
-        for model, states in zip ( models, labels ):
-            learner_1.add_data ( states, model )
-
-        new_weights = learner_1.leanr_repeated ( weights )
-
-        i = 1
-
-        models[i].set_weights ( new_weights )
-        bp = MatrixBeliefPropagator ( models[i] )
-        bp.infer ( display='final' )
-        bp.load_beliefs ( )
-
-        beliefs = np.zeros ( (images[i].height, images[i].width) )
-        label_img = np.zeros ( (images[i].height, images[i].width) )
-        errors_1 = 0
-        baseline_1 = 0
-        num_latent = 0
-
-        for x in range ( images[i].width ):
-            for y in range ( images[i].height ):
-                beliefs[y, x] = np.argmax(np.exp ( bp.var_beliefs[(x, y)] ))
-                label_img[y, x] = treu_labels[i][(x, y)]
-                if (x, y) in labels[i]:
-                    print 'yes'
-                    if beliefs[y, x] != label_img[y, x]:
-                        errors_1 += 1
-                else:
-                    num_latent += 1
-
-        errors_1 = np.true_divide ( errors_1, images[i].width * images[i].height - num_latent )
-
-        # # # uncomment this to plot the beliefs
-        # plt.subplot(131)
-        # plt.imshow(images[i], interpolation="nearest")
-        # plt.subplot(132)
-        # plt.imshow(label_img, interpolation="nearest")
-        # plt.subplot(133)
-        # plt.imshow(beliefs, interpolation="nearest")
-        # plt.show()
-
-        print errors
-        print errors_1
-        assert errors_1 == errors, "Learned model with repeated inference should be the same as original EM."
 
     def test_optimizer(self):
         d_unary = 65
@@ -345,8 +236,6 @@ class TestIntegration(unittest.TestCase):
         weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
 
         image_size = 6
-
-        eval = Evaluator_latent(image_size, image_size)
 
         loader = ImageLoader(image_size, image_size)
 
@@ -372,7 +261,6 @@ class TestIntegration(unittest.TestCase):
             learner.add_data(states, model)
             eval_learner.add_data(states.copy(), copy.copy(model))
 
-        errors = []
         objectives = []
 
         op = ObjectivePlotter(eval_learner.subgrad_obj, eval_learner.subgrad_grad)
@@ -382,17 +270,13 @@ class TestIntegration(unittest.TestCase):
             prev_weights = weights
             start = time.time()
 
-            weights = learner.learn(prev_weights, callback_f=op.callback)
+            weights = learner.learn(prev_weights, callback=op.callback)
             subgrad_time = time.time() - start
             print "Learner took %f seconds" % subgrad_time
 
             objectives.append(learner.subgrad_obj(weights))
 
             print "After round %d of optimization, objective was %e." % (round, objectives[round])
-
-            errors.append(eval.evaluate_training_images('',images, models, labels, names, weights, 2, 3,
-                                                 inference_type, plot='false', display='final'))
-            print "After round %d of optimization, training error was %f." % (round, errors[round])
 
         for round in range(len(objectives) - 1):
             assert objectives[round] - objectives[round+1] < 1e-2, "Optimizer improved after supposedly reaching optimum"

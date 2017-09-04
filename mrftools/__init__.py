@@ -13,7 +13,6 @@ from Inference import Inference
 from LogLinearModel import LogLinearModel
 from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from MatrixTRBeliefPropagator import MatrixTRBeliefPropagator
-from GradientInferenceLearner import GradientInferenceLearner
 from opt import *
 from ConvexBeliefPropagator import ConvexBeliefPropagator
 from MaxProductBeliefPropagator import MaxProductBeliefPropagator
@@ -21,4 +20,3 @@ from MaxProductLinearProgramming import MaxProductLinearProgramming
 
 from MaxProductBeliefPropagator import *
 from MaxProductLinearProgramming import *
-from Evaluator_latent import *

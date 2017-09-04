@@ -1,11 +1,16 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import time
+from scipy.optimize import minimize
+
 
 def sgd(func, grad, x, args, callback):
     t = 1
-    tolerance = 1e-8
+    if not args:
+        args = {}
+    tolerance = args.get('tolerance', 1e-8)
+    max_iter = args.get('max_iter', 10000)
     change = np.inf
-
-    max_iter = 1000
 
     while change > tolerance and t < max_iter:
         old_x = x
@@ -18,13 +23,17 @@ def sgd(func, grad, x, args, callback):
 
     return x
 
+
 def ada_grad(func, grad, x, args, callback):
     t = 1
-    g_tol = 0.01
-    x_tol = 1e-6
-    eta = 0.1
-    offset = 1.0
-    max_iter = 10000
+    if not args:
+        args = {}
+    x_tol = args.get('x_tol', 1e-6)
+    g_tol = args.get('g_tol', 0.01)
+    eta = args.get('eta', 0.1)
+    offset = args.get('offset', 1.0)
+    max_iter = args.get('max_iter', 10000)
+
     grad_norm = np.inf
     x_change = np.inf
 
@@ -46,19 +55,24 @@ def ada_grad(func, grad, x, args, callback):
         t += 1
 
     if callback:
-        callback ( x )
+        callback(x)
     return x
+
 
 def rms_prop(func, grad, x, args, callback):
     t = 1
-    g_tol = 0.02
-    x_tol = 1e-6
-    max_iter = 10000
+
+    if not args:
+        args = {}
+    x_tol = args.get('x_tol', 0.02)
+    g_tol = args.get('g_tol', 1e-6)
+    eta = args.get('eta', 0.1)
+    gamma = args.get('gamma', 0.1)
+    eps = args.get('eps', 1e-8)
+    max_iter = args.get('max_iter', 10000)
+
     grad_norm = np.inf
     x_change = np.inf
-    eta = 0.01
-    gamma = 0.1
-    eps = 1e-8
 
     avg_sq_grad = np.zeros(len(x))
     grad_sum = 0
@@ -79,21 +93,24 @@ def rms_prop(func, grad, x, args, callback):
         t += 1
 
     if callback:
-        callback ( x )
+        callback(x)
     return x
+
 
 def adam(func, grad, x, args, callback):
     t = 1
-    g_tol = 1e-3
-    x_tol = 1e-3
-    max_iter = 10000
+    if not args:
+        args = {}
+    x_tol = args.get('x_tol', 1e-3)
+    g_tol = args.get('g_tol', 1e-3)
+    eps = args.get('eps', 1e-8)
+    b1 = args.get('b1', 0.9)
+    b2 = args.get('b2', 0.999)
+    step_size = args.get('step_size', 0.01)
+    max_iter = args.get('max_iter', 10000)
+
     grad_norm = np.inf
     x_change = np.inf
-
-    step_size = 0.01
-    b1 = 0.9
-    b2 = 0.999
-    eps = 1e-8
 
     m = np.zeros(len(x))
     v = np.zeros(len(x))
@@ -116,11 +133,17 @@ def adam(func, grad, x, args, callback):
 
         t += 1
     if callback:
-        callback ( x )
+        callback(x)
     return x
 
-import matplotlib.pyplot as plt
-import time
+
+def lbfgs(func, grad, x, args, callback):
+    if callback:
+        res = minimize(fun=func, x0=x, args=args, jac=grad, callback=callback)
+    else:
+        res = minimize(fun=func, x0=x, args=args, jac=grad)
+    return res.x
+
 
 class WeightRecord(object):
     def __init__(self):
@@ -143,7 +166,7 @@ class ObjectivePlotter(object):
     def __init__(self, func, grad=None):
         self.objectives = []
         self.func = func
-        plt.switch_backend("MacOSX")
+        # plt.switch_backend("MacOSX")
         self.timer = time.time()
         self.interval = 2.0
         self.last_x = 0
