@@ -142,6 +142,10 @@ def	evaluate_methods(num_states, variables, num_attributes, max_num_states, data
 	METHOD_marker[meth] = 'h'
 	test_nlls[meth] = get_test_nll(meth, mn_snapshots, subsampled_time_stamps, variables, test_data)
 
+	results = {'subsampled_time_stamps': subsampled_time_stamps, 'methods':METHODS, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'recall':recalls, 'f1':f1_scores, 'objs':objs, 'params':params}
+	RES_SHELVE.update(results)
+	RES_SHELVE.close()
+
 	###############MAKE PLOTS
 
 	print('>Making plots')
@@ -159,9 +163,7 @@ def	evaluate_methods(num_states, variables, num_attributes, max_num_states, data
 	ax1.legend(loc='best', framealpha=0.5, fancybox=True)
 	plt.savefig(results_dir + '/'+ str(len(variables)) + '/' + str(edge_reg) + '/' + args.l2 + '/OBJ.eps', format='eps', dpi=1000)
 	plt.close()
-	results = {'methods':METHODS, 'time_stamps': M_time_stamps, 'train_nlls':train_nlls, 'test_nlls':test_nlls, 'recall':recalls, 'f1':f1_scores, 'objs':objs, 'params':params}
-	RES_SHELVE.update(results)
-	RES_SHELVE.close()
+
 
 	#UNCOMMENT TO PLOT test nll SCORES EVOLUTION
 	plt.close()
@@ -197,7 +199,7 @@ def	evaluate_methods(num_states, variables, num_attributes, max_num_states, data
 		if f1[-1] > .4:
 			plt.savefig(results_dir + '/'+ str(len(variables)) + '/' + str(edge_reg) + '/' + args.l2 + '/F1*.eps',linewidth=2.5, format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
 		else:
-			plt.savefig(results_dir + '/'+ str(len(variables))+ '/' + str(edge_reg) + '/' + args.l2 + '/' + str(l2) + '/F1.eps',linewidth=2.5, format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
+			plt.savefig(results_dir + '/'+ str(len(variables))+ '/' + str(edge_reg) + '/' + args.l2 + '/' + str(args.l2) + '/F1.eps',linewidth=2.5, format='eps', dpi=1000, bbox_extra_artists=(lgd,), bbox_inches='tight')
 		plt.close()
 
 		#UNCOMMENT TO PLOT Recall SCORES EVOLUTION
