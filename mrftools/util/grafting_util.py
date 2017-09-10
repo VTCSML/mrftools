@@ -44,7 +44,6 @@ def compute_likelihood_1(mn, num_nodes, data):
 
         likelihood_1 += likelihood_instance_1
     nll = - (float(likelihood_1) / float(len(data)))
-    print(nll)
     return nll
 
 
@@ -80,7 +79,6 @@ def compute_likelihood(mn, num_nodes, data, variables = None):
         total_log_likelihood += instance_log_likelihood
 
     nll = - total_log_likelihood[0] / float(len(data))
-    print(nll)
     return nll
 
 

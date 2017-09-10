@@ -11,6 +11,6 @@ do
   	c=$nodes_num
     c=$c$a
   	c=$c$l1
-	  nohup stdbuf -oL python generate_nll_feature_graft.py --nodes_num $nodes_num --l1 $l1 > logs/feature_nll_"$c" &
+	  nohup stdbuf -oL python feature_graft_experiments.py --nodes_num $nodes_num --l1 $l1 > logs/feature_nll_"$c" &
 	done
 done

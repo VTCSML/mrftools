@@ -121,23 +121,21 @@ class Graft():
     def on_verbose(self):
         self.is_verbose = True
 
-    def save_mn(self, exec_time=0):
-        MAX_SNAPSHOTS = 100
-        learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
-        learned_mn.load_factors_from_matrices()
+    def save_mn(self, exec_time=0, is_last=False):
+
+        SAMPLING_STEP = 10
+        if is_last:
+            learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
+            learned_mn.load_factors_from_matrices()
+            self.mn_snapshots[exec_time] = learned_mn
+            return
         if exec_time != 0:
             self.snapshot_count += 1
         self.timestamps.add(exec_time)
-        if exec_time==0 or len(self.mn_snapshots) < MAX_SNAPSHOTS:
+        if self.snapshot_count == 1 or (self.snapshot_count%SAMPLING_STEP) == 0:
+            learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
+            learned_mn.load_factors_from_matrices()
             self.mn_snapshots[exec_time] = learned_mn
-        else:
-            if random.randint(0, self.snapshot_count) <= MAX_SNAPSHOTS:
-                to_replace = random.choice(self.mn_snapshots.keys())
-                while to_replace == 0:
-                    to_replace = random.choice(self.mn_snapshots.keys())
-
-                del(self.mn_snapshots[to_replace])
-                self.mn_snapshots[exec_time] = learned_mn
 
     def save_graph(self, exec_time=0):
         graph = copy.deepcopy(self.graph)
@@ -257,6 +255,9 @@ class Graft():
             if self.is_show_metrics and is_activated_edge:
                 self.update_metrics(edges, recall, precision, f1_score, suff_stats_list)
             is_activated_edge, activated_edge = self.activation_test()
+
+        self.save_mn(exec_time=max(self.timestamps), is_last=True)
+        
         if is_activated_edge == False:
                 self.is_converged = True
         final_active_set = self.active_set
@@ -353,9 +354,9 @@ class Graft():
         """
         print update
         """
-        print('ACTIVATED EDGE')
-        print(activated_edge)
-        print('LENGTH CURRENT ACTIVE SPACE')
+        print('active edges')
+        # print(len(activated_edge))
+        # print('LENGTH CURRENT ACTIVE SPACE')
         print(len(self.active_set))
 
     def update_metrics(self, edges, recall, precision, f1_score, suff_stats_list):

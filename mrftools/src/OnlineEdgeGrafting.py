@@ -20,7 +20,7 @@ import operator
 # 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class SelectiveStructuredPriorityGraft():
+class OnlineEdgeGrafting():
     """
     Structured priority grafting class
     """
@@ -178,22 +178,21 @@ class SelectiveStructuredPriorityGraft():
         """
         return not self.is_limit_sufficient_stats or ( (len(self.sufficient_stats) - len(self.variables) ) / float(len(self.search_space)) < self.sufficient_stats_ratio )
 
-    def save_mn(self, exec_time=0):
-        MAX_SNAPSHOTS = 100
-        learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
-        learned_mn.load_factors_from_matrices()
+    def save_mn(self, exec_time=0, is_last=False):
+
+        SAMPLING_STEP = 10
+        if is_last:
+            learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
+            learned_mn.load_factors_from_matrices()
+            self.mn_snapshots[exec_time] = learned_mn
+            return
         if exec_time != 0:
             self.snapshot_count += 1
         self.timestamps.add(exec_time)
-        if exec_time==0 or len(self.mn_snapshots) < MAX_SNAPSHOTS:
+        if self.snapshot_count == 1 or (self.snapshot_count%SAMPLING_STEP) == 0:
+            learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
+            learned_mn.load_factors_from_matrices()
             self.mn_snapshots[exec_time] = learned_mn
-        else:
-            if random.randint(0, self.snapshot_count) <= MAX_SNAPSHOTS:
-                to_replace = random.choice(self.mn_snapshots.keys())
-                while to_replace == 0:
-                    to_replace = random.choice(self.mn_snapshots.keys())
-                del(self.mn_snapshots[to_replace])
-                self.mn_snapshots[exec_time] = learned_mn
 
 
     def save_graph(self, exec_time=0):
@@ -284,12 +283,6 @@ class SelectiveStructuredPriorityGraft():
             self.save_mn()
             self.save_mn(exec_time=exec_time)
 
-        # if self.is_plot_queue:
-        #     columns, rows, values = list(), list(), list()
-        #     loop_num = 0
-        #     pq_history = dict()
-
-
         # First activated edge(s)
         is_activated_edge, activated_edges_list, iter_number = self.activation_test()
         old_edge_regularizers = list()
@@ -306,7 +299,6 @@ class SelectiveStructuredPriorityGraft():
                     print('damping reservoir')
                     print(len(self.frozen_list))
                     activated_edges_list = [x for x in sorted(self.k_relevant, key=self.k_relevant.get, reverse=True)]
-
                 break_grafting = True
 
             # Activate edges
@@ -316,7 +308,6 @@ class SelectiveStructuredPriorityGraft():
                 self.not_connected[activated_edge[0]] = False
                 self.not_connected[activated_edge[1]] = False
 
-            print(is_activated_edge)
             print('active edges')
             print(len(self.active_set))
 
@@ -352,7 +343,7 @@ class SelectiveStructuredPriorityGraft():
             # New edges to activate
             is_activated_edge, activated_edges_list, iter_number = self.activation_test()
 
-
+        self.save_mn(exec_time=max(self.timestamps), is_last=True)
         self.sufficient_stats.clear()
         self.padded_sufficient_stats.clear()
         self.edge_regularizers.clear()
