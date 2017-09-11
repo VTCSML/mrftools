@@ -137,7 +137,7 @@ class MatrixBeliefPropagator(Inference):
         for (var, i) in self.mn.var_index.items():
             self.var_beliefs[var] = self.belief_mat[:len(self.mn.unary_potentials[var]), i]
 
-        for edge, i in self.mn.edge_index.items():
+        for edge, i in self.mn.message_index.items():
             (var, neighbor) = edge
 
             belief = self.pair_belief_tensor[:len(self.mn.unary_potentials[var]),

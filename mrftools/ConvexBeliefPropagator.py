@@ -27,7 +27,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
     def _set_counting_numbers(self, counting_numbers):
         self.edge_counting_numbers = np.zeros(2 * self.mn.num_edges)
 
-        for edge, i in self.mn.edge_index.items():
+        for edge, i in self.mn.message_index.items():
             reversed_edge = edge[::-1]
             if edge in counting_numbers:
                 self.edge_counting_numbers[i] = counting_numbers[edge]
@@ -45,7 +45,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
         self.unary_coefficients = self.unary_counting_numbers.copy()
 
-        for edge, i in self.mn.edge_index.items():
+        for edge, i in self.mn.message_index.items():
 
             self.unary_coefficients[self.mn.var_index[edge[0]]] += self.edge_counting_numbers[i]
             self.unary_coefficients[self.mn.var_index[edge[1]]] += self.edge_counting_numbers[i]

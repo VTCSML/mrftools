@@ -107,7 +107,7 @@ class LogLinearModel(MarkovNet):
         self.edge_weight_mat = np.zeros((self.max_edge_features, self.max_states**2))
         self.edge_feature_mat = np.zeros((self.max_edge_features, self.num_edges))
 
-        for edge, i in self.edge_index.items():
+        for edge, i in self.message_index.items():
             self.edge_feature_mat[:, i] = self.edge_features[edge]
 
         self.weight_dim = self.max_states * self.max_features + self.max_edge_features * self.max_states ** 2
@@ -150,7 +150,7 @@ class LogLinearModel(MarkovNet):
             potential = self.unary_potentials[var]
             self.weight_mat[i, :len(potential)] = potential
 
-        for (edge, i) in self.edge_index.items():
+        for (edge, i) in self.message_index.items():
             padded_potential = -np.inf * np.ones((self.max_states, self.max_states))
             potential = self.get_potential(edge)
             padded_potential[:self.num_states[edge[0]], :self.num_states[edge[1]]] = potential
@@ -163,6 +163,6 @@ class LogLinearModel(MarkovNet):
         for (var, i) in self.var_index.items():
             self.set_unary_factor(var, self.unary_mat[:self.num_states[var], i].ravel())
 
-        for edge, i in self.edge_index.items():
+        for edge, i in self.message_index.items():
             self.set_edge_factor(edge,
                          self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
