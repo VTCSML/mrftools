@@ -154,10 +154,10 @@ class TestIntegration(unittest.TestCase):
                     edge = (var, neighbor)
                     bp_message = bp.messages[edge]
 
-                    if edge in mat_bp.mn.edge_index:
-                        edge_index = mat_bp.mn.edge_index[edge]
+                    if edge in mat_bp.mn.message_index:
+                        edge_index = mat_bp.mn.message_index[edge]
                     else:
-                        edge_index = mat_bp.mn.edge_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
+                        edge_index = mat_bp.mn.message_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
 
                     mat_bp_message = mat_bp.message_mat[:, edge_index].ravel()
 

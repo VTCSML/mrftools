@@ -93,7 +93,7 @@ class TestImageLoader(unittest.TestCase):
 
         model.create_matrices()
 
-        for edge, i in model.edge_index.items():
+        for edge, i in model.message_index.items():
             from_index = model.var_index[edge[0]]
             to_index = model.var_index[edge[1]]
             assert model.message_from[i] == from_index, "Message sender index is wrong"
