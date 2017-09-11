@@ -180,7 +180,7 @@ class OnlineEdgeGrafting():
 
     def save_mn(self, exec_time=0, is_last=False):
 
-        SAMPLING_STEP = 10
+        SAMPLING_STEP = 20
         if is_last:
             learned_mn = copy.deepcopy(self.aml_optimize.belief_propagators[0].mn)
             learned_mn.load_factors_from_matrices()
