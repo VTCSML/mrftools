@@ -152,13 +152,12 @@ class WeightRecord(object):
 
     def callback(self, x):
         a = np.copy(x)
-        if (self.weight_record.size) == 0:
+        if self.weight_record.size == 0:
             self.weight_record = a.reshape((1, a.size))
-            self.time_record = np.array([((time.time() ))])
+            self.time_record = np.array([time.time()])
         else:
-            self.weight_record = np.vstack((self.weight_record,a))
-            self.time_record = np.vstack ( (self.time_record,  time.time ( ) ) )
-            # self.time_record = np.vstack((self.time_record,int(round(time.time() ))))
+            self.weight_record = np.vstack((self.weight_record, a))
+            self.time_record = np.vstack((self.time_record, time.time()))
 
 
 class ObjectivePlotter(object):

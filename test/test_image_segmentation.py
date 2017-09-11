@@ -6,10 +6,11 @@ import itertools
 
 
 class TestImageSegmentation(unittest.TestCase):
-    data = [({1: 0, 2: 1, 3: 0, 4: -100},
+    # data is a dictionary containing
+    data = [({1: 0, 2: 1, 3: 0, 4: None},
              {1: np.array([1, 0, 0]), 2: np.array([0, 1, 0]), 3: np.array([1, 0, 0]), 4: np.array([0, 0, 1])},
              {1: 0, 2: 1, 3: 0, 4: 2}),
-            ({1: 0, 2: 0, 3: -100, 4: 2},
+            ({1: 0, 2: 0, 3: None, 4: 2},
              {1: np.array([1, 0, 0]), 2: np.array([1, 0, 0]), 3: np.array([0, 1, 0]), 4: np.array([0, 0, 1])},
              {1: 0, 2: 0, 3: 1, 4: 2})]
 
@@ -30,12 +31,17 @@ class TestImageSegmentation(unittest.TestCase):
                 w_pair = np.reshape(w[num_states * d:], (num_states, num_states))
                 w_unary = np.array(w_unary, dtype=float)
                 w_pair = np.array(w_pair, dtype=float)
+
                 mn = self.create_markov_net(2, 2, w_unary, w_pair, data[1])
+
+                # perform inference
                 bp = MatrixBeliefPropagator(mn)
                 bp.infer(display="off")
                 bp.compute_beliefs()
                 bp.compute_pairwise_beliefs()
                 bp.load_beliefs()
+
+                # measure predictions
                 prediction = []
                 for pixel_id in range(1, num_pixels + 1):
                     prediction.append(np.argmax(bp.var_beliefs[pixel_id]))
@@ -70,15 +76,25 @@ class TestImageSegmentation(unittest.TestCase):
         return edges
 
     def create_markov_net(self, height, width, w_unary, w_pair, pixels):
+        """
+        Generates a grid Markov net with the provided size, unary weights and pixel data
+        
+        :param height: number of rows of the MRF
+        :param width: number of columns of the MRF
+        :param w_unary: linear weights to generate unary potentials from pixel features
+        :param w_pair: pairwise potential function (table)
+        :param pixels: pixel data dictionary
+        :return: constructed Markov net object
+        """
         mn = MarkovNet()
         num_pixels = height * width
         self.get_all_edges(width, height)
 
-        # Set Unary Factor
+        # Set unary factor
         for i in range(1, num_pixels + 1):
             mn.set_unary_factor(i, np.dot(w_unary, pixels[i]))
 
-        # Set Pairwise
+        # Set pairwise
         south_west_ind = num_pixels - width + 1
 
         left_pixels = [i for i in range(1, num_pixels + 1) if (i % width) == 1 and i != south_west_ind]
@@ -128,20 +144,27 @@ class TestImageSegmentation(unittest.TestCase):
         return model
 
     def set_up_learner(self, learner):
-        d = 3
+        """
+        Add training data to learner and set regularizer
+        :param learner: learner object to prepare for learning
+        :return: None
+        """
+        data_dim = 3
         num_states = 3
 
         models = []
         labels = []
         for i in range(len(self.data)):
-            m = self.create_model(num_states, d, self.data[i][1])
+            m = self.create_model(num_states, data_dim, self.data[i][1])
             models.append(m)
-            dic = self.data[i][0]
-            for key in dic.keys():
-                if dic[key] == -100:
-                    del dic[key]
-            label_vec = dic
-            labels.append(label_vec)
+
+            label_dict = self.data[i][0]
+            # remove observed (latent) pixels
+            for key in label_dict.keys():
+                if label_dict[key] is None:
+                    del label_dict[key]
+
+            labels.append(label_dict)
 
         for model, states in zip(models, labels):
             learner.add_data(states, model)
@@ -150,18 +173,21 @@ class TestImageSegmentation(unittest.TestCase):
 
     def test_subgradient_obj(self):
         np.random.seed(0)
+
         weights = np.zeros(9 + 9)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
+        # initialize the callback utility that saves weights during optimization
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
+        num_iters = weight_record.shape[0]
 
+        # check that the objective value gets smaller with each iteration
         old_obj = np.Inf
-        for i in range(l):
+        for i in range(num_iters):
             new_obj = learner.subgrad_obj(weight_record[i, :])
             assert (new_obj <= old_obj + 1e-8), "subgradient objective did not decrease" + repr((new_obj, old_obj))
             old_obj = new_obj

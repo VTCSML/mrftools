@@ -1,6 +1,5 @@
 from test_belief_propagator import TestBeliefPropagator
 from test_gibbs_sampling import TestGibbsSampling
-from test_gradient_inference_learner import TestGradientInferenceLearner
 from test_image_segmentation import TestImageSegmentation
 from test_imageloader import TestImageLoader
 from test_integration import TestIntegration
