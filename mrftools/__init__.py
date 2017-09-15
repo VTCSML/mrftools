@@ -19,3 +19,4 @@ from PairedDual import PairedDual
 from PrimalDual import PrimalDual
 from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from opt import *
+from util import *

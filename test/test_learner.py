@@ -37,7 +37,7 @@ class TestLearner(unittest.TestCase):
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
-        learner.start = time.time()
+        learner.start_time = time.time()
         learner.set_regularization(0.0, 1.0)
         gradient_error = check_grad(learner.subgrad_obj, learner.subgrad_grad, weights)
 
@@ -54,7 +54,7 @@ class TestLearner(unittest.TestCase):
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner, latent=False)
-        learner.start = time.time()
+        learner.start_time = time.time()
         learner.set_regularization(0.0, 1.0)
         gradient_error = check_grad(learner.subgrad_obj, learner.subgrad_grad, weights)
 

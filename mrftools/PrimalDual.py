@@ -8,7 +8,7 @@ class PrimalDual(PairedDual):
         self.bp_iter = 300
 
     def learn(self, weights, optimizer, callback=None):
-        for bp in self.belief_propagators_q:
+        for bp in self.conditioned_belief_propagators:
             bp.set_max_iter(self.bp_iter)
 
         for bp in self.belief_propagators:

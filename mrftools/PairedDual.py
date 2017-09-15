@@ -9,7 +9,7 @@ class PairedDual(Learner):
         self.warm_up = warm_up
 
     def learn(self, weights, optimizer=ada_grad, callback=None, opt_args=None):
-        for bp in self.belief_propagators + self.belief_propagators_q:
+        for bp in self.belief_propagators + self.conditioned_belief_propagators:
             bp.set_max_iter(self.bp_iter)
             for i in range(self.warm_up):
                 bp.update_messages()

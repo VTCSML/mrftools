@@ -201,7 +201,7 @@ class TestImageSegmentation(unittest.TestCase):
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
-        time_record = learner.time_record
+        time_record = wr_obj.time_record
         l = (weight_record.shape)[0]
         old_obj = learner.subgrad_obj(weight_record[0, :])
         new_obj = learner.subgrad_obj(weight_record[-1, :])

@@ -266,7 +266,8 @@ class MatrixBeliefPropagator(Inference):
 
     def get_feature_expectations(self):
         """
-        Computes the feature expectations under the currently estimated marginal probabilities.
+        Computes the feature expectations under the currently estimated marginal probabilities. Only works when the 
+        model is a LogLinearModel class with features for edges. 
 
         :return: vector of the marginals in order of the flattened unary features first, then the flattened pairwise 
                     features
