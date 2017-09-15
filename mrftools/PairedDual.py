@@ -1,10 +1,3 @@
-import copy
-import time
-from _hashlib import new
-import numpy as np
-from scipy.optimize import minimize, check_grad
-from LogLinearModel import LogLinearModel
-from MatrixBeliefPropagator import MatrixBeliefPropagator
 from Learner import Learner
 from opt import *
 
@@ -19,7 +12,7 @@ class PairedDual(Learner):
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.set_max_iter(self.bp_iter)
             for i in range(self.warm_up):
-                    bp.update_messages()
+                bp.update_messages()
 
         self.start = time.time()
         new_weights = optimizer(self.dual_obj, self.subgrad_grad, weights, args=opt_args, callback=callback)

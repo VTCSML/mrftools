@@ -1,20 +1,14 @@
-import copy
-import time
-from _hashlib import new
-import numpy as np
-from scipy.optimize import minimize, check_grad
-from LogLinearModel import LogLinearModel
-from MatrixBeliefPropagator import MatrixBeliefPropagator
 from Learner import Learner
 from opt import *
+
+
 # from PIL.ImageGrab import grab
 
 
 class EM(Learner):
-    
     def __init__(self, inference_type):
-        super(EM, self).__init__( inference_type)
-        
+        super(EM, self).__init__(inference_type)
+
     def learn(self, weights, optimizer=ada_grad, callback=None):
         old_weights = np.inf
         new_weights = weights

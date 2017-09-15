@@ -1,8 +1,9 @@
 """Class to convert from log linear model to MRF"""
 
-from MarkovNet import MarkovNet
 import numpy as np
 from scipy.sparse import csr_matrix
+
+from MarkovNet import MarkovNet
 
 
 class LogLinearModel(MarkovNet):
@@ -54,7 +55,7 @@ class LogLinearModel(MarkovNet):
     def set_all_unary_factors(self):
         for var in self.variables:
             self.set_unary_factor(var, self.unary_feature_weights[var].dot(self.unary_features[var]))
- 
+
     def set_feature_matrix(self, feature_mat):
         assert (np.array_equal(self.feature_mat.shape, feature_mat.shape))
 
@@ -88,7 +89,7 @@ class LogLinearModel(MarkovNet):
     def update_edge_tensor(self):
         half_edge_tensor = self.edge_feature_mat.T.dot(self.edge_weight_mat).T.reshape(
             (self.max_states, self.max_states, self.num_edges))
-        self.edge_pot_tensor[:,:,:] = np.concatenate((half_edge_tensor.transpose(1, 0, 2), half_edge_tensor), axis=2)
+        self.edge_pot_tensor[:, :, :] = np.concatenate((half_edge_tensor.transpose(1, 0, 2), half_edge_tensor), axis=2)
 
     def create_matrices(self):
         super(LogLinearModel, self).create_matrices()
@@ -104,7 +105,7 @@ class LogLinearModel(MarkovNet):
 
         # create edge matrices
         self.max_edge_features = max([x for x in self.num_edge_features.values()])
-        self.edge_weight_mat = np.zeros((self.max_edge_features, self.max_states**2))
+        self.edge_weight_mat = np.zeros((self.max_edge_features, self.max_states ** 2))
         self.edge_feature_mat = np.zeros((self.max_edge_features, self.num_edges))
 
         for edge, i in self.message_index.items():
@@ -165,4 +166,5 @@ class LogLinearModel(MarkovNet):
 
         for edge, i in self.message_index.items():
             self.set_edge_factor(edge,
-                         self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]], i].squeeze().T)
+                                 self.edge_pot_tensor[:self.num_states[edge[1]], :self.num_states[edge[0]],
+                                 i].squeeze().T)

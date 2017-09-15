@@ -1,6 +1,6 @@
 """BeliefPropagator class."""
 import numpy as np
-from MarkovNet import MarkovNet
+
 from Inference import Inference
 
 
@@ -196,10 +196,12 @@ class BeliefPropagator(Inference):
 
         for var in self.mn.variables:
             neighbors = self.mn.get_neighbors(var)
-            entropy -= (1 - len(neighbors)) * np.sum(np.exp(self.var_beliefs[var]) * np.nan_to_num(self.var_beliefs[var]))
+            entropy -= (1 - len(neighbors)) * np.sum(
+                np.exp(self.var_beliefs[var]) * np.nan_to_num(self.var_beliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
-                    entropy -= np.sum(np.exp(self.pair_beliefs[(var, neighbor)]) * np.nan_to_num(self.pair_beliefs[(var, neighbor)]))
+                    entropy -= np.sum(
+                        np.exp(self.pair_beliefs[(var, neighbor)]) * np.nan_to_num(self.pair_beliefs[(var, neighbor)]))
         return entropy
 
     def compute_energy(self):
@@ -215,7 +217,8 @@ class BeliefPropagator(Inference):
             energy += np.nan_to_num(self.mn.unary_potentials[var]).dot(np.exp(self.var_beliefs[var]))
             for neighbor in neighbors:
                 if var < neighbor:
-                    energy += np.sum(np.nan_to_num(self.mn.get_potential((var, neighbor)) * np.exp(self.pair_beliefs[(var, neighbor)])))
+                    energy += np.sum(np.nan_to_num(
+                        self.mn.get_potential((var, neighbor)) * np.exp(self.pair_beliefs[(var, neighbor)])))
         return energy
 
     def compute_energy_functional(self):

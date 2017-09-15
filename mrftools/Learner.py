@@ -1,10 +1,5 @@
 import copy
-import time
-from _hashlib import new
-import numpy as np
-from scipy.optimize import minimize, check_grad
-from LogLinearModel import LogLinearModel
-from MatrixBeliefPropagator import MatrixBeliefPropagator
+
 from ConvexBeliefPropagator import ConvexBeliefPropagator
 from opt import *
 
@@ -36,17 +31,15 @@ class Learner(object):
         self.l2_regularization = l2
 
     def instantiate(self, model):
-        default_counting_numbers = dict ( )
+        default_counting_numbers = dict()
         for var in model.variables:
             default_counting_numbers[var] = 0.1
             for neighbor in model.neighbors[var]:
                 if var < neighbor:
                     default_counting_numbers[(var, neighbor)] = 0.1
 
-        bp = ConvexBeliefPropagator ( model, default_counting_numbers )
+        bp = ConvexBeliefPropagator(model, default_counting_numbers)
         return
-
-
 
     def add_data(self, labels, model):
         """Add data example to training set. The states variable should be a dictionary containing all the states of the
@@ -58,7 +51,7 @@ class Learner(object):
             bp = self.inference_type(model)
 
         if self.loss_augmented == True:
-            for (var, state) in labels.items ( ):
+            for (var, state) in labels.items():
                 bp.augment_loss(var, state)
 
         self.belief_propagators.append(bp)
@@ -94,7 +87,7 @@ class Learner(object):
         for bp in belief_propagators:
             if self.initialization_flag == True:
                 bp.initialize_messages()
-            bp.infer(display = 'off')
+            bp.infer(display='off')
 
     def set_inference_truncation(self, bp_iter):
         for bp in self.belief_propagators + self.belief_propagators_q:
@@ -137,7 +130,7 @@ class Learner(object):
         return new_weights
 
     def reset(self):
-        self.weight_record =  np.array([])
+        self.weight_record = np.array([])
         self.time_record = np.array([])
         for bp in self.belief_propagators + self.belief_propagators_q:
             bp.initialize_messages()
@@ -157,12 +150,14 @@ class Learner(object):
     def objective(self, weights, options=None):
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
 
-        term_p = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in self.belief_propagators]) / len(self.belief_propagators)
+        term_p = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in
+                      self.belief_propagators]) / len(self.belief_propagators)
 
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
             self.set_weights(weights, self.belief_propagators_q)
-            term_q = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in self.belief_propagators_q]) / len(self.belief_propagators_q)
+            term_q = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in
+                          self.belief_propagators_q]) / len(self.belief_propagators_q)
         else:
             term_q = np.dot(self.tau_q, weights)
 
@@ -180,7 +175,7 @@ class Learner(object):
 
         if self.start != 0 and time.time() - self.start > 100:
             print 'more than 100 sec...'
-            grad = np.zeros ( len ( weights ) )
+            grad = np.zeros(len(weights))
             return grad
         else:
             self.tau_p = self.calculate_tau(weights, self.belief_propagators, False)
@@ -200,16 +195,18 @@ class Learner(object):
         if self.tau_q is None or not self.fully_observed:
             self.tau_q = self.calculate_tau(weights, self.belief_propagators_q, True)
         self.tau_p = self.calculate_tau(weights, self.belief_propagators, True)
-        term_p = sum ( [np.true_divide ( x.compute_dual_objective ( ), len ( x.mn.variables ) ) for x in self.belief_propagators] ) / len ( self.belief_propagators )
+        term_p = sum(
+            [np.true_divide(x.compute_dual_objective(), len(x.mn.variables)) for x in self.belief_propagators]) / len(
+            self.belief_propagators)
         if not self.fully_observed:
             # recompute energy functional for label distributions only in latent variable case
             self.set_weights(weights, self.belief_propagators_q)
-            term_q = sum ( [np.true_divide ( x.compute_dual_objective ( ), len ( x.mn.variables ) ) for x in self.belief_propagators_q] ) / len ( self.belief_propagators_q )
+            term_q = sum([np.true_divide(x.compute_dual_objective(), len(x.mn.variables)) for x in
+                          self.belief_propagators_q]) / len(self.belief_propagators_q)
         else:
             term_q = np.dot(self.tau_q, weights)
 
         self.term_q_p = term_p - term_q
-
 
         objec = 0.0
         # add regularization penalties

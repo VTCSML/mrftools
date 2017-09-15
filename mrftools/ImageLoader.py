@@ -1,15 +1,16 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from PIL import Image
-import PIL
-import os
 import itertools
-from LogLinearModel import LogLinearModel
+import os
 import time
+
+import PIL
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+
+from LogLinearModel import LogLinearModel
 
 
 class ImageLoader(object):
-
     def __init__(self, max_width=0, max_height=0):
         self.max_width = max_width
         self.max_height = max_height
@@ -79,10 +80,10 @@ class ImageLoader(object):
 
                 labels.append(label_vec)
 
-                if i % 10 == 0 or i == num_images-1:
+                if i % 10 == 0 or i == num_images - 1:
                     elapsed = time.time() - start
                     eta = np.true_divide(elapsed, i + 1) * (len(files) - i - 1)
-                    print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i+1, num_images, elapsed, eta))
+                    print("Loaded %d of %d. Time elapsed: %f. ETA: %f" % (i + 1, num_images, elapsed, eta))
 
         return images, models, labels, names
 
@@ -129,15 +130,15 @@ class ImageLoader(object):
         edges = []
 
         # add horizontal edges
-        for x in range(img.width-1):
+        for x in range(img.width - 1):
             for y in range(img.height):
-                edge = ((x, y), (x+1, y))
+                edge = ((x, y), (x + 1, y))
                 edges.append(edge)
 
         # add vertical edges
         for x in range(img.width):
-            for y in range(img.height-1):
-                edge = ((x, y), (x, y+1))
+            for y in range(img.height - 1):
+                edge = ((x, y), (x, y + 1))
                 edges.append(edge)
 
         return edges
@@ -192,7 +193,7 @@ class ImageLoader(object):
             for n in range(nthresh):
                 thresh = .5 * n / nthresh
                 edge_feats_vec[n] = 1 * (diff > thresh)
-            edge_feats_vec[-1] = 1.0 # add bias feature
+            edge_feats_vec[-1] = 1.0  # add bias feature
             edge_feature_mat[j, :] = edge_feats_vec
 
         # package up feature matrix as feature dictionary

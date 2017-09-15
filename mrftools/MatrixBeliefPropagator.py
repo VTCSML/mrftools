@@ -1,5 +1,6 @@
 """BeliefPropagator class."""
 import numpy as np
+
 from Inference import Inference
 
 
@@ -259,7 +260,7 @@ class MatrixBeliefPropagator(Inference):
         """
         energy = np.sum(
             np.nan_to_num(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]) * np.exp(self.pair_belief_tensor)) + \
-            np.sum(np.nan_to_num(self.mn.unary_mat) * np.exp(self.belief_mat))
+                 np.sum(np.nan_to_num(self.mn.unary_mat) * np.exp(self.belief_mat))
 
         return energy
 

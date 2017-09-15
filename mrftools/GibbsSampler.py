@@ -1,11 +1,12 @@
 from __future__ import division
-import numpy as np
-from scipy.misc import logsumexp
-from MarkovNet import MarkovNet
-import pandas as pd
+
 import random
 from collections import Counter
-import collections
+
+import numpy as np
+import pandas as pd
+from scipy.misc import logsumexp
+
 
 class GibbsSampler(object):
     "Object that can run gibbs sampling on a MarkovNet"
@@ -49,24 +50,22 @@ class GibbsSampler(object):
             weight = np.exp(weight - logsumexp(weight))
             self.states[var] = self.generate_state(weight)
 
-
     def mix(self, ite):
         """Run the state Update procedure until mix, ite: number of iterations for mixing"""
         for i in range(0, ite):
-                self.update_states()
+            self.update_states()
 
     def sampling(self, num):
         """Run the sampling: num, number of samples; s, gap between two samples (So when s = 1, means take consecutive samples)"""
         for i in range(0, num):
             self.update_states()
             self.samples.append(self.states.copy())
-        # for i in range(0, s-1):
-        #     self.update_states()
+            # for i in range(0, s-1):
+            #     self.update_states()
 
     def gibbs_sampling(self, itr, num):
         self.mix(itr)
         self.sampling(num)
-
 
     def counter(self, var):
         counts = Counter(pd.DataFrame(self.samples)[var])

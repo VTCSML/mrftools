@@ -1,10 +1,27 @@
+"""Convexified Belief Propagation Class"""
 import numpy as np
 
 from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
-class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
+class ConvexBeliefPropagator(MatrixBeliefPropagator):
+    """
+    Class to perform convexified belief propagation based on counting numbers. The class allows for non-Bethe
+    counting numbers for the different factors in the MRF. If the factors are all non-negative, then the adjusted
+    Bethe free energy is convex, providing better guarantees about the convergence and bounds of the primal
+    and dual objective values.
+    """
     def __init__(self, markov_net, counting_numbers=None):
+        """
+        Initialize a convexified belief propagator. 
+        
+        :param markov_net: MarkovNet object encoding the probability distribution
+        :type markov_net: MarkovNet
+        :param counting_numbers: a dictionary with an entry for each variable and edge such that the value is a float
+                                representing the counting number to use in computing the convexified Bethe formulas
+                                and corresponding message passing updates.
+        :type counting_numbers: dict
+        """
         super(ConvexBeliefPropagator, self).__init__(markov_net)
 
         self.unary_counting_numbers = np.ones(len(self.mn.variables))
@@ -23,8 +40,13 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         else:
             self._set_counting_numbers(default_counting_numbers)
 
-
     def _set_counting_numbers(self, counting_numbers):
+        """
+        Store the provided counting numbers and set up the associated vectors for the ordered variable representation.
+        :param counting_numbers: a dictionary with an entry for each variable and edge with counting number values 
+        :type counting_numbers: dict
+        :return: None
+        """
         self.edge_counting_numbers = np.zeros(2 * self.mn.num_edges)
 
         for edge, i in self.mn.message_index.items():
@@ -46,12 +68,10 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         self.unary_coefficients = self.unary_counting_numbers.copy()
 
         for edge, i in self.mn.message_index.items():
-
             self.unary_coefficients[self.mn.var_index[edge[0]]] += self.edge_counting_numbers[i]
             self.unary_coefficients[self.mn.var_index[edge[1]]] += self.edge_counting_numbers[i]
 
     def compute_bethe_entropy(self):
-        """Compute Bethe entropy from current beliefs. Assume that the beliefs have been computed and are fresh."""
         if self.fully_conditioned:
             entropy = 0
         else:
@@ -62,8 +82,6 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         return entropy
 
     def update_messages(self):
-        """Update all messages between variables using belief division.
-        Return the change in messages from previous iteration."""
         self.compute_beliefs()
 
         adjusted_message_prod = self.mn.edge_pot_tensor - np.hstack((self.message_mat[:, self.mn.num_edges:],
@@ -81,7 +99,6 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
         return change
 
     def compute_beliefs(self):
-        """Compute unary beliefs based on current messages."""
         if not self.fully_conditioned:
             self.belief_mat = self.mn.unary_mat + self.augmented_mat
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
@@ -92,11 +109,10 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
             self.belief_mat = self.belief_mat - log_z
 
     def compute_pairwise_beliefs(self):
-        """Compute pairwise beliefs based on current messages."""
         if not self.fully_conditioned:
             adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
                                     - np.nan_to_num(np.hstack((self.message_mat[:, self.mn.num_edges:],
-                                                    self.message_mat[:, :self.mn.num_edges])) /
+                                                               self.message_mat[:, :self.mn.num_edges])) /
                                                     self.edge_counting_numbers)
 
             to_messages = adjusted_message_prod[:, :self.mn.num_edges].reshape(

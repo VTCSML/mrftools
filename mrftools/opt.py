@@ -1,6 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy.optimize import minimize
 
 
@@ -161,7 +162,6 @@ class WeightRecord(object):
 
 
 class ObjectivePlotter(object):
-
     def __init__(self, func, grad=None):
         self.objectives = []
         self.func = func
@@ -205,7 +205,8 @@ class ObjectivePlotter(object):
             if self.grad:
                 g = self.grad(x)
                 diff = x - self.last_x
-                print "%d\t%e\t%e\t%e" % (self.iters[-1], self.objectives[-1], np.sqrt(g.dot(g)), np.sqrt(diff.dot(diff)))
+                print "%d\t%e\t%e\t%e" % (
+                    self.iters[-1], self.objectives[-1], np.sqrt(g.dot(g)), np.sqrt(diff.dot(diff)))
 
             plt.pause(1.0 / 120.0)
 

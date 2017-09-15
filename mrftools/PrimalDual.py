@@ -1,11 +1,3 @@
-import copy
-import time
-from _hashlib import new
-import numpy as np
-from scipy.optimize import minimize, check_grad
-from LogLinearModel import LogLinearModel
-from MatrixBeliefPropagator import MatrixBeliefPropagator
-from Learner import Learner
 from PairedDual import PairedDual
 from opt import *
 
