@@ -7,7 +7,9 @@ from MarkovNet import MarkovNet
 
 
 class LogLinearModel(MarkovNet):
-    """Log linear model class. Able to convert from log linear features to pairwise MRF. For now, only allows indicator features for pairwise features."""
+    """
+    Log linear model class. Able to convert from log linear features to pairwise MRF.
+    """
 
     def __init__(self):
         """Initialize a LogLinearModel. Create a Markov net."""
@@ -36,8 +38,9 @@ class LogLinearModel(MarkovNet):
     def set_unary_features(self, var, values):
         """
         Set the log-linear features for a particular variable
-        :rtype: None
-        :type values: np.ndarray
+        :param var: 
+        :param values: 
+        :return: 
         """
         assert isinstance(values, np.ndarray)
         self.unary_features[var] = values

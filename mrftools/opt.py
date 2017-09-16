@@ -1,3 +1,4 @@
+"""Optimization utility class containing various optimizers and utility objects for callback functions"""
 import time
 
 import matplotlib.pyplot as plt
@@ -6,6 +7,15 @@ from scipy.optimize import minimize
 
 
 def sgd(func, grad, x, args, callback):
+    """
+    Stochastic gradient descent with a linear rate decay
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
     t = 1
     if not args:
         args = {}
@@ -26,6 +36,17 @@ def sgd(func, grad, x, args, callback):
 
 
 def ada_grad(func, grad, x, args, callback):
+    """
+    Adagrad adaptive gradient optimizer
+    
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
+
     t = 1
     if not args:
         args = {}
@@ -61,6 +82,17 @@ def ada_grad(func, grad, x, args, callback):
 
 
 def rms_prop(func, grad, x, args, callback):
+    """
+    RMSProp adaptive gradient optimizer
+    
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
+
     t = 1
 
     if not args:
@@ -99,6 +131,16 @@ def rms_prop(func, grad, x, args, callback):
 
 
 def adam(func, grad, x, args, callback):
+    """
+    Adam adaptive gradient optimizer
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
+
     t = 1
     if not args:
         args = {}
@@ -139,6 +181,16 @@ def adam(func, grad, x, args, callback):
 
 
 def lbfgs(func, grad, x, args, callback):
+    """
+    Adapter for scipy's standard minimize function, which defaults to using the LBFGS-B optimizer
+    
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
     if callback:
         res = minimize(fun=func, x0=x, args=args, jac=grad, callback=callback)
     else:
@@ -147,11 +199,21 @@ def lbfgs(func, grad, x, args, callback):
 
 
 class WeightRecord(object):
+    """
+    Class used to store solutions during optimization. Used to generate a callback function that will store the 
+    solution passed in. Useful for diagnostics, but in production, usually suboptimal solutions don't need to be saved.
+    """
     def __init__(self):
         self.weight_record = np.array([])
         self.time_record = np.array([])
 
     def callback(self, x):
+        """
+        Save x into the WeightRecord with a timestamp
+        
+        :param x: vector to be saved into the weight record
+        :return: 
+        """
         a = np.copy(x)
         if self.weight_record.size == 0:
             self.weight_record = a.reshape((1, a.size))
@@ -162,7 +224,15 @@ class WeightRecord(object):
 
 
 class ObjectivePlotter(object):
+    """
+    Class to generate a plot of the objective function during the callback
+    """
     def __init__(self, func, grad=None):
+        """
+        Initializes the plotter with the function and gradient
+        :param func: function being optimized
+        :param grad: gradient of function
+        """
         self.objectives = []
         self.func = func
         # plt.switch_backend("MacOSX")
@@ -177,6 +247,12 @@ class ObjectivePlotter(object):
             print "Iter\tf(x)\t\t\tnorm(g)\t\t\tdx"
 
     def callback(self, x):
+        """
+        Plot the current objectvie value and the current solution, and prints diagnostic information about
+        the current solution, objective, and gradient, when available.
+        :param x: current iterate
+        :return: 
+        """
         elapsed_time = time.time() - self.timer
 
         if elapsed_time > self.interval:

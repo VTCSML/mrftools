@@ -1,3 +1,4 @@
+"""Gibbs sampling class"""
 from __future__ import division
 
 import random
@@ -9,7 +10,7 @@ from scipy.misc import logsumexp
 
 
 class GibbsSampler(object):
-    "Object that can run gibbs sampling on a MarkovNet"
+    """Object that can run Gibbs sampling on a MarkovNet"""
 
     def __init__(self, markov_net):
         """Initialize belief propagator for markov_net."""
