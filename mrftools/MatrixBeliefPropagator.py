@@ -275,7 +275,7 @@ class MatrixBeliefPropagator(Inference):
         self.compute_beliefs()
         self.compute_pairwise_beliefs()
 
-        summed_features = self.mn.feature_mat.dot(np.exp(self.belief_mat).T)
+        summed_features = self.mn.unary_feature_mat.dot(np.exp(self.belief_mat).T)
 
         summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(
             (self.mn.max_states ** 2, self.mn.num_edges)).T)

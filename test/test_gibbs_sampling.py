@@ -32,7 +32,7 @@ class TestGibbsSampling(unittest.TestCase):
 
         bf = BruteForce(mn)
         for var in mn.variables:
-            gb_result = gb.counter(var) / num
+            gb_result = gb.count_occurrences(var) / num
             bf_result = bf.unary_marginal(var)
             print gb_result
             print bf_result

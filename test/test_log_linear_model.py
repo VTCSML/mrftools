@@ -84,7 +84,7 @@ class TestLogLinearModel(unittest.TestCase):
             mn.set_edge_features((i, i+1), np.random.randn(d))
 
         mn.create_matrices()
-        mn.set_weight_matrix(np.random.randn(4, 4))
+        mn.set_unary_weight_matrix(np.random.randn(4, 4))
         mn.set_edge_weight_matrix(np.random.randn(d, 16))
 
         bp = MatrixBeliefPropagator(mn)
@@ -105,7 +105,7 @@ class TestLogLinearModel(unittest.TestCase):
 
         mn.set_edge_features((2, 3), np.zeros(d))
         mn.create_matrices()
-        mn.set_weight_matrix(np.random.randn(4, 4))
+        mn.set_unary_weight_matrix(np.random.randn(4, 4))
         mn.set_edge_weight_matrix(np.random.randn(d, 16))
 
         bp.infer()

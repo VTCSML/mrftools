@@ -19,7 +19,8 @@ class GibbsSampler(object):
         self.unary_weights = dict()
         self.samples = list()
 
-    def generate_state(self, weight):
+    @staticmethod
+    def generate_state(weight):
         """Generate state according to the given weight"""
         r = random.uniform(0, 1)
         # Sum = sum(weight.values())
@@ -31,8 +32,11 @@ class GibbsSampler(object):
                 return i
 
     def init_states(self, seed=None):
-        """Initialize the state of each node."""
-
+        """
+        Initialize the state of each node.
+        
+        :param seed: random seed
+        """
         if seed is not None:
             np.random.seed(seed)
 
@@ -51,24 +55,47 @@ class GibbsSampler(object):
             weight = np.exp(weight - logsumexp(weight))
             self.states[var] = self.generate_state(weight)
 
-    def mix(self, ite):
-        """Run the state Update procedure until mix, ite: number of iterations for mixing"""
-        for i in range(0, ite):
+    def burn_in(self, iters):
+        """
+        Run the state update procedure until mixed. 
+        :param iters: number of iterations for mixing
+        """
+        for i in range(0, iters):
             self.update_states()
 
     def sampling(self, num):
-        """Run the sampling: num, number of samples; s, gap between two samples (So when s = 1, means take consecutive samples)"""
+        """
+        Run sampling
+        
+        :param num: number of samples to collect
+        """
         for i in range(0, num):
             self.update_states()
             self.samples.append(self.states.copy())
             # for i in range(0, s-1):
             #     self.update_states()
 
-    def gibbs_sampling(self, itr, num):
-        self.mix(itr)
+    def gibbs_sampling(self, burn_in, num):
+        """
+        Run Gibbs sampling 
+        
+        :param burn_in: number of burn-in samples to discard
+        :type burn_in: int
+        :param num: number of samples to collect once burn-in phase is done
+        :type num: int
+        """
+        self.burn_in(burn_in)
         self.sampling(num)
 
-    def counter(self, var):
+    def count_occurrences(self, var):
+        """
+        Count the number of times in our samples the variable was in each state.
+        
+        :param var: variable to count the states of
+        :type var: object
+        :return: count array of state occurrences
+        :rtype: arraylike
+        """
         counts = Counter(pd.DataFrame(self.samples)[var])
         count_array = np.asarray(list(counts.values()))
         return count_array

@@ -1,3 +1,4 @@
+"""Utility class for loading images into grid MRF structures for image segmentation"""
 import itertools
 import os
 import time
@@ -11,11 +12,28 @@ from LogLinearModel import LogLinearModel
 
 
 class ImageLoader(object):
+    """
+    Image loading class that reads images from disk and creates grid-structured CRFs for image segmentation
+    """
     def __init__(self, max_width=0, max_height=0):
+        """
+        Initialize an ImageLoader
+        
+        :param max_width: maximum width of image to load. This object will resize any images that are wider than this.
+        :type max_width: int
+        :param max_height: maximum height of image to load. This object will resize any images that are taller.
+        :type max_height: int
+        """
         self.max_width = max_width
         self.max_height = max_height
 
     def load_image(self, path):
+        """
+        Load image at path and resize according to our maximum size parameters
+        :param path: location of image in file system
+        :type path: string
+        :return: PIL image object
+        """
         img = Image.open(path)
         img1 = img
 
@@ -25,6 +43,20 @@ class ImageLoader(object):
         return img
 
     def load_label_img(self, image_name):
+        """
+        Load the semantic segmentation labels, assuming they are stored in a space-delimited text table of the same
+        size as the image. This method will resize the label image according to this object's maximum size parameters.
+        The labels should be integer values starting from 0.
+        
+        The label file must have the same name as the associated image, except instead of the image type extension,
+        it has '_label.txt' as its suffix. For example the image './picture1.jpg' should have label file
+        './picture1_label.txt'
+        
+        :param image_name: full path to the image file (this method will remove the extension and append '_label.txt'
+        :type image_name: string
+        :return: PIL image object with the labels as the greyscale intensity value.
+        :rtype: 
+        """
         label_file = os.path.splitext(image_name)[0] + '_label.txt'
         label_mat = np.loadtxt(label_file)
 
@@ -36,6 +68,14 @@ class ImageLoader(object):
         return label_img
 
     def load_label_dict(self, image_name):
+        """
+        Create a dictionary of label values for an image and label file.
+        
+        :param image_name: full path to the image file (this method will remove the extension and append '_label.txt'
+        :type image_name: string
+        :return: dictionary with pixel names as keys (pixel_width, pixel_height) and integer class as values
+        :rtype: dict
+        """
         label_img = self.load_label_img(image_name)
 
         label_pixels = label_img.load()
@@ -47,6 +87,13 @@ class ImageLoader(object):
         return label_dict
 
     def draw_image_and_label(self, name):
+        """
+        Draw an image and its ground truth label.
+        
+        :param name: path to image file
+        :type name: string
+        :return: None
+        """
         img = self.load_image(name)
         labels = self.load_label_img(name)
         features = ImageLoader.compute_features(img)
@@ -60,6 +107,18 @@ class ImageLoader(object):
         plt.show()
 
     def load_all_images_and_labels(self, directory, num_states, num_images=np.inf):
+        """
+        Load all jpg or png images from a directory.
+        
+        :param directory: path to directory
+        :type directory: string
+        :param num_states: number of possible classes for segmentation
+        :type num_states: int
+        :param num_images: maximum number of images to load
+        :type num_images: int
+        :return: tuple containing the images, LogLinearModels, the labels, and the names of the images
+        :rtype: tuple
+        """
         images = []
         models = []
         labels = []
@@ -89,12 +148,23 @@ class ImageLoader(object):
 
     @staticmethod
     def create_model(img, num_states):
+        """
+        Create a log-linear model for the image
+        
+        :param img: PIL image object
+        :type img: image
+        :param num_states: number of labels possible for each image
+        :type num_states: int
+        :return: LogLinearModel representing the image with variables for each pixel 
+        :rtype: LogLinearModel 
+        """
         model = LogLinearModel()
 
+        # generate spanning tree probabilities for TRBP
         tree_prob = ImageLoader.calculate_tree_probabilities_snake_shape(img.width, img.height)
-
         model.tree_probabilities = tree_prob
 
+        # create features
         feature_dict, edge_feature_dict = ImageLoader.compute_features(img)
 
         # create pixel variables
@@ -103,7 +173,7 @@ class ImageLoader(object):
             model.set_unary_features(pixel, feature_vec)
             model.set_unary_factor(pixel, np.zeros(num_states))
 
-        # create edge variable
+        # create edge variables
         for edge, edge_feature_vec in edge_feature_dict.items():
             model.set_edge_features(edge, edge_feature_vec)
             model.set_edge_factor(edge, np.eye(num_states))
@@ -114,6 +184,13 @@ class ImageLoader(object):
 
     @staticmethod
     def show_images(images):
+        """
+        Draw images onscreen.
+    
+        :param images: iterable of images
+        :type images: iterable
+        :return: None
+        """
         plt.clf()
         total = len(images)
 
@@ -127,6 +204,13 @@ class ImageLoader(object):
 
     @staticmethod
     def get_all_edges(img):
+        """
+        Create a list of all edges in a grid structured graph of the same width and height as the image.
+        :param img: image object with a width and height 
+        :type img: image
+        :return: list of edges
+        :rtype: list
+        """
         edges = []
 
         # add horizontal edges
@@ -145,6 +229,15 @@ class ImageLoader(object):
 
     @staticmethod
     def compute_features(img):
+        """
+        Generate pixel and edge features based on Fourier expansion. 
+        Method ported from https://arxiv.org/abs/1301.3193 by Justin Domke.
+        
+        :param img: image to compute features of
+        :type img: image
+        :return: tuple of two dictionaries: (1) a dictionary of pixel features, (2) a dictionary of edge features
+        :rtype: tuple
+        """
         pixels = img.load()
 
         base_features = np.zeros((img.width * img.height, 5))
@@ -207,6 +300,17 @@ class ImageLoader(object):
 
     @staticmethod
     def calculate_tree_probabilities_snake_shape(width, height):
+        """
+        Calculate spanning-tree edge appearance probabilities by considering two "snakes" that cover the graph going 
+        north-to-south and east-to-west.
+        
+        :param width: width of grid MRF
+        :type width: int
+        :param height: height of grid MRF
+        :type height: int
+        :return: dictionary of edge appearance probabilities under the two-snake spanning tree distribution
+        :rtype: dict
+        """
         tree_prob = dict()
         for x in range(width):
             for y in range(height - 1):
