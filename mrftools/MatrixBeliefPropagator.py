@@ -108,7 +108,7 @@ class MatrixBeliefPropagator(Inference):
 
     def compute_beliefs(self):
         """
-        Compute unary beliefs based on current messages and store them in belief_mat
+        Compute unary log beliefs based on current messages and store them in belief_mat
         
         :return: None
         """
@@ -120,7 +120,7 @@ class MatrixBeliefPropagator(Inference):
 
     def compute_pairwise_beliefs(self):
         """
-        Compute pairwise beliefs based on current messages, and stores them in pair_belief_tensor
+        Compute pairwise log beliefs based on current messages, and stores them in pair_belief_tensor
 
         :return: None
         """

@@ -1,3 +1,4 @@
+"""Tests of integration of image loading, learning, and inference"""
 from mrftools import *
 import numpy as np
 import unittest
@@ -7,7 +8,9 @@ import copy
 
 
 class TestIntegration(unittest.TestCase):
+    """Test class to test interface between image loading, learning, and inference"""
     def test_loading_and_learning(self):
+        """Test loading of a full image-segmentation training set, learning, and inference."""
         loader = ImageLoader(10, 10)
 
         images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__),
@@ -70,6 +73,7 @@ class TestIntegration(unittest.TestCase):
         assert errors < baseline, "Learned model did no better than guessing all background."
 
     def test_consistency(self):
+        """Test consistency and correctness of inference on an image-segmentation MRF"""
         loader = ImageLoader(1, 4)
         np.random.seed(0)
 
@@ -124,6 +128,7 @@ class TestIntegration(unittest.TestCase):
             print "Finished and passed tests for " + repr(inference_type)
 
     def test_belief_propagators(self):
+        """Compare belief propagator implementations on image-segmentation MRFs"""
         loader = ImageLoader(4, 4)
         np.random.seed(0)
 
@@ -178,7 +183,8 @@ class TestIntegration(unittest.TestCase):
             mat_bp.update_messages()
             mat_bp.load_beliefs()
 
-    def test_speed(self):
+    def test_dual_learner_speed(self):
+        """Test the speed of inner-dual learner against primal learner"""
         d_unary = 65
         num_states = 2
         d_edge = 11
@@ -224,8 +230,8 @@ class TestIntegration(unittest.TestCase):
         assert learner.subgrad_obj(subgrad_weights) >= learner.subgrad_obj(paired_weights), \
             "subgrad reached lower minimum than paired dual"
 
-
     def test_optimizer(self):
+        """Test that, once the optimizer outputs and optimum, that it does not find a better optimum on a second call"""
         d_unary = 65
         num_states = 2
         d_edge = 11
@@ -266,7 +272,7 @@ class TestIntegration(unittest.TestCase):
         op = ObjectivePlotter(eval_learner.subgrad_obj, eval_learner.subgrad_grad)
         # op = ObjectivePlotter(learner.dual_obj, eval_learner.subgrad_grad)
 
-        for round in range(4):
+        for i in range(4):
             prev_weights = weights
             start = time.time()
 
@@ -276,10 +282,11 @@ class TestIntegration(unittest.TestCase):
 
             objectives.append(learner.subgrad_obj(weights))
 
-            print "After round %d of optimization, objective was %e." % (round, objectives[round])
+            print "After i %d of optimization, objective was %e." % (i, objectives[i])
 
-        for round in range(len(objectives) - 1):
-            assert objectives[round] - objectives[round+1] < 1e-2, "Optimizer improved after supposedly reaching optimum"
+        for i in range(len(objectives) - 1):
+            assert objectives[i] - objectives[i + 1] < 1e-2, \
+                "Optimizer improved after supposedly reaching optimum"
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+"""Test class for learning and inference tasks on synthetic image segmentation"""
 import unittest
 from mrftools import *
 import numpy as np
@@ -6,19 +7,38 @@ import itertools
 
 
 class TestImageSegmentation(unittest.TestCase):
-    # data is a dictionary containing
-    data = [({1: 0, 2: 1, 3: 0, 4: None},
-             {1: np.array([1, 0, 0]), 2: np.array([0, 1, 0]), 3: np.array([1, 0, 0]), 4: np.array([0, 0, 1])},
-             {1: 0, 2: 1, 3: 0, 4: 2}),
-            ({1: 0, 2: 0, 3: None, 4: 2},
-             {1: np.array([1, 0, 0]), 2: np.array([1, 0, 0]), 3: np.array([0, 1, 0]), 4: np.array([0, 0, 1])},
-             {1: 0, 2: 0, 3: 1, 4: 2})]
+    """Test class for learning and inference tasks on synthetic image segmentation with latent variables"""
 
-    def get_ave_accuracy(self, iters, weight_records):
+    # create shared data as tuples of dictionaries: (training_labels, features, true_labels)
+    data = [({(0, 0): 0, (0, 1): 1, (1, 0): 0, (1, 1): None},
+             {(0, 0): np.array([1, 0, 0]),
+              (0, 1): np.array([0, 1, 0]),
+              (1, 0): np.array([1, 0, 0]),
+              (1, 1): np.array([0, 0, 1])},
+             {(0, 0): 0, (0, 1): 1, (1, 0): 0, (1, 1): 1}),
+            ({(0, 0): 0, (0, 1): 0, (1, 0): None, (1, 1): 2},
+             {(0, 0): np.array([1, 0, 0]),
+              (0, 1): np.array([1, 0, 0]),
+              (1, 0): np.array([0, 1, 0]),
+              (1, 1): np.array([0, 0, 1])},
+             {(0, 0): 0, (0, 1): 0, (1, 0): 1, (1, 1): 2})]
+
+    def get_average_accuracy(self, weight_records):
+        """
+        Compute the average accuracy across all data for each weight vector in the weight record.
+        
+        :param iters: Number of iterations run by optimizer
+        :type iters: int
+        :param weight_records: matrix of stacked weight vectors
+        :type weight_records: ndarray
+        :return: array of average accuracy
+        :rtype: array
+        """
         d = 3
+        width = 2
+        height = 2
         num_states = 3
-        num_pixels = 4
-        accuracy_ave_train = np.zeros(iters)
+        accuracy_ave_train = np.zeros(weight_records.shape[0])
         counter = 0
 
         for i in range(len(self.data)):
@@ -43,14 +63,15 @@ class TestImageSegmentation(unittest.TestCase):
 
                 # measure predictions
                 prediction = []
-                for pixel_id in range(1, num_pixels + 1):
-                    prediction.append(np.argmax(bp.var_beliefs[pixel_id]))
                 correct = 0
-                for pixel_id in range(len(prediction)):
-                    if data[2].values()[pixel_id] == prediction[pixel_id]:
-                        correct += 1
+                for x in range(width):
+                    for y in range(height):
+                        pixel_id = (x, y)
+                        prediction.append(np.argmax(bp.var_beliefs[pixel_id]))
+                        if data[2][pixel_id] == prediction[-1]:
+                            correct += 1
 
-                accuracy.append(np.true_divide(correct, num_pixels))
+                accuracy.append(np.true_divide(correct, width * height))
 
             accuracy_ave_train = np.add(accuracy_ave_train, accuracy)
 
@@ -59,6 +80,15 @@ class TestImageSegmentation(unittest.TestCase):
         return accuracy_ave_train
 
     def get_all_edges(self, width, height):
+        """
+        Get all edges in a width by height grid
+        :param width: width of grid
+        :type width: int
+        :param height: height of grid
+        :type height: int
+        :return: list of edges in grid graph
+        :rtype: list
+        """
         edges = []
 
         # add horizontal edge_index
@@ -87,37 +117,34 @@ class TestImageSegmentation(unittest.TestCase):
         :return: constructed Markov net object
         """
         mn = MarkovNet()
-        num_pixels = height * width
-        self.get_all_edges(width, height)
+        edges = self.get_all_edges(width, height)
 
         # Set unary factor
-        for i in range(1, num_pixels + 1):
-            mn.set_unary_factor(i, np.dot(w_unary, pixels[i]))
+        for i in range(width):
+            for j in range(height):
+                mn.set_unary_factor((i, j), np.dot(w_unary, pixels[(i, j)]))
 
-        # Set pairwise
-        south_west_ind = num_pixels - width + 1
-
-        left_pixels = [i for i in range(1, num_pixels + 1) if (i % width) == 1 and i != south_west_ind]
-        down_pixels = range(south_west_ind + 1, num_pixels + 1)
-        usual_pixels = [i for i in range(1, num_pixels + 1) if i not in left_pixels and
-                        i not in down_pixels and i not in [south_west_ind]]
-
-        # set south neighbour for left pixels
-        for i in left_pixels:
-            mn.set_edge_factor((i, i + width), w_pair)
-
-        # set left neighbour for sought pixels
-        for i in down_pixels:
-            mn.set_edge_factor((i - 1, i), w_pair)
-
-        # set south and left neighbour for all the remaining pixels
-        for i in usual_pixels:
-            mn.set_edge_factor((i, i + width), w_pair)
-            mn.set_edge_factor((i - 1, i), w_pair)
+        for edge in edges:
+            mn.set_edge_factor(edge, w_pair)
 
         return mn
 
-    def create_model(self, num_states, d, data):
+    def create_model(self, num_states, width, height, d, data):
+        """
+        Create LogLinearModel of pixel-based image segmentation model with random weights.
+        :param num_states: number of classes to segment
+        :type num_states: int
+        :param width: width of grid
+        :type width: int
+        :param height: height of grid
+        :type height: int
+        :param d: number of features for each unary potential
+        :type d: int
+        :param data: dictionary of labels
+        :type data: 
+        :return: LogLinearModel for inferring pixel labels
+        :rtype: LogLinearModel
+        """
         model = LogLinearModel()
 
         for key in data.keys():
@@ -129,12 +156,10 @@ class TestImageSegmentation(unittest.TestCase):
 
         model.set_all_unary_factors()
 
-        model.set_edge_factor((1, 2), np.zeros((num_states, num_states)))
-        model.set_edge_factor((2, 4), np.zeros((num_states, num_states)))
-        model.set_edge_factor((3, 4), np.zeros((num_states, num_states)))
-        model.set_edge_factor((1, 3), np.zeros((num_states, num_states)))
+        for edge in self.get_all_edges(width, height):
+            model.set_edge_factor(edge, np.zeros((num_states, num_states)))
 
-        edge_probabilities = dict ( )
+        edge_probabilities = dict()
 
         for edge in model.edge_potentials:
             edge_probabilities[edge] = 0.75
@@ -155,7 +180,7 @@ class TestImageSegmentation(unittest.TestCase):
         models = []
         labels = []
         for i in range(len(self.data)):
-            m = self.create_model(num_states, data_dim, self.data[i][1])
+            m = self.create_model(num_states, 2, 2, data_dim, self.data[i][1])
             models.append(m)
 
             label_dict = self.data[i][0]
@@ -172,6 +197,7 @@ class TestImageSegmentation(unittest.TestCase):
         learner.set_regularization(0, 0.1)
 
     def test_subgradient_obj(self):
+        """Test that the subgradient learner (Learner) reduces the objective as it optimizes."""
         np.random.seed(0)
 
         weights = np.zeros(9 + 9)
@@ -182,7 +208,6 @@ class TestImageSegmentation(unittest.TestCase):
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
-        time_record = wr_obj.time_record
         num_iters = weight_record.shape[0]
 
         # check that the objective value gets smaller with each iteration
@@ -193,6 +218,7 @@ class TestImageSegmentation(unittest.TestCase):
             old_obj = new_obj
 
     def test_EM_obj(self):
+        """Test that the EM learner reduces the objective as it optimizes."""
         np.random.seed(0)
         weights = np.zeros(9 + 9)
         learner = EM(MatrixBeliefPropagator)
@@ -201,13 +227,12 @@ class TestImageSegmentation(unittest.TestCase):
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
-        time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
         old_obj = learner.subgrad_obj(weight_record[0, :])
         new_obj = learner.subgrad_obj(weight_record[-1, :])
         assert (new_obj <= old_obj), "EM objective did not decrease"
 
     def test_paired_dual_obj(self):
+        """Test that the paired-dual learner reduces the objective as it optimizes."""
         np.random.seed(0)
         weights = np.zeros(9 + 9)
         learner = PairedDual(MatrixBeliefPropagator)
@@ -216,14 +241,28 @@ class TestImageSegmentation(unittest.TestCase):
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
-        time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
 
         old_obj = learner.dual_obj(weight_record[0, :])
         new_obj = learner.dual_obj(weight_record[-1, :])
         assert (new_obj <= old_obj), "paired dual objective did not decrease"
 
+    def test_primal_dual_obj(self):
+        """Test that the primal-dual learner reduces the objective as it optimizes."""
+        np.random.seed(0)
+        weights = np.zeros(9 + 9)
+        learner = PrimalDual(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
+
+        wr_obj = WeightRecord()
+        learner.learn(weights, callback=wr_obj.callback)
+        weight_record = wr_obj.weight_record
+
+        old_obj = learner.dual_obj(weight_record[0, :])
+        new_obj = learner.dual_obj(weight_record[-1, :])
+        assert (new_obj <= old_obj), "primal dual objective did not decrease"
+
     def test_subgradient_training_accuracy(self):
+        """Test that the subgradient learner improves its accuracy when training."""
         np.random.seed(0)
         weights = np.zeros(9 + 9)
         learner = Learner(MatrixBeliefPropagator)
@@ -233,10 +272,8 @@ class TestImageSegmentation(unittest.TestCase):
         learner.learn(weights, callback=wr_obj.callback)
         subgrad_weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        t = wr_obj.time_record[0]
-        subgrad_time = np.true_divide(np.array(time_record) - t, 1000)
 
-        subgrad_accuracy_ave_train = self.get_ave_accuracy(len(subgrad_time), subgrad_weight_record)
+        subgrad_accuracy_ave_train = self.get_average_accuracy(subgrad_weight_record)
 
         for i in range(len(subgrad_accuracy_ave_train)):
             print "iter %d: accuracy %e" % (i, subgrad_accuracy_ave_train[i])
@@ -247,6 +284,7 @@ class TestImageSegmentation(unittest.TestCase):
         return subgrad_accuracy_ave_train
 
     def test_EM_training_accuracy(self):
+        """Test that the EM learner improves its accuracy when training."""
         np.random.seed(0)
         weights = np.zeros(9 + 9)
         learner = EM(MatrixBeliefPropagator)
@@ -256,190 +294,61 @@ class TestImageSegmentation(unittest.TestCase):
         learner.learn(weights, callback=wr_obj.callback)
         em_weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        t = time_record[0]
-        em_time = np.true_divide(np.array(time_record) - t, 1000)
 
-        em_accuracy_ave_train = self.get_ave_accuracy(len(em_time), em_weight_record)
+        em_accuracy_ave_train = self.get_average_accuracy(em_weight_record)
 
         for i in range(len(em_accuracy_ave_train)):
             print "iter %d: accuracy %e" % (i, em_accuracy_ave_train[i])
             if i != len(em_accuracy_ave_train) - 1:
                 assert (em_accuracy_ave_train[i] <= em_accuracy_ave_train[i + 1]), \
-                    "subgradient accuracy is not increasing"
+                    "EM accuracy is not increasing"
 
         return em_accuracy_ave_train
 
     def test_paired_dual_accuracy(self):
+        """Test that the paired-dual learner improves its accuracy when training."""
         np.random.seed(0)
         weights = np.zeros(9 + 9)
-        learner = EM(MatrixBeliefPropagator)
+        learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
 
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
-        em_weight_record = wr_obj.weight_record
+        weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        t = time_record[0]
-        em_time = np.true_divide(np.array(time_record) - t, 1000)
 
-        paired_dual_accuracy_ave_train = self.get_ave_accuracy(len(em_time), em_weight_record)
+        paired_dual_accuracy_ave_train = self.get_average_accuracy(weight_record)
 
         for i in range(len(paired_dual_accuracy_ave_train)):
             print "iter %d: accuracy %e" % (i, paired_dual_accuracy_ave_train[i])
             if i != len(paired_dual_accuracy_ave_train) - 1:
                 assert (paired_dual_accuracy_ave_train[i] <= paired_dual_accuracy_ave_train[
-                    i + 1]), "subgradient accuracy is not increasing"
+                    i + 1]), "paired dual accuracy is not increasing"
 
         return paired_dual_accuracy_ave_train
 
-    def test_fixed_points(self):
+    def test_primal_dual_accuracy(self):
+        """Test that the paired-dual learner improves its accuracy when training."""
         np.random.seed(0)
-        # inferences = [MatrixBeliefPropagator , MaxProductBeliefPropagator , MatrixTRBeliefPropagator]
-        initial_weights = np.random.rand ( 9 + 9 )
+        weights = np.zeros(9 + 9)
+        learner = PrimalDual(MatrixBeliefPropagator)
+        self.set_up_learner(learner)
 
-        # print initial_weights
-        # print '------------------------'
-        # for inference_type in inferences:
-            # # =====================================
-            # # first train by subgradient
-            # # =====================================
-            # learner = Learner(inference_type)
-            # self.set_up_learner(learner)
-            # subgrad_weights = learner.learn(initial_weights, None)
+        wr_obj = WeightRecord()
+        learner.learn(weights, callback=wr_obj.callback)
+        weight_record = wr_obj.weight_record
+        time_record = wr_obj.time_record
+        t = time_record[0]
 
-            # learner1 = EM(inference_type)
-            # self.set_up_learner(learner1)
-            # em_weights = learner1.learn(subgrad_weights, None)
-            # atol = 1e-4
-            # assert np.all(np.abs((em_weights - subgrad_weights)) <= atol), str(inference_type).split('.')[-1][:-2] + ", Model learned by subgrad is different from EM"
+        primal_dual_accuracy_train = self.get_average_accuracy(weight_record)
 
-            # learner.reset()
-            # learner1 = PairedDual(inference_type)
-            # self.set_up_learner(learner1)
-            # paired_weights = learner1.learn(subgrad_weights, None)
-            # print inference_type
-            # atol = 1e-4
-            # print np.abs(paired_weights- subgrad_weights)
-            # assert np.all(np.abs(paired_weights - subgrad_weights) <= atol) , str(inference_type).split('.')[-1][:-2] + ", Model learned by subgrad is different from paired dual"
-            #
-            # learner.reset()
-            # learner1 = PrimalDual(inference_type)
-            # self.set_up_learner(learner1)
-            # primalDual_weights = learner1.learn(subgrad_weights, None)
-            # print inference_type
-            # print np.abs(primalDual_weights - subgrad_weights)
-            # atol = 1e-4
-            # assert np.all(np.abs(primalDual_weights - subgrad_weights) <= atol) , str(inference_type).split('.')[-1][:-2] + ", Model learned by subgrad is different from primal dual"
+        for i in range(len(primal_dual_accuracy_train)):
+            print "iter %d: accuracy %e" % (i, primal_dual_accuracy_train[i])
+            if i != len(primal_dual_accuracy_train) - 1:
+                assert (primal_dual_accuracy_train[i] <= primal_dual_accuracy_train[
+                    i + 1]), "primal dual accuracy is not increasing"
 
-
-            # # # =====================================
-            # # # first train by EM ****************************
-            # # # =====================================
-            # learner.reset()
-            # learner = EM(inference_type)
-            # self.set_up_learner(learner)
-            # em_weights = learner.learn(initial_weights, None)
-
-            # learner.reset()
-            # learner1 = Learner(inference_type)
-            # self.set_up_learner(learner1)
-            # subgrad_weights = learner1.learn(em_weights, None)
-            # atol = 1e-1
-            # print inference_type
-            # print np.abs(em_weights - subgrad_weights)
-            # assert np.all(np.abs(em_weights - subgrad_weights) <= atol) , str(inference_type).split('.')[-1][:-2] + " , Model learned by EM is different from subgrad"
-            #
-            # learner.reset()
-            # learner1 = PairedDual( inference_type)
-            # self.set_up_learner(learner1)
-            # paired_weights = learner1.learn(em_weights, None)
-            # atol = 1e-1
-            # print inference_type
-            # print np.abs(paired_weights - em_weights)
-            # assert np.all(np.abs(em_weights - paired_weights) <= atol), str(inference_type).split('.')[-1][:-2] + " , Model learned by EM is different from paired dual"
-            #
-            # learner.reset()
-            # learner1 = PrimalDual(inference_type)
-            # self.set_up_learner(learner1)
-            # primalDual_weights = learner1.learn(em_weights, None)
-            # tol = 1e-1
-            # print inference_type
-            # print np.abs(primalDual_weights - em_weights)
-            # assert np.all(np.abs(primalDual_weights - em_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by EM is different from primal dual"
-            #
-            # # =====================================
-            # # first train by paired dual
-            # # =====================================
-            # learner.reset()
-            # learner = PairedDual(inference_type)
-            # self.set_up_learner(learner)
-            # paired_weights = learner.learn(initial_weights, None)
-            # #
-            # learner.reset()
-            # learner1 = EM(inference_type)
-            # self.set_up_learner(learner1)
-            # em_weights = learner1.learn(paired_weights, None)
-            # tol = 1e-1
-            # print inference_type
-            # print np.abs(em_weights - paired_weights)
-            # assert np.all(np.abs(em_weights - paired_weights) <= tol), str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from EM"
-            #
-            # learner.reset()
-            # learner1 = Learner(inference_type)
-            # self.set_up_learner(learner1)
-            # tol = 1e-1
-            # subgrad_weights = learner1.learn(paired_weights)
-            # print inference_type
-            # print np.abs(subgrad_weights - paired_weights)
-            # assert np.all(np.abs(subgrad_weights - paired_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by paired dual is different from subgrad"
-            #
-            # learner.reset()
-            # learner1 = PrimalDual(inference_type)
-            # self.set_up_learner(learner1)
-            # primalDual_weights = learner1.learn(paired_weights, None)
-            # print inference_type
-            # print np.abs(primalDual_weights - paired_weights)
-            # tol = 1e-1
-            # assert np.all(np.abs(primalDual_weights - paired_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by PairedDual is different from primal dual"
-            #
-            #
-            # # =====================================
-            # # first train by primal dual
-            # # =====================================
-            # learner.reset()
-            # learner = PrimalDual(inference_type)
-            # self.set_up_learner(learner)
-            # primalDual_weights = learner.learn(initial_weights, None)
-            #
-            # # learner.reset()
-            # learner1 = EM(inference_type)
-            # self.set_up_learner(learner1)
-            # em_weights = learner1.learn(primalDual_weights, None)
-            # tol = 1e-1
-            # print inference_type
-            # print np.abs(em_weights - primalDual_weights)
-            # assert np.all(np.abs(em_weights - primalDual_weights) <= tol), str(inference_type).split('.')[-1][:-2] + " , Model learned by primal dual is different from EM"
-            #
-            # learner.reset()
-            # learner1 = Learner(inference_type)
-            # self.set_up_learner(learner1)
-            # subgrad_weights = learner1.learn(primalDual_weights)
-            # print inference_type
-            # print np.abs(subgrad_weights - primalDual_weights)
-            # tol = 1e-1
-            # assert np.all(np.abs(subgrad_weights - primalDual_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " Model learned by primal dual is different from subgrad"
-
-            # learner.reset()
-            # learner1 = PairedDual(inference_type)
-            # self.set_up_learner(learner1)
-            # paiedDual_weights = learner1.learn(primalDual_weights, None)
-            # print inference_type
-            # print np.abs(paiedDual_weights - primalDual_weights)
-            # tol = 1e-1
-            # assert np.all(np.abs(paiedDual_weights - primalDual_weights) <= tol) , str(inference_type).split('.')[-1][:-2] + " , Model learned by primaldual is different from paired dual"
-
-
-
+        return primal_dual_accuracy_train
 
 
 if __name__ == '__main__':

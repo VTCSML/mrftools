@@ -1,3 +1,4 @@
+"""Test class for Learner and its subclasses"""
 import unittest
 import numpy as np
 from scipy.optimize import check_grad, approx_fprime
@@ -5,10 +6,17 @@ import matplotlib.pyplot as plt
 from mrftools import *
 
 
-
 class TestLearner(unittest.TestCase):
-
+    """Test class for Learner and its subclasses"""
     def set_up_learner(self, learner, latent=True):
+        """
+        Provide synthetic training data for a learner.
+        :param learner: Learner object
+        :type learner: Learner
+        :param latent: Boolean value indicating whether to have latent variables in training data
+        :type latent: bool
+        :return: None
+        """
         d = 2
         num_states = 4
 
@@ -34,6 +42,10 @@ class TestLearner(unittest.TestCase):
             learner.add_data(states, model)
 
     def test_gradient(self):
+        """
+        Test that the provided gradient is consistent with a numerically estimated gradient when some variables are 
+        latent.
+        """
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
@@ -51,6 +63,7 @@ class TestLearner(unittest.TestCase):
         assert gradient_error < 1e-1, "Gradient is wrong"
 
     def test_fully_observed_gradient(self):
+        """Test that the gradient is consistent with a numerically estimated gradient when all variables are observed"""
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner, latent=False)
@@ -68,6 +81,7 @@ class TestLearner(unittest.TestCase):
         assert gradient_error < 1e-1, "Gradient is wrong"
 
     def test_m_step_gradient(self):
+        """Test that the gradient for the EM m-step is consistent with numerically estimated gradient."""
         weights = np.zeros(8 + 32)
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
@@ -86,6 +100,7 @@ class TestLearner(unittest.TestCase):
         assert gradient_error < 1e-1, "Gradient is wrong"
 
     def test_learner(self):
+        """Test that the learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
         self.set_up_learner(learner)
@@ -94,7 +109,7 @@ class TestLearner(unittest.TestCase):
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
+        l = weight_record.shape[0]
         old_obj = np.Inf
         for i in range(l):
             new_obj = learner.subgrad_obj(weight_record[i,:])
@@ -104,6 +119,7 @@ class TestLearner(unittest.TestCase):
             assert new_obj >= 0, "Learner objective was not non-negative"
 
     def test_EM(self):
+        """Test that the EM learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = EM(MatrixBeliefPropagator)
         self.set_up_learner(learner)
@@ -112,7 +128,7 @@ class TestLearner(unittest.TestCase):
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
+        l = weight_record.shape[0]
 
         old_obj = learner.subgrad_obj(weight_record[0,:])
         new_obj = learner.subgrad_obj(weight_record[-1,:])
@@ -123,6 +139,7 @@ class TestLearner(unittest.TestCase):
             assert new_obj >= 0, "EM objective was not non-negative"
 
     def test_paired_dual(self):
+        """Test that the paired-dual learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner)
@@ -131,7 +148,7 @@ class TestLearner(unittest.TestCase):
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
+        l = weight_record.shape[0]
 
         old_obj = learner.subgrad_obj(weight_record[0, :])
         new_obj = learner.subgrad_obj(weight_record[-1, :])
@@ -142,6 +159,7 @@ class TestLearner(unittest.TestCase):
             assert new_obj >= 0, "Paired dual objective was not non-negative"
 
     def test_dual(self):
+        """Test that the paired-dual learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = PairedDual(MatrixBeliefPropagator)
         self.set_up_learner(learner, latent=False)
@@ -150,7 +168,7 @@ class TestLearner(unittest.TestCase):
         learner.learn(weights, callback=wr_obj.callback)
         weight_record = wr_obj.weight_record
         time_record = wr_obj.time_record
-        l = (weight_record.shape)[0]
+        l = weight_record.shape[0]
 
         old_obj = learner.subgrad_obj(weight_record[0, :])
         new_obj = learner.subgrad_obj(weight_record[-1, :])
@@ -170,6 +188,15 @@ class TestLearner(unittest.TestCase):
             "Objective for learner was not a number"
 
     def create_random_model(self, num_states, d):
+        """
+        Create a random LogLinearModel with random features fo all unary and edge potentials
+        :param num_states: cardinality of each variable
+        :type num_states: int
+        :param d: dimensionality of feature vectors
+        :type d: int
+        :return: random model
+        :rtype: LogLinearModel
+        """
         model = LogLinearModel()
 
         model.declare_variable(0, num_states)
@@ -192,7 +219,7 @@ class TestLearner(unittest.TestCase):
         model.set_edge_features((0, 1), np.random.randn(d))
         model.set_edge_features((1, 2), np.random.randn(d))
 
-        edge_probabilities = dict ( )
+        edge_probabilities = dict()
 
         for edge in model.edge_potentials:
             edge_probabilities[edge] = 0.75
@@ -200,28 +227,3 @@ class TestLearner(unittest.TestCase):
         model.tree_probabilities = edge_probabilities
 
         return model
-
-    # def test_different_initializiation(self):
-    #
-    #     learners = [Learner, EM, PairedDual, PrimalDual]
-    #     inferences = [MatrixBeliefPropagator, MaxProductBeliefPropagator, MaxProductLinearProgramming, MatrixTRBeliefPropagator]
-    #
-    #     for learner_type in learners:
-    #         for inferece_type in inferences:
-    #             initial_weights_1 = np.squeeze ( 0.1 * np.random.randn ( 1, 8 + 32 ) )
-    #             # initial_weights_1 = np.zeros(8 + 32)
-    #             print "Training %s" % repr(learner_type)
-    #             learner_1 = learner_type(inferece_type)
-    #             self.set_up_learner(learner_1)
-    #             w_1 = learner_1.learn(initial_weights_1)
-    #
-    #             initial_weights_2 = np.squeeze ( 0.1 * np.random.randn ( 1, 8 + 32 ) )
-    #             learner_2 = learner_type ( inferece_type )
-    #             self.set_up_learner ( learner_2 )
-    #             w_2 = learner_2.learn ( initial_weights_2 )
-    #
-    #             learner_name = str(learner_type).split('.')[-1][:-2]
-    #             inference_name = str ( inferece_type ).split ( '.' )[-1][:-2]
-    #             print w_1 - w_2
-    #             assert np.all(np.abs(w_1 - w_2) <= 1e-04), learner_name + " does not have the same solution for different initialization with " + inference_name
-    #             # assert np.allclose(w_1, w_2, atol = 1e-04), learner_name + " does not have the same solution for different initialization with " + inference_name

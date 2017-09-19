@@ -1,3 +1,4 @@
+"""Test class for Gibbs sampler"""
 from __future__ import division
 from mrftools import *
 import numpy as np
@@ -5,8 +6,9 @@ import numpy as np
 import unittest
 
 class TestGibbsSampling(unittest.TestCase):
-
+    """Test class for Gibbs sampler"""
     def test_gibbs_sampling(self):
+        """Test that estimating marginals from Gibbs sampling leads to the same marginals as brute force counting."""
         mn = MarkovNet()
 
         np.random.seed(0)

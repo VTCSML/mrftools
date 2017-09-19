@@ -1,8 +1,17 @@
+"""Test class for approximate maximum likelihood learner"""
 import unittest
 from mrftools import *
 
+
 class TestApproxMaxLikelihood(unittest.TestCase):
+    """
+    Unit test class for approximate maximum likelihood learner
+    """
     def test_sampled_data(self):
+        """
+        Create random model, sample data using Gibbs sampling, then try to learn back the model from the 
+        sampled data
+        """
         np.random.seed(0)
 
         model = create_model(0)
@@ -36,12 +45,29 @@ class TestApproxMaxLikelihood(unittest.TestCase):
 
 
 def set_up_learner(learner, model):
+    """
+    Add sampled data to learner.
+    
+    :param learner: learner object that accepts training data
+    :type learner: Learner
+    :param model: Markov net model
+    :type model: MarkovNet
+    :return: None
+    """
     data = sample_data(model)
 
     for example in data:
         learner.add_data(example)
 
+
 def create_model(seed):
+    """
+    Create a chain structured MarkovNet with three variables
+    :param seed: random seed
+    :type seed: number
+    :return: Generated Markov net with random potentials
+    :rtype: MarkovNet
+    """
     np.random.seed(seed)
     model = MarkovNet()
 
@@ -57,7 +83,16 @@ def create_model(seed):
 
     return model
 
+
 def sample_data(model):
+    """
+    Sample data from model
+    
+    :param model: Markov net to sample from
+    :type model: MarkovNet 
+    :return: list of samples
+    :rtype: list
+    """
     sampler = GibbsSampler(model)
     sampler.init_states(0)
 

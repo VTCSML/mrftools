@@ -1,3 +1,4 @@
+"""Test class for image loader utility"""
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,8 +10,9 @@ from scipy.optimize import minimize, check_grad
 
 
 class TestImageLoader(unittest.TestCase):
-
-    def test_load_draw(self):
+    """Unit test class for image loader utility"""
+    def test_load(self):
+        """Test that loading images and resizing them leads to correct size data."""
         loader = ImageLoader()
 
         train_dir = os.path.join(os.path.dirname(__file__), 'train')
@@ -43,6 +45,10 @@ class TestImageLoader(unittest.TestCase):
                     assert len(models[i].edge_features[edge]) == 11, "Edge features were the wrong size"
 
     def test_unary_only(self):
+        """
+        Test accuracy of learned model using unary features only (i.e., just predicting each pixel independently.)
+        Implemented via a separate logistic regression.
+        """
         num_features = 65
         num_states = 2
 
@@ -54,18 +60,19 @@ class TestImageLoader(unittest.TestCase):
         weights = res.x
 
         accuracy_training = accuracy(weights, all_pixel, all_label, num_features, num_states)
-        print ("accuracy on training set: %f" % (accuracy_training))
+        print ("accuracy on training set: %f" % accuracy_training)
         assert (accuracy_training >= 0.9), "Unary classification accuracy on training data is less than 0.9"
 
         all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'test'), num_features, 1)
         accuracy_testing = accuracy(weights, all_pixel, all_label, num_features, num_states)
-        print ("accuracy on testing set: %f" % (accuracy_testing))
+        print ("accuracy on testing set: %f" % accuracy_testing)
         assert (accuracy_testing >= 0.7), "Unary classification accuracy on testing data is less than 0.7"
 
-    def test_tree_probabilities_calculate(self):
+    def test_tree_probability_calculation(self):
+        """Test the spanning-tree edge appearance probability computations (used for TRBP) are correct."""
         height = 3
         width = 3
-        tree_prob =  ImageLoader.calculate_tree_probabilities_snake_shape(width, height)
+        tree_prob = ImageLoader.calculate_tree_probabilities_snake_shape(width, height)
         assert (tree_prob[(0, 0), (0, 1)] == 0.75), "side edge probability does not equal to 0.75"
         assert (tree_prob[(0, 1), (0, 0)] == 0.75), "side edge probability does not equal to 0.75"
         assert (tree_prob[(1, 1), (1, 0)] == 0.5), "center edge probability does not equal to 0.5"
@@ -78,11 +85,11 @@ class TestImageLoader(unittest.TestCase):
             else:
                 center_edge_count += 1
 
-
         assert (side_edge_count == 16), "number of side edges not correct: %d" % (side_edge_count)
         assert (center_edge_count == 8), "number of center edges not correct"
 
     def test_model_matrix_structure(self):
+        """Test that the loaded model has the correct matrix structure."""
         loader = ImageLoader(10, 10)
 
         train_dir = os.path.join(os.path.dirname(__file__), 'train')
@@ -100,7 +107,6 @@ class TestImageLoader(unittest.TestCase):
             assert model.message_to[i] == to_index, "Message receiver index is wrong"
             assert model.message_to_map[i, to_index] == 1, "Message receiver matrix map is wrong"
 
-
         assert np.all(np.sum(model.message_to_map.todense(), axis=1) == 1), \
             "Message sender map has a row that doesn't sum to 1.0"
 
@@ -112,10 +118,13 @@ class TestImageLoader(unittest.TestCase):
 
 
 def softmax(x):
+    """Softmax function used for logistic regression."""
     x_shifted = x - np.max(x, axis=1, keepdims=True)
     return np.exp(x_shifted) / np.sum(np.exp(x_shifted), 1, keepdims=True)
 
+
 def objective(weights, features, label_vec, num_features, num_states):
+    """Objective for logistic regression."""
     probabilities = np.dot(features, weights.reshape((num_features, num_states)))
     probabilities = softmax(probabilities)
 
@@ -127,7 +136,9 @@ def objective(weights, features, label_vec, num_features, num_states):
     return -np.sum(label_mat * np.nan_to_num(np.log(probabilities))) + np.dot(weights.ravel(), weights.ravel())
     # return -np.sum(label_mat * np.nan_to_num(np.log(probabilities)))
 
+
 def gradient(weights, features, label_vec, num_features, num_states):
+    """Gradient for logistic regression."""
     probabilities = np.dot(features, weights.reshape((num_features, num_states)))
     probabilities = softmax(probabilities)
 
@@ -140,7 +151,23 @@ def gradient(weights, features, label_vec, num_features, num_states):
     # g = -features.T.dot(label_mat - probabilities).ravel()
     return g
 
-def accuracy(weights, features, label_vec,  num_features, num_states):
+
+def accuracy(weights, features, label_vec, num_features, num_states):
+    """
+    Compute the accuracy for logistic regression
+    :param weights: model weights for pixel-based logistic regression
+    :type weights: ndarray
+    :param features: input data
+    :type features: ndarray
+    :param label_vec: ground truth values
+    :type label_vec: array
+    :param num_features: number of features
+    :type num_features: int
+    :param num_states: number of possible classes
+    :type num_states: int
+    :return: accuracy of logistic regression on the pixel-labeling task
+    :rtype: float
+    """
     total_error = 0
     probabilities = np.dot(features, weights.reshape((num_features, num_states)))
     probabilities = softmax(probabilities)
@@ -153,7 +180,19 @@ def accuracy(weights, features, label_vec,  num_features, num_states):
 
     return accuracy
 
+
 def load_all_images_and_labels(path, num_features, num_images):
+    """
+    Load all images and labels from a directory as just pixel variables
+    :param path: directory to load from
+    :type path: string
+    :param num_features: number of features for each pixel
+    :type num_features: int
+    :param num_images: number of images to load
+    :type num_images: int
+    :return: tuple containing a matrix of all pixels and an array of labels
+    :rtype: tuple
+    """
     loader = ImageLoader()
     all_pixel = np.random.randn(0, num_features)
     all_label = []

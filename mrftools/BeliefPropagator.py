@@ -66,7 +66,7 @@ class BeliefPropagator(Inference):
 
     def compute_beliefs(self):
         """
-        Compute unary beliefs based on current messages and store them in var_beliefs dict
+        Compute unary log beliefs based on current messages and store them in var_beliefs dict
         
         :return: None
         """
@@ -80,7 +80,7 @@ class BeliefPropagator(Inference):
 
     def compute_pairwise_beliefs(self):
         """
-        Compute pairwise beliefs based on current messages, and stores them in pair_beliefs dict
+        Compute pairwise log beliefs based on current messages, and stores them in pair_beliefs dict
         
         :return: None
         """
