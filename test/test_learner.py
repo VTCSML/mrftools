@@ -48,7 +48,7 @@ class TestLearner(unittest.TestCase):
         """
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
+        self.set_up_learner(learner, latent=True)
         learner.start_time = time.time()
         learner.set_regularization(0.0, 1.0)
         gradient_error = check_grad(learner.subgrad_obj, learner.subgrad_grad, weights)
@@ -84,7 +84,7 @@ class TestLearner(unittest.TestCase):
         """Test that the gradient for the EM m-step is consistent with numerically estimated gradient."""
         weights = np.zeros(8 + 32)
         learner = EM(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
+        self.set_up_learner(learner, latent=True)
         learner.set_regularization(0.0, 1.0)
         learner.start = time.time()
         learner.e_step(weights)
@@ -103,7 +103,7 @@ class TestLearner(unittest.TestCase):
         """Test that the learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = Learner(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
+        self.set_up_learner(learner, latent=True)
 
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
@@ -122,7 +122,7 @@ class TestLearner(unittest.TestCase):
         """Test that the EM learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = EM(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
+        self.set_up_learner(learner, latent=True)
 
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
@@ -142,7 +142,7 @@ class TestLearner(unittest.TestCase):
         """Test that the paired-dual learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
         learner = PairedDual(MatrixBeliefPropagator)
-        self.set_up_learner(learner)
+        self.set_up_learner(learner, latent=True)
 
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
@@ -158,11 +158,11 @@ class TestLearner(unittest.TestCase):
             new_obj = learner.subgrad_obj(weight_record[i, :])
             assert new_obj >= 0, "Paired dual objective was not non-negative"
 
-    def test_dual(self):
-        """Test that the paired-dual learner decreases the objective value and that it stays non-negative."""
+    def test_primal_dual(self):
+        """Test that the primal-dual learner decreases the objective value and that it stays non-negative."""
         weights = np.zeros(8 + 32)
-        learner = PairedDual(MatrixBeliefPropagator)
-        self.set_up_learner(learner, latent=False)
+        learner = PrimalDual(MatrixBeliefPropagator)
+        self.set_up_learner(learner, latent=True)
 
         wr_obj = WeightRecord()
         learner.learn(weights, callback=wr_obj.callback)
@@ -172,11 +172,11 @@ class TestLearner(unittest.TestCase):
 
         old_obj = learner.subgrad_obj(weight_record[0, :])
         new_obj = learner.subgrad_obj(weight_record[-1, :])
-        assert (new_obj <= old_obj), "Dual objective did not decrease"
+        assert (new_obj <= old_obj), "Primal Dual objective did not decrease"
 
         for i in range(l):
             new_obj = learner.subgrad_obj(weight_record[i, :])
-            assert new_obj >= 0, "Dual objective was not non-negative"
+            assert new_obj >= 0, "Primal Dual objective was not non-negative"
 
     def test_overflow(self):
         """Initialize weights to a huge number and see if learner can escape it"""
@@ -227,3 +227,22 @@ class TestLearner(unittest.TestCase):
         model.tree_probabilities = edge_probabilities
 
         return model
+
+    def test_early_stopping(self):
+        """Test that early-stopping timer correctly stops learning"""
+        weights = np.zeros(8 + 32)
+        learner = Learner(MatrixBeliefPropagator)
+        self.set_up_learner(learner, latent=True)
+        start = time.time()
+        learner.learn(weights)
+        default_time = time.time() - start
+
+        print "Default learner took %f seconds." % default_time
+
+        start = time.time()
+        learner.max_time = 0.0001
+        learner.learn(weights)
+        early_time = time.time() - start
+
+        print "Without early stopping: %f seconds. With early stopping %f seconds." % (default_time, early_time)
+        assert early_time < default_time, "Early stopping was no faster than default"

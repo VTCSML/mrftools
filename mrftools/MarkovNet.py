@@ -158,14 +158,14 @@ class MarkovNet(object):
         self.var_index = dict()
         self.var_list = []
 
-        message_index = 0
+        message_num = 0
         for var in self.variables:
             potential = self.unary_potentials[var]
-            self.unary_mat[0:len(potential), message_index] = potential
-            self.var_index[var] = message_index
+            self.unary_mat[0:len(potential), message_num] = potential
+            self.var_index[var] = message_num
             self.var_list.append(var)
-            self.degrees[message_index] = len(self.neighbors[var])
-            message_index += 1
+            self.degrees[message_num] = len(self.neighbors[var])
+            message_num += 1
 
         # set up pairwise tensor
         self.num_edges = 0
@@ -183,7 +183,7 @@ class MarkovNet(object):
         to_rows = []
         to_cols = []
 
-        message_index = 0
+        message_num = 0
         for var in self.variables:
             for neighbor in self.neighbors[var]:
                 if var < neighbor:
@@ -194,33 +194,33 @@ class MarkovNet(object):
 
                     # store copies of the potential for each direction messages can travel on the edge
                     # forward
-                    self.edge_pot_tensor[0:dims[1], 0:dims[0], message_index] = potential.T
+                    self.edge_pot_tensor[0:dims[1], 0:dims[0], message_num] = potential.T
                     # and backward
-                    self.edge_pot_tensor[0:dims[0], 0:dims[1], message_index + self.num_edges] = potential
+                    self.edge_pot_tensor[0:dims[0], 0:dims[1], message_num + self.num_edges] = potential
 
                     # get numerical index of var and neighbor
                     var_i = self.var_index[var]
                     neighbor_i = self.var_index[neighbor]
 
                     # store that the forward slice represents a message from var
-                    from_rows.append(message_index)
+                    from_rows.append(message_num)
                     from_cols.append(var_i)
 
                     # store that the backward slice represents a message from neighbor
-                    from_rows.append(message_index + self.num_edges)
+                    from_rows.append(message_num + self.num_edges)
                     from_cols.append(neighbor_i)
 
                     # store that the forward slice represents a message to neighbor
-                    to_rows.append(message_index)
+                    to_rows.append(message_num)
                     to_cols.append(neighbor_i)
 
                     # store that the backward slice represents a message to var
-                    to_rows.append(message_index + self.num_edges)
+                    to_rows.append(message_num + self.num_edges)
                     to_cols.append(var_i)
 
-                    self.message_index[(var, neighbor)] = message_index
+                    self.message_index[(var, neighbor)] = message_num
 
-                    message_index += 1
+                    message_num += 1
 
         # generate a sparse matrix representation of the message indices to variables that receive messages
         self.message_to_map = csc_matrix((np.ones(len(to_rows)), (to_rows, to_cols)),

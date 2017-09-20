@@ -1,16 +1,23 @@
+"""Tests for the log-linear model objects"""
 import unittest
 import numpy as np
 from mrftools import *
 
-class TestLogLinearModel(unittest.TestCase):
 
-    def create_chain_model(self):
-        """Test basic functionality of BeliefPropagator."""
+class TestLogLinearModel(unittest.TestCase):
+    """Test class for LogLinearModel"""
+    def create_chain_model(self, k):
+        """
+        Create a chain-structured Markov net with random potentials and different variable cardinalities.
+        
+        :param k: list of length 5 of cardinalities
+        :type k: arraylike
+        :return: chain markov net
+        :rtype: MarkovNet
+        """
         mn = LogLinearModel()
 
         np.random.seed(1)
-
-        k = [4, 4, 4, 4, 4]
 
         for i in range(len(k)):
             mn.set_unary_factor(i, np.random.randn(k[i]))
@@ -33,6 +40,10 @@ class TestLogLinearModel(unittest.TestCase):
         return mn
 
     def test_structure(self):
+        """
+        Test that the graph structure of the log-linear model is correct, 
+        and that it handles different orders of nodes when referring to the same edge
+        """
         mn = LogLinearModel()
 
         mn.set_unary_factor(0, np.random.randn(4))
@@ -51,13 +62,13 @@ class TestLogLinearModel(unittest.TestCase):
         assert mn.get_neighbors(2) == set([1]), "Neighbors are wrong"
 
     def test_matrix_shapes(self):
-        mn = self.create_chain_model()
-
-        k = [4, 4, 4, 4, 4]
+        """Test that the matrix is correctly shaped based on the maximum cardinality variable"""
+        k = [2, 3, 4, 5, 6]
+        mn = self.create_chain_model(k)
 
         max_states = max(k)
 
-        assert mn.matrix_mode == False, "Matrix mode flag was set prematurely"
+        assert mn.matrix_mode is False, "Matrix mode flag was set prematurely"
 
         mn.create_matrices()
 
@@ -66,17 +77,21 @@ class TestLogLinearModel(unittest.TestCase):
         assert mn.unary_mat.shape == (max_states, 5)
 
     def test_feature_computation(self):
-        mn = self.create_chain_model()
-
-        k = [4, 4, 4, 4, 4]
-
+        """Test that creating unary features runs without crashing (i.e., that the matrix shapes are correct)"""
+        k = [2, 3, 4, 5, 6]
+        mn = self.create_chain_model(k)
         d = 4
 
         for i in range(len(k)):
             mn.set_unary_weights(i, np.random.randn(k[i], d))
 
     def test_edge_features(self):
-        mn = self.create_chain_model()
+        """
+        Test that edge features can be set and set properly in matrix mode, including testing that
+        conditioning a center node in a chain leads to independence.
+        """
+        k = [4, 4, 4, 4, 4]
+        mn = self.create_chain_model(k)
 
         d = 3
 
@@ -123,6 +138,7 @@ class TestLogLinearModel(unittest.TestCase):
             "Conditioning on var 0 changed marginal of var 4, when the features should have made them independent"
 
     def test_indicator_form(self):
+        """Test the overcomplete indicator-feature-function log-linear model and compare against the MarkovNet form"""
         mn = MarkovNet()
 
         num_states = [3, 2, 4, 5]
@@ -137,6 +153,8 @@ class TestLogLinearModel(unittest.TestCase):
 
         model = LogLinearModel()
         model.create_indicator_model(mn)
+        model.update_edge_tensor()
+        model.update_unary_matrix()
 
         bp = BeliefPropagator(mn)
         bp.infer(display='final')
@@ -156,7 +174,9 @@ class TestLogLinearModel(unittest.TestCase):
                 "indicator:\n" + repr(bp_ind.pair_beliefs[edge]) + "\noriginal:\n" + repr(bp.pair_beliefs[edge])
 
     def test_matrix_structure(self):
-        model = self.create_chain_model()
+        """Test that the sparse matrix structure in matrix mode is correct."""
+        k = [2, 3, 4, 5, 6]
+        model = self.create_chain_model(k)
 
         model.create_matrices()
 

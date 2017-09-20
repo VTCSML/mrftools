@@ -1,11 +1,13 @@
+"""Test class for matrix implementation of tree-reweighted belief propagator"""
 import unittest
 from mrftools import *
 import numpy as np
 
 
 class TestMatrixTreeBeliefPropagator(unittest.TestCase):
+    """Test class for matrix implementation of tree-reweighted belief propagator"""
     def create_chain_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Create chain-structured MRF with different variable cardinalities."""
         mn = MarkovNet()
 
         np.random.seed(1)
@@ -31,6 +33,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
         return mn
 
     def create_loop_model(self):
+        """Create loop-structured MRF with different variable cardinalities."""
         mn = self.create_chain_model()
 
         k = [4, 3, 6, 2, 5]
@@ -40,6 +43,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
         return mn
 
     def test_comparison_to_slow_trbp(self):
+        """Test that matrix TRBP infers the same marginals as loop-based TRBP"""
         mn = self.create_loop_model()
 
         probs = {(0, 1): 0.75, (1, 2): 0.75, (2, 3): 0.75, (0, 3): 0.75, (3, 4): 1.0}
@@ -72,7 +76,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
                                                                                 trbp_mat.compute_energy_functional())
 
     def test_tree_structured_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Test that TRBP infers the true marginals on tree-structured MRF."""
         mn = MarkovNet()
 
         # np.random.seed(1)
@@ -123,7 +127,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
         assert np.allclose(trbp.compute_energy_functional(), np.log(bf.compute_z()))
 
     def test_upper_bound(self):
-
+        """Test that TRBP provides an upper bound on the true log-partition function."""
         trials = 5
 
         tr_diff = np.zeros(trials)

@@ -192,7 +192,7 @@ class LogLinearModel(MarkovNet):
             self.unary_feature_mat[:, index] = self.unary_features[var]
 
         # create edge matrices
-        self.max_edge_features = max([x for x in self.num_edge_features.values()])
+        self.max_edge_features = max([x for x in self.num_edge_features.values()] or [0])
         self.edge_weight_mat = np.zeros((self.max_edge_features, self.max_states ** 2))
         self.edge_feature_mat = np.zeros((self.max_edge_features, self.num_edges))
 
@@ -225,18 +225,20 @@ class LogLinearModel(MarkovNet):
         num_edges = 0
         for var in markov_net.variables:
             for neighbor in markov_net.get_neighbors(var):
-                num_edges += 1
+                if var < neighbor:
+                    num_edges += 1
 
         # create edge indicator features
         i = 0
         for var in markov_net.variables:
             for neighbor in markov_net.get_neighbors(var):
-                edge = (var, neighbor)
-                self.set_edge_factor(edge, markov_net.get_potential(edge))
-                indicator_features = np.zeros(num_edges)
-                indicator_features[i] = 1.0
-                self.set_edge_features(edge, indicator_features)
-                i += 1
+                if var < neighbor:
+                    edge = (var, neighbor)
+                    self.set_edge_factor(edge, markov_net.get_potential(edge))
+                    indicator_features = np.zeros(num_edges)
+                    indicator_features[i] = 1.0
+                    self.set_edge_features(edge, indicator_features)
+                    i += 1
 
         self.create_matrices()
 

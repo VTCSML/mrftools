@@ -1,12 +1,13 @@
+"""Tests for the MarkovNet model objects"""
 import unittest
 from mrftools import *
 import numpy as np
 
 
 class TestMarkovNet(unittest.TestCase):
-
+    """Test class for the MarkovNet model objects"""
     def create_chain_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Create chain model with different variable cardinalities."""
         mn = MarkovNet()
 
         np.random.seed(1)
@@ -31,6 +32,7 @@ class TestMarkovNet(unittest.TestCase):
         return mn
 
     def test_structure(self):
+        """Test that the structure of the MarkovNet is properly set up"""
         mn = MarkovNet()
 
         mn.set_unary_factor(0, np.random.randn(4))
@@ -49,6 +51,7 @@ class TestMarkovNet(unittest.TestCase):
         assert mn.get_neighbors(2) == set([1]), "Neighbors are wrong"
 
     def test_matrix_shapes(self):
+        """Test that the matrix mode creates matrices of the correct shape."""
         mn = self.create_chain_model()
 
         k = [4, 3, 6, 2, 5]

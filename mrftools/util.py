@@ -21,4 +21,3 @@ def instantiate_convex_map(self, model):
                 default_counting_numbers[(var, neighbor)] = 0.1
 
     bp = ConvexBeliefPropagator(model, default_counting_numbers)
-    return

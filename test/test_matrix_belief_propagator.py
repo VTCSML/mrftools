@@ -1,3 +1,4 @@
+"""Tests for Matrix belief propagation"""
 import numpy as np
 from mrftools import *
 import unittest
@@ -5,9 +6,9 @@ import time
 
 
 class TestMatrixBeliefPropagator(unittest.TestCase):
-
+    """Test class for MatrixBeliefPropagator"""
     def create_chain_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Create chain MRF with variable of different cardinalities."""
         mn = MarkovNet()
 
         np.random.seed(1)
@@ -33,6 +34,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         return mn
 
     def create_loop_model(self):
+        """Create a loop-structured MRF"""
         mn = self.create_chain_model()
 
         k = [4, 3, 6, 2, 5]
@@ -42,6 +44,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         return mn
 
     def create_grid_model(self):
+        """Create a grid-structured MRF"""
         mn = MarkovNet()
 
         length = 16
@@ -60,6 +63,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         return mn
 
     def create_grid_model_simple_edges(self):
+        """Create a grid-structured MRFs with edge potentials that are attractive."""
         mn = MarkovNet()
 
         length = 2
@@ -78,6 +82,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         return mn
 
     def test_exactness(self):
+        """Test that Matrix BP produces the true marginals in a chain model."""
         mn = self.create_chain_model()
         bp = MatrixBeliefPropagator(mn)
         bp.infer(display='full')
@@ -101,6 +106,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
             "log partition function is not exact on chain model"
 
     def test_consistency(self):
+        """Test that loopy matrix BP infers marginals that are locally consistent."""
         mn = self.create_loop_model()
 
         bp = MatrixBeliefPropagator(mn)
@@ -116,6 +122,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_normalization(self):
+        """Test that the unary and pairwise beliefs properly sum to 1.0"""
         mn = self.create_loop_model()
 
         bp = MatrixBeliefPropagator(mn)
@@ -131,6 +138,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                 assert np.allclose(np.sum(pair_belief), 1.0), "pairwise belief is not normalize"
 
     def test_speedup(self):
+        """Test that matrix BP is faster than loop-based BP"""
         mn = self.create_grid_model()
 
         slow_bp = BeliefPropagator(mn)
@@ -152,7 +160,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
 
         slow_bp_time = t1 - t0
 
-        print("Matrix BP took %f, loop-based BP took %f. Speedup was %f" % \
+        print("Matrix BP took %f, loop-based BP took %f. Speedup was %f" %
               (bp_time, slow_bp_time, slow_bp_time / bp_time))
         assert bp_time < slow_bp_time, "matrix form was slower than loop-based BP"
 
@@ -170,6 +178,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                            + "\n" + repr(slow_bp.pair_beliefs[edge])
 
     def test_conditioning(self):
+        """Test that conditioning on variable properly sets variables to conditioned state"""
         mn = self.create_loop_model()
 
         bp = MatrixBeliefPropagator(mn)
@@ -191,6 +200,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         assert not np.allclose(beliefs0, beliefs1), "Conditioning var 2 did not change beliefs of var 0"
 
     def test_overflow(self):
+        """Test that MatrixBP does not fail when given very large, poorly scaled factors"""
         mn = self.create_chain_model()
 
         # set a really large factor
@@ -205,6 +215,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
             bp.load_beliefs()
 
     def test_grid_consistency(self):
+        """Test that matrix BP infers consistent marginals on a grid MRF"""
         mn = self.create_grid_model()
         bp = MatrixBeliefPropagator(mn)
         bp.infer(display='full')
@@ -219,6 +230,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_belief_propagator_messages(self):
+        """Test that matrix BP and loop-based BP calculate the same messages and beliefs each iteration of inference"""
         model = self.create_grid_model_simple_edges()
         bp = BeliefPropagator(model)
         bp.load_beliefs()
