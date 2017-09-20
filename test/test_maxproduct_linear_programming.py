@@ -1,12 +1,14 @@
+"""Test class for max-product linear programming"""
 import numpy as np
 from mrftools import *
 import unittest
 import time
 
-class TestMaxProductLinearProgramming(unittest.TestCase):
 
+class TestMaxProductLinearProgramming(unittest.TestCase):
+    """Test class for max-product linear programming"""
     def create_chain_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Create chain-structured MRF with different cardinalities."""
         mn = MarkovNet()
 
         np.random.seed(1)
@@ -32,6 +34,7 @@ class TestMaxProductLinearProgramming(unittest.TestCase):
         return mn
 
     def create_loop_model(self):
+        """Create loop-structured MRF with different cardinalities."""
         mn = self.create_chain_model()
 
         k = [4, 3, 6, 2, 5]
@@ -40,43 +43,8 @@ class TestMaxProductLinearProgramming(unittest.TestCase):
         mn.create_matrices()
         return mn
 
-    def create_grid_model(self):
-        mn = MarkovNet()
-
-        length = 16
-
-        k = 8
-
-        for x in range(length):
-            for y in range(length):
-                mn.set_unary_factor((x, y), np.random.random(k))
-
-        for x in range(length - 1):
-            for y in range(length):
-                mn.set_edge_factor(((x, y), (x + 1, y)), np.random.random((k, k)))
-                mn.set_edge_factor(((y, x), (y, x + 1)), np.random.random((k, k)))
-
-        return mn
-
-    def create_grid_model_simple_edges(self):
-        mn = MarkovNet()
-
-        length = 2
-
-        k = 8
-
-        for x in range(length):
-            for y in range(length):
-                mn.set_unary_factor((x, y), np.random.random(k))
-
-        for x in range(length - 1):
-            for y in range(length):
-                mn.set_edge_factor(((x, y), (x + 1, y)), np.eye(k))
-                mn.set_edge_factor(((y, x), (y, x + 1)), np.eye(k))
-
-        return mn
-
     def test_consistency(self):
+        """Test that MPLP leads to locally consistent estimates"""
         mn = self.create_loop_model()
 
         bp = MaxProductLinearProgramming(mn)
@@ -93,6 +61,7 @@ class TestMaxProductLinearProgramming(unittest.TestCase):
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_exactness(self):
+        """Test that MPLP infers the true MAP state in a chain."""
         mn = self.create_chain_model()
         bp = MaxProductLinearProgramming(mn)
         bp.infer(display='full')
@@ -103,3 +72,17 @@ class TestMaxProductLinearProgramming(unittest.TestCase):
         print bf.map_inference()
         assert (np.array_equal(bp.belief_mat,bf.map_inference())), "beliefs are not exact"
 
+    def test_overflow(self):
+        """Test that MPLP does not fail when given a large, poorly scaled potential."""
+        mn = self.create_loop_model()
+
+        # set a really large factor
+        mn.set_unary_factor(0, [-1000, 2000, 3000, 4000])
+
+        mn.create_matrices()
+
+        bp = MaxProductLinearProgramming(mn)
+
+        with np.errstate(all='raise'):
+            bp.infer()
+            bp.load_beliefs()

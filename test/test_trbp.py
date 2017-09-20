@@ -160,62 +160,6 @@ class TestTreeBeliefPropagator(unittest.TestCase):
             print("TRBP:  %f to %f" % (min(tr_diff[:trial + 1]), max(tr_diff[:trial + 1])))
             print("Average error. TRBP: %f" % np.mean(np.abs(tr_diff[:trial + 1])))
 
-    def test_random_tree(self):
-        # for now runs some tests but doesn't assert anything
-        mn = MarkovNet()
-
-        length = 4
-
-        k = 2
-
-        for x in range(length):
-            for y in range(length):
-                mn.set_unary_factor((x, y), np.random.random(k))
-
-        for x in range(length - 1):
-            for y in range(length):
-                mn.set_edge_factor(((x, y), (x + 1, y)), np.random.random((k, k)))
-                mn.set_edge_factor(((y, x), (y, x + 1)), np.random.random((k, k)))
-
-        trbp = TreeReweightedBeliefPropagator(mn)
-
-        trbp.sample_tree_probabilities(coverage=10)
-
-        print "Tree probabilities:"
-
-        for y in range(length):
-            horizontal = []
-            vertical = []
-            for x in range(length - 1):
-                horizontal.append("  o")
-                horizontal.append("  %0.2f" % trbp.tree_probabilities[((x, y), (x+1, y))])
-            if y < length-1:
-                for x in range(length):
-                    vertical.append("%0.2f" % trbp.tree_probabilities[((x, y), (x, y+1))])
-                    vertical.append("")
-
-            horizontal.append("  o")
-            print "\t".join(horizontal)
-            print "\t".join(vertical)
-
-        # print sampled tree
-
-        tree = set(trbp._random_tree())
-        string = ""
-
-        for y in range(length * 2 - 1):
-            for x in range(length*2 - 1):
-                if x % 2 == 0 and y % 2 == 0:
-                    string += "o"
-                elif y % 2 == 0 and ((y / 2, x / 2), (y / 2, x / 2 + 1)) in tree:
-                    string += "-"
-                elif x % 2 == 0 and ((y / 2, x / 2), (y / 2 + 1, x / 2)) in tree:
-                    string += "|"
-                else:
-                    string += " "
-            string += '\n'
-
-        print string
 
 if __name__ == '__main__':
     unittest.main()

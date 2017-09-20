@@ -1,3 +1,4 @@
+"""Test class to test belief propagator implementation"""
 import unittest
 
 import numpy as np
@@ -5,9 +6,11 @@ from mrftools import *
 
 
 class TestBeliefPropagator(unittest.TestCase):
-
+    """
+    Unit test class for belief propagation implementation
+    """
     def create_chain_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Create a chain-structured Markov net with random potentials and different variable cardinalities."""
         mn = MarkovNet()
 
         np.random.seed(1)
@@ -32,6 +35,10 @@ class TestBeliefPropagator(unittest.TestCase):
         return mn
 
     def create_loop_model(self):
+        """
+        Create a loop-structured Markov net with random potentials and variable cardinalities.
+        This method is implemented by calling create_chain_model and then connecting the ends of the chain.
+        """
         mn = self.create_chain_model()
 
         k = [4, 3, 6, 2, 5]
@@ -40,6 +47,11 @@ class TestBeliefPropagator(unittest.TestCase):
         return mn
 
     def test_exactness(self):
+        """
+        Test that the belief propagator on a chain model infers the exact marginals within numerical precision of
+        marginals computed by brute force counting.
+        :return: None
+        """
         mn = self.create_chain_model()
         bp = BeliefPropagator(mn)
 
@@ -65,6 +77,10 @@ class TestBeliefPropagator(unittest.TestCase):
             "log partition function is not exact on chain model"
 
     def test_consistency(self):
+        """
+        Test that the marginals inferred by loopy belief propagation are locally consistent with neighboring variables.
+        :return: None
+        """
         mn = self.create_loop_model()
 
         bp = BeliefPropagator(mn)
@@ -81,6 +97,10 @@ class TestBeliefPropagator(unittest.TestCase):
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_normalization(self):
+        """
+        Test that the unary and pairwise beliefs after inference are normalized property.
+        :return: None
+        """
         mn = self.create_loop_model()
 
         bp = BeliefPropagator(mn)

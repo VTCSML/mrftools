@@ -1,11 +1,16 @@
+"""Unit tests for convexified belief propagation"""
 import unittest
 from mrftools import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class TestConvexBP(unittest.TestCase):
+    """
+    Unit test class for convexified belief propagation
+    """
     def create_q_model(self):
-        """Test basic functionality of BeliefPropagator."""
+        """Create loop model with one variable hanging off the loop (forming a Q shape)."""
         mn = MarkovNet()
 
         np.random.seed(1)
@@ -28,6 +33,10 @@ class TestConvexBP(unittest.TestCase):
         return mn
 
     def test_comparison_to_trbp(self):
+        """
+        Test that convex BP and tree-reweighted BP produce the same results when the convex BP counting numbers are
+        set to the TRBP counting numbers. 
+        """
         mn = self.create_q_model()
 
         probs = {(0, 1): 0.75, (1, 2): 0.75, (2, 3): 0.75, (0, 3): 0.75, (0, 4): 1.0}
@@ -78,6 +87,11 @@ class TestConvexBP(unittest.TestCase):
                                                                              trbp_mat.compute_energy_functional())
 
     def test_comparison_to_bethe(self):
+        """
+        Test that loopy belief propagation and convexified belief propagation output the same inferred marginals
+        when the counting numbers are set to the Bethe counting numbers (which make convex BP no longer convex).
+        :return: None
+        """
         mn = self.create_q_model()
 
         bp = MatrixBeliefPropagator(mn)
@@ -119,6 +133,7 @@ class TestConvexBP(unittest.TestCase):
                                                                              bp.compute_energy_functional())
 
     def test_convexity(self):
+        """Test that the convex BP objective is within numerical precision of being truly convex."""
         mn = self.create_q_model()
 
         edge_count = 0.1
@@ -136,7 +151,7 @@ class TestConvexBP(unittest.TestCase):
                             4: node_count}
 
         bp = ConvexBeliefPropagator(mn, counting_numbers)
-        bp.infer(display = "full")
+        bp.infer(display="full")
 
         messages = bp.message_mat.copy()
 
@@ -168,6 +183,52 @@ class TestConvexBP(unittest.TestCase):
         second_deriv = deriv[1:] - deriv[:-1]
         print second_deriv
         assert np.all(second_deriv >= 0), "Estimated second derivative was not non-negative"
+
+    def create_chain_model(self):
+        """Create a chain-structured Markov net with random potentials and different variable cardinalities."""
+        mn = MarkovNet()
+
+        np.random.seed(1)
+
+        k = [4, 3, 6, 2, 5]
+
+        mn.set_unary_factor(0, np.random.randn(k[0]))
+        mn.set_unary_factor(1, np.random.randn(k[1]))
+        mn.set_unary_factor(2, np.random.randn(k[2]))
+        mn.set_unary_factor(3, np.random.randn(k[3]))
+
+        factor4 = np.random.randn(k[4])
+        factor4[2] = -float('inf')
+
+        mn.set_unary_factor(4, factor4)
+
+        mn.set_edge_factor((0, 1), np.random.randn(k[0], k[1]))
+        mn.set_edge_factor((1, 2), np.random.randn(k[1], k[2]))
+        mn.set_edge_factor((2, 3), np.random.randn(k[2], k[3]))
+        mn.set_edge_factor((3, 4), np.random.randn(k[3], k[4]))
+        mn.create_matrices()
+
+        return mn
+
+    def test_exactness(self):
+        """Test that convex BP with very small counting numbers produces the exact MAP solution on a chain model."""
+        mn = self.create_chain_model()
+
+        sharp_counting_numbers = dict()
+        for var in mn.variables:
+            sharp_counting_numbers[var] = 0.01
+            for neighbor in mn.neighbors[var]:
+                if var < neighbor:
+                    sharp_counting_numbers[(var, neighbor)] = 0.01
+
+        bp = ConvexBeliefPropagator(mn, sharp_counting_numbers)
+        bp.infer(display='full')
+        bp.load_beliefs()
+        print bp.var_beliefs
+
+        bf = BruteForce(mn)
+        print bf.map_inference()
+        assert (np.allclose(np.exp(bp.belief_mat), np.exp(bf.map_inference()))), "beliefs are not exact"
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 class Inference(object):
-
-    def infer(self, tolerance = 1e-8, display = 'iter'):
+    def infer(self, tolerance=1e-8, display='iter'):
         return
 
     def get_feature_expectations(self):
@@ -11,6 +10,6 @@ class Inference(object):
 
     def compute_dual_objective(self):
         return
-    
+
     def condition(self, var, state):
         return

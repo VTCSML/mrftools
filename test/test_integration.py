@@ -1,16 +1,20 @@
+"""Tests of integration of image loading, learning, and inference"""
 from mrftools import *
 import numpy as np
 import unittest
 import os
 import matplotlib.pyplot as plt
+import copy
 
 
 class TestIntegration(unittest.TestCase):
-
+    """Test class to test interface between image loading, learning, and inference"""
     def test_loading_and_learning(self):
-        loader = ImageLoader(20, 20)
+        """Test loading of a full image-segmentation training set, learning, and inference."""
+        loader = ImageLoader(10, 10)
 
-        images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train'), 2, 3)
+        images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__),
+                                                                                       'train'), 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 
@@ -25,7 +29,9 @@ class TestIntegration(unittest.TestCase):
 
         weights = np.zeros(d_unary * num_states + d_edge * num_states**2)
 
-        new_weights = learner.learn(weights)
+        args = {'max_iter': 200}
+
+        new_weights = learner.learn(weights, opt_args=args)
 
         unary_mat = new_weights[:d_unary * num_states].reshape((d_unary, num_states))
         pair_mat = new_weights[d_unary * num_states:].reshape((d_edge, num_states**2))
@@ -67,6 +73,7 @@ class TestIntegration(unittest.TestCase):
         assert errors < baseline, "Learned model did no better than guessing all background."
 
     def test_consistency(self):
+        """Test consistency and correctness of inference on an image-segmentation MRF"""
         loader = ImageLoader(1, 4)
         np.random.seed(0)
 
@@ -121,6 +128,7 @@ class TestIntegration(unittest.TestCase):
             print "Finished and passed tests for " + repr(inference_type)
 
     def test_belief_propagators(self):
+        """Compare belief propagator implementations on image-segmentation MRFs"""
         loader = ImageLoader(4, 4)
         np.random.seed(0)
 
@@ -151,10 +159,10 @@ class TestIntegration(unittest.TestCase):
                     edge = (var, neighbor)
                     bp_message = bp.messages[edge]
 
-                    if edge in mat_bp.mn.edge_index:
-                        edge_index = mat_bp.mn.edge_index[edge]
+                    if edge in mat_bp.mn.message_index:
+                        edge_index = mat_bp.mn.message_index[edge]
                     else:
-                        edge_index = mat_bp.mn.edge_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
+                        edge_index = mat_bp.mn.message_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
 
                     mat_bp_message = mat_bp.message_mat[:, edge_index].ravel()
 
@@ -175,7 +183,8 @@ class TestIntegration(unittest.TestCase):
             mat_bp.update_messages()
             mat_bp.load_beliefs()
 
-    def test_speed(self):
+    def test_dual_learner_speed(self):
+        """Test the speed of inner-dual learner against primal learner"""
         d_unary = 65
         num_states = 2
         d_edge = 11
@@ -194,8 +203,10 @@ class TestIntegration(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
+        args = {'max_iter': 100}
+
         start = time.time()
-        subgrad_weights = learner.learn(weights, None)
+        subgrad_weights = learner.learn(weights, optimizer=ada_grad, opt_args=args)
         subgrad_time = time.time() - start
         print "Learner took %f seconds" % subgrad_time
 
@@ -205,12 +216,77 @@ class TestIntegration(unittest.TestCase):
         for model, states in zip(models, labels):
             learner.add_data(states, model)
 
+        args = {'max_iter': 500}
+
         start = time.time()
-        paired_weights = learner.learn(weights, None)
+        paired_weights = learner.learn(weights, optimizer=ada_grad, opt_args=args)
         pd_time = time.time() - start
         print "PD took %f seconds" % pd_time
 
         assert pd_time < subgrad_time, "Paired dual learning took longer than subgradient"
+
+        print learner.subgrad_obj(subgrad_weights), learner.subgrad_obj(paired_weights)
+
+        assert learner.subgrad_obj(subgrad_weights) >= learner.subgrad_obj(paired_weights), \
+            "subgrad reached lower minimum than paired dual"
+
+    def test_optimizer(self):
+        """Test that, once the optimizer outputs and optimum, that it does not find a better optimum on a second call"""
+        d_unary = 65
+        num_states = 2
+        d_edge = 11
+
+        learner_type = PairedDual
+        inference_type = MatrixBeliefPropagator
+
+        weights = np.zeros(d_unary * num_states + d_edge * num_states ** 2)
+
+        image_size = 6
+
+        loader = ImageLoader(image_size, image_size)
+
+        images, models, labels, names = loader.load_all_images_and_labels(
+            os.path.join(os.path.dirname(__file__), 'train'), 2, 2)
+
+        # make latent variable
+
+        for label in labels:
+            # print "Number of labels: %d" % len(label)
+            for x in range(image_size / 2):
+                for y in range(image_size / 2):
+                    del label[(x, y)]
+            # print "Number of labels after removing quadrant: %d" % len(label)
+
+        learner = learner_type(inference_type)
+        learner.set_regularization(0.0, 1.0)
+
+        eval_learner = learner_type(inference_type)
+        eval_learner.set_regularization(0.0, 1.0)
+
+        for model, states in zip(models, labels):
+            learner.add_data(states, model)
+            eval_learner.add_data(states.copy(), copy.copy(model))
+
+        objectives = []
+
+        op = ObjectivePlotter(eval_learner.subgrad_obj, eval_learner.subgrad_grad)
+        # op = ObjectivePlotter(learner.dual_obj, eval_learner.subgrad_grad)
+
+        for i in range(4):
+            prev_weights = weights
+            start = time.time()
+
+            weights = learner.learn(prev_weights, callback=op.callback)
+            subgrad_time = time.time() - start
+            print "Learner took %f seconds" % subgrad_time
+
+            objectives.append(learner.subgrad_obj(weights))
+
+            print "After i %d of optimization, objective was %e." % (i, objectives[i])
+
+        for i in range(len(objectives) - 1):
+            assert objectives[i] - objectives[i + 1] < 1e-2, \
+                "Optimizer improved after supposedly reaching optimum"
 
 
 if __name__ == '__main__':
