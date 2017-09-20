@@ -6,7 +6,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-def sgd(func, grad, x, args, callback):
+def sgd(func, grad, x, args={}, callback=None):
     """
     Stochastic gradient descent with a linear rate decay
     :param func: function to be minimized (used here only to update the gradient)
@@ -26,7 +26,7 @@ def sgd(func, grad, x, args, callback):
     while change > tolerance and t < max_iter:
         old_x = x
         g = grad(x, args)
-        x = x - 0.1 * g / t
+        x = x - 0.5 * g / t
         change = np.sum(np.abs(x - old_x))
         t += 1
         if callback:
@@ -35,7 +35,7 @@ def sgd(func, grad, x, args, callback):
     return x
 
 
-def ada_grad(func, grad, x, args, callback):
+def ada_grad(func, grad, x, args={}, callback=None):
     """
     Adagrad adaptive gradient optimizer
     
@@ -81,7 +81,7 @@ def ada_grad(func, grad, x, args, callback):
     return x
 
 
-def rms_prop(func, grad, x, args, callback):
+def rms_prop(func, grad, x, args={}, callback=None):
     """
     RMSProp adaptive gradient optimizer
     
@@ -130,7 +130,7 @@ def rms_prop(func, grad, x, args, callback):
     return x
 
 
-def adam(func, grad, x, args, callback):
+def adam(func, grad, x, args={}, callback=None):
     """
     Adam adaptive gradient optimizer
     :param func: function to be minimized (used here only to update the gradient)
@@ -180,7 +180,7 @@ def adam(func, grad, x, args, callback):
     return x
 
 
-def lbfgs(func, grad, x, args, callback):
+def lbfgs(func, grad, x, args={}, callback=None):
     """
     Adapter for scipy's standard minimize function, which defaults to using the LBFGS-B optimizer
     
