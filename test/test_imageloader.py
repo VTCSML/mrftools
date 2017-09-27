@@ -105,7 +105,7 @@ class TestImageLoader(unittest.TestCase):
             to_index = model.var_index[edge[1]]
             assert model.message_from[i] == from_index, "Message sender index is wrong"
             assert model.message_to[i] == to_index, "Message receiver index is wrong"
-            assert model.message_to_map[i, to_index] == 1, "Message receiver matrix map is wrong"
+            assert model.message_to_map.getrow(i).getcol(to_index) == 1, "Message receiver matrix map is wrong"
 
         assert np.all(np.sum(model.message_to_map.todense(), axis=1) == 1), \
             "Message sender map has a row that doesn't sum to 1.0"
