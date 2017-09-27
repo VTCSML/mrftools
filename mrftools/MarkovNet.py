@@ -1,6 +1,6 @@
 """Markov network class for storing potential functions and structure."""
 import numpy as np
-from scipy.sparse import csc_matrix
+from scipy.sparse import coo_matrix
 
 
 class MarkovNet(object):
@@ -223,7 +223,7 @@ class MarkovNet(object):
                     message_num += 1
 
         # generate a sparse matrix representation of the message indices to variables that receive messages
-        self.message_to_map = csc_matrix((np.ones(len(to_rows)), (to_rows, to_cols)),
+        self.message_to_map = coo_matrix((np.ones(len(to_rows)), (to_rows, to_cols)),
                                          (2 * self.num_edges, len(self.variables)))
 
         # store an array that lists which variable each message is sent to
