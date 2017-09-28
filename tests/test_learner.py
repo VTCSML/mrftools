@@ -237,12 +237,12 @@ class TestLearner(unittest.TestCase):
         learner.learn(weights)
         default_time = time.time() - start
 
-        print "Default learner took %f seconds." % default_time
+        print("Default learner took %f seconds." % default_time)
 
         start = time.time()
         learner.max_time = 0.0001
         learner.learn(weights)
         early_time = time.time() - start
 
-        print "Without early stopping: %f seconds. With early stopping %f seconds." % (default_time, early_time)
+        print("Without early stopping: %f seconds. With early stopping %f seconds." % (default_time, early_time))
         assert early_time < default_time, "Early stopping was no faster than default"

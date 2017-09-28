@@ -62,16 +62,16 @@ class TestBeliefPropagator(unittest.TestCase):
         bf = BruteForce(mn)
 
         for i in mn.variables:
-            print ("Brute force unary marginal of %d: %s" % (i, repr(bf.unary_marginal(i))))
-            print ("Belief prop unary marginal of %d: %s" % (i, repr(np.exp(bp.var_beliefs[i]))))
+            print("Brute force unary marginal of %d: %s" % (i, repr(bf.unary_marginal(i))))
+            print("Belief prop unary marginal of %d: %s" % (i, repr(np.exp(bp.var_beliefs[i]))))
             assert np.allclose(bf.unary_marginal(i), np.exp(bp.var_beliefs[i])), "beliefs aren't exact on chain model"
 
-        print ("Brute force pairwise marginal: " + repr(bf.pairwise_marginal(0, 1)))
-        print ("Belief prop pairwise marginal: " + repr(np.exp(bp.pair_beliefs[(0, 1)])))
+        print("Brute force pairwise marginal: " + repr(bf.pairwise_marginal(0, 1)))
+        print("Belief prop pairwise marginal: " + repr(np.exp(bp.pair_beliefs[(0, 1)])))
 
-        print ("Bethe energy functional: %f" % bp.compute_energy_functional())
+        print("Bethe energy functional: %f" % bp.compute_energy_functional())
 
-        print ("Brute force log partition function: %f" % np.log(bf.compute_z()))
+        print("Brute force log partition function: %f" % np.log(bf.compute_z()))
 
         assert np.allclose(np.log(bf.compute_z()), bp.compute_energy_functional()),\
             "log partition function is not exact on chain model"
@@ -93,7 +93,7 @@ class TestBeliefPropagator(unittest.TestCase):
             unary_belief = np.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                print pair_belief, unary_belief
+                print(pair_belief, unary_belief)
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_normalization(self):

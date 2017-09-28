@@ -47,7 +47,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         """Create a grid-structured MRF"""
         mn = MarkovNet()
 
-        length = 64
+        length = 16
 
         k = 8
 
@@ -66,7 +66,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         """Create a grid-structured MRFs with edge potentials that are attractive."""
         mn = MarkovNet()
 
-        length = 2
+        length = 16
 
         k = 8
 
@@ -118,7 +118,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
             unary_belief = np.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                print pair_belief, unary_belief
+                print(pair_belief, unary_belief)
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_normalization(self):

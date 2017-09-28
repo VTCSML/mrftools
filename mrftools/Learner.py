@@ -1,9 +1,9 @@
 """Main learner class for log-linear model parameter learning. """
 import copy
 
-from ConvexBeliefPropagator import ConvexBeliefPropagator
-from opt import *
-from MatrixBeliefPropagator import MatrixBeliefPropagator
+from .ConvexBeliefPropagator import ConvexBeliefPropagator
+from .opt import *
+from .MatrixBeliefPropagator import MatrixBeliefPropagator
 
 
 class Learner(object):

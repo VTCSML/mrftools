@@ -36,8 +36,8 @@ class TestGibbsSampling(unittest.TestCase):
         for var in mn.variables:
             gb_result = gb.count_occurrences(var) / num
             bf_result = bf.unary_marginal(var)
-            print gb_result
-            print bf_result
+            print(gb_result)
+            print(bf_result)
             np.testing.assert_allclose(gb_result, bf_result, rtol=1e-1, atol=0)
 
 

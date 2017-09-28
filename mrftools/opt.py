@@ -244,7 +244,7 @@ class ObjectivePlotter(object):
         self.iters = []
 
         if self.grad:
-            print "Iter\tf(x)\t\t\tnorm(g)\t\t\tdx"
+            print("Iter\tf(x)\t\t\tnorm(g)\t\t\tdx")
 
     def callback(self, x):
         """
@@ -281,8 +281,8 @@ class ObjectivePlotter(object):
             if self.grad:
                 g = self.grad(x)
                 diff = x - self.last_x
-                print "%d\t%e\t%e\t%e" % (
-                    self.iters[-1], self.objectives[-1], np.sqrt(g.dot(g)), np.sqrt(diff.dot(diff)))
+                print("%d\t%e\t%e\t%e" % (
+                    self.iters[-1], self.objectives[-1], np.sqrt(g.dot(g)), np.sqrt(diff.dot(diff))))
 
             plt.pause(1.0 / 120.0)
 

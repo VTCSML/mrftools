@@ -1,6 +1,6 @@
 """Primal dual weight learning class"""
-from PairedDual import PairedDual
-from opt import *
+from .PairedDual import PairedDual
+from .opt import *
 
 
 class PrimalDual(PairedDual):

@@ -15,7 +15,7 @@ class TestImageLoader(unittest.TestCase):
         """Test that loading images and resizing them leads to correct size data."""
         loader = ImageLoader()
 
-        train_dir = os.path.join(os.path.dirname(__file__), 'train')
+        train_dir = os.path.join(os.path.dirname(__file__), 'train_data')
 
         images, models, labels, names = loader.load_all_images_and_labels(train_dir, 2)
         files = [x for x in os.listdir(train_dir) if x.endswith(".jpg") or x.endswith('.png')]
@@ -52,7 +52,7 @@ class TestImageLoader(unittest.TestCase):
         num_features = 65
         num_states = 2
 
-        all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train'), num_features, 1)
+        all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train_data'), num_features, 1)
 
         initial_w = np.zeros(num_features * num_states)
         res = minimize(objective, initial_w, method="L-BFGS-B", args=(all_pixel, all_label, num_features, num_states),
@@ -63,7 +63,7 @@ class TestImageLoader(unittest.TestCase):
         print ("accuracy on training set: %f" % accuracy_training)
         assert (accuracy_training >= 0.9), "Unary classification accuracy on training data is less than 0.9"
 
-        all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'test'), num_features, 1)
+        all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'test_data'), num_features, 1)
         accuracy_testing = accuracy(weights, all_pixel, all_label, num_features, num_states)
         print ("accuracy on testing set: %f" % accuracy_testing)
         assert (accuracy_testing >= 0.7), "Unary classification accuracy on testing data is less than 0.7"
@@ -92,7 +92,7 @@ class TestImageLoader(unittest.TestCase):
         """Test that the loaded model has the correct matrix structure."""
         loader = ImageLoader(10, 10)
 
-        train_dir = os.path.join(os.path.dirname(__file__), 'train')
+        train_dir = os.path.join(os.path.dirname(__file__), 'train_data')
 
         images, models, labels, names = loader.load_all_images_and_labels(train_dir, 2, 1)
 
