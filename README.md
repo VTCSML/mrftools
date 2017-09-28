@@ -1,3 +1,5 @@
+# mrftools
+
 Python package to do discrete Markov random field learning and inference.
 
 For now, this software is very experimental and for private use only.
