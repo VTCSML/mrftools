@@ -17,6 +17,8 @@ from MaxProductLinearProgramming import *
 from MaxProductLinearProgramming import MaxProductLinearProgramming
 from PairedDual import PairedDual
 from PrimalDual import PrimalDual
+from TorchMarkovNet import TorchMarkovNet
+from TorchMatrixBeliefPropagator import TorchMatrixBeliefPropagator
 from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from opt import *
 from util import *
