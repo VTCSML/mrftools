@@ -2,7 +2,7 @@ import numpy as np
 from mrftools import *
 import unittest
 import time
-from PartialMatrixBP import PartialMatrixBP
+from mrftools.PartialMatrixBP import PartialMatrixBP
 
 
 def create_grid_model(length):
