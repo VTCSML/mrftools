@@ -64,26 +64,23 @@ def create_tree_model(num_nodes):
 def test_beliefs_tree_model(N, num_nodes):
     mn = create_tree_model(num_nodes)
     
-    #matrix_bp = MatrixBeliefPropagator(mn)
-    #matrix_bp.infer()
-    #matrix_bp.load_beliefs()
-    bf = BruteForce(mn)
-    print bf.unary_marginal(1)
+    matrix_bp = MatrixBeliefPropagator(mn)
+    matrix_bp.infer()
+    matrix_bp.load_beliefs()
+    #bf = BruteForce(mn)
+    #print bf.unary_marginal(1)
     #print np.exp(matrix_bp.var_beliefs[1])
-    """
+    
+    partial_bp = PartialMatrixBP(mn)
+    for i in range(0, 50):
+        partial_bp.partial_infer(N, tolerance=1e-8)
+    partial_bp.load_beliefs()
+    
+    
     for i in mn.variables:
-        print "Brute force unary marginal of %d: %s" % (i, repr(bf.unary_marginal(i)))
+        print "Brute force unary marginal of %d: %s" % (i, repr(np.exp(partial_bp.var_beliefs[i])))
         print "Belief prop unary marginal of %d: %s" % (i, repr(np.exp(matrix_bp.var_beliefs[i])))
-        #assert np.allclose(bf.unary_marginal(i), np.exp(matrix_bp.var_beliefs[i])), "beliefs aren't exact on chain model"
-    """
-    #partial_bp = PartialMatrixBP(mn)
-    #partial_bp.infer()
-    
-    
-    
-        
-    
-    
+        assert np.allclose(np.exp(partial_bp.var_beliefs[i]), np.exp(matrix_bp.var_beliefs[i])), "beliefs aren't exact on tree model"
     
 def test_MatrixBP_runtime(length):
     start = time.time()
@@ -103,11 +100,11 @@ def test_PartialBP_runtime(N, length):
     print "running time: %f"%(end-start)
 
 if __name__ == '__main__':
-    N = 3
-    length = 16
-    num_nodes = 20
-    test_beliefs_tree_model(N, num_nodes)
-    #test_PartialBP_runtime(N, length)
+    N = 10
+    length = 256
+    num_nodes = 500
+    #test_beliefs_tree_model(N, num_nodes)
+    test_PartialBP_runtime(N, length)
     #test_MatrixBP_runtime(length)
     print "end"
     

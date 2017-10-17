@@ -22,7 +22,7 @@ def create_tree(nodes_ids):
     return edges
 
 if __name__ == '__main__':
-    N = 9
+    N = 100
     nodes_ids = list()
     for i in range(0, N):
         nodes_ids.append(i)
