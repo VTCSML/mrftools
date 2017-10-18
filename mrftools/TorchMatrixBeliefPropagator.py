@@ -30,14 +30,14 @@ class TorchMatrixBeliefPropagator(Inference):
         self.orig_message_mat = None
         self.initialize_messages()
 
-        self.belief_mat = torch.FloatTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        self.belief_mat = torch.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
 
-        self.pair_belief_tensor = torch.FloatTensor(self.mn.max_states, self.mn.max_states, self.mn.num_edges).zero_()
+        self.pair_belief_tensor = torch.DoubleTensor(self.mn.max_states, self.mn.max_states, self.mn.num_edges).zero_()
 
         self.max_iter = 300  # default maximum iterations
 
         # the augmented_mat is used to condition variables or for loss-augmented inference for max-margin learning
-        self.augmented_mat = torch.FloatTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        self.augmented_mat = torch.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
 
         self.fully_conditioned = False  # true if every variable has been conditioned
 
@@ -61,7 +61,7 @@ class TorchMatrixBeliefPropagator(Inference):
 
         :return: None
         """
-        self.message_mat = torch.FloatTensor(self.mn.max_states, 2 * self.mn.num_edges).zero_()
+        self.message_mat = torch.DoubleTensor(self.mn.max_states, 2 * self.mn.num_edges).zero_()
 
     def augment_loss(self, var, state):
         """
@@ -376,7 +376,7 @@ def sparse_dot(full_matrix, sparse_matrix):
     :param full_matrix: dense matrix
     :type full_matrix: ndarray
     :param sparse_matrix: sparse matrix
-    :type sparse_matrix: torch.sparse.FloatTensor
+    :type sparse_matrix: torch.sparse.DoubleTensor
     :return: full_matrix.dot(sparse_matrix)
     :rtype: ndarray
     """

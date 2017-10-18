@@ -151,9 +151,9 @@ class TorchMarkovNet(object):
         self.matrix_mode = True
 
         self.max_states = max([len(x) for x in self.unary_potentials.values()])
-        self.unary_mat = -float('inf') * torch.ones(self.max_states, len(self.variables))
+        self.unary_mat = -float('inf') * torch.ones(self.max_states, len(self.variables)).double()
 
-        self.degrees = torch.FloatTensor(len(self.variables)).zero_()
+        self.degrees = torch.DoubleTensor(len(self.variables)).zero_()
 
         # var_index allows looking up the numerical index of a variable by its hashable name
         self.var_index = dict()
@@ -175,7 +175,7 @@ class TorchMarkovNet(object):
                 if var < neighbor:
                     self.num_edges += 1
 
-        self.edge_pot_tensor = -float('inf') * torch.ones(self.max_states, self.max_states, 2 * self.num_edges)
+        self.edge_pot_tensor = -float('inf') * torch.ones(self.max_states, self.max_states, 2 * self.num_edges).double()
         self.message_index = {}
 
         # set up sparse matrix representation of adjacency
@@ -224,9 +224,9 @@ class TorchMarkovNet(object):
                     message_num += 1
 
         # generate a sparse matrix representation of the message indices to variables that receive messages
-        self.message_to_map = torch.sparse.FloatTensor(
+        self.message_to_map = torch.sparse.DoubleTensor(
             torch.LongTensor([to_rows, to_cols]),
-            torch.ones(len(to_rows)),
+            torch.ones(len(to_rows)).double(),
             torch.Size([2 * self.num_edges, len(self.variables)])
         )
 

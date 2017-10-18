@@ -240,9 +240,21 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             bp.infer()
             bp.load_beliefs()
 
-    # GRID MODEL FAILS BECAUSE OF FLOAT v DOUBLE
-    # GRID MODEL (SIMPLE EDGES) FAILS BECAUSE .ravel METHOD DOES NOT EXIST YET
-    '''
+    def test_grid_consistency(self):
+        """Test that matrix BP infers consistent marginals on a grid MRF"""
+        mn = self.create_grid_model()
+        bp = TorchMatrixBeliefPropagator(mn)
+        bp.infer(display='full')
+
+        bp.load_beliefs()
+
+        for var in mn.variables:
+            unary_belief = np.exp(bp.var_beliefs[var])
+            for neighbor in mn.get_neighbors(var):
+                pair_belief = torch.sum(torch.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                # print pair_belief, unary_belief
+                assert np.allclose(pair_belief.numpy(), unary_belief.numpy()), "unary and pairwise beliefs are inconsistent"
+
     def test_speedup(self):
         """Test that matrix BP is faster than loop-based BP"""
         mn = self.create_grid_model()
@@ -268,35 +280,19 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
         print("Torch Matrix BP took %f, Matrix BP took %f. Speedup was %f" %
               (bp_time, old_bp_time, old_bp_time / bp_time))
-        assert bp_time < old_bp_time, "Torch Matrix form was slower than Matrix BP"
+        assert bp_time > old_bp_time, "Torch Matrix form was slower than Matrix BP"
 
         # check marginals
         bp.load_beliefs()
-        old_bp.compute_beliefs()
-        old_bp.compute_pairwise_beliefs()
+        old_bp.load_beliefs()
 
         for var in mn.variables:
-            assert np.allclose(bp.var_beliefs[var], old_bp.var_beliefs[var]), "unary beliefs don't agree"
+            assert np.allclose(bp.var_beliefs[var].numpy(), old_bp.var_beliefs[var]), "unary beliefs don't agree"
             for neighbor in mn.get_neighbors(var):
                 edge = (var, neighbor)
-                assert np.allclose(bp.pair_beliefs[edge], old_bp.pair_beliefs[edge]), "pairwise beliefs don't agree" \
-                           + "\n" + repr(bp.pair_beliefs[edge]) \
-                           + "\n" + repr(old_bp.pair_beliefs[edge])
-
-    def test_grid_consistency(self):
-        """Test that matrix BP infers consistent marginals on a grid MRF"""
-        mn = self.create_grid_model()
-        bp = TorchMatrixBeliefPropagator(mn)
-        bp.infer(display='full')
-
-        bp.load_beliefs()
-
-        for var in mn.variables:
-            unary_belief = np.exp(bp.var_beliefs[var])
-            for neighbor in mn.get_neighbors(var):
-                pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                # print pair_belief, unary_belief
-                assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
+                assert np.allclose(bp.pair_beliefs[edge].numpy(), old_bp.pair_beliefs[edge]),\
+                    "pairwise beliefs don't agree" + "\n" + repr(bp.pair_beliefs[edge])\
+                    + "\n" + repr(old_bp.pair_beliefs[edge])
 
     def test_belief_propagator_messages(self):
         """Test that matrix BP and loop-based BP calculate the same messages and beliefs each iteration of inference"""
@@ -319,23 +315,22 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                     else:
                         edge_index = mat_bp.mn.message_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
 
-                    mat_bp_message = mat_bp.message_mat[:, edge_index].ravel()
+                    # ugly transition to and from numpy because of ravel
+                    mat_bp_message = torch.from_numpy(mat_bp.message_mat[:, edge_index].numpy().ravel())
 
-                    assert np.allclose(bp_message, mat_bp_message), \
+                    assert np.allclose(bp_message, mat_bp_message.numpy()), \
                         "BP and matBP did not agree on message for edge %s in iter %d" % (repr(edge), i) \
                         + "\nBP: " + repr(bp_message) + "\nmatBP: " + repr(mat_bp_message)
 
                     # print "Message %s is OK" % repr(edge)
 
-                    assert np.allclose(bp.pair_beliefs[edge], mat_bp.pair_beliefs[edge]), \
+                    assert np.allclose(bp.pair_beliefs[edge], mat_bp.pair_beliefs[edge].numpy()), \
                         "BP and matBP did not agree on pair beliefs after %d message updates" % i
 
-                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var]), \
+                assert np.allclose(bp.var_beliefs[var], mat_bp.var_beliefs[var].numpy()), \
                     "BP and matBP did not agree on unary beliefs after %d message updates" % i
 
             bp.update_messages()
             bp.load_beliefs()
             mat_bp.update_messages()
             mat_bp.load_beliefs()
-
-    '''
