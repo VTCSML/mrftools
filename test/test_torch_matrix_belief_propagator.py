@@ -72,6 +72,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     def create_grid_model(self):
         """Create a grid-structured MRF"""
         mn = TorchMarkovNet()
+        np.random.seed(1)
 
         length = 64
 
@@ -91,6 +92,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     def create_grid_model_old(self):
         """Create a grid-structured MRF"""
         mn = MarkovNet()
+        np.random.seed(1)
 
         length = 64
 
@@ -110,6 +112,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     def create_grid_model_simple_edges(self):
         """Create a grid-structured MRFs with edge potentials that are attractive."""
         mn = TorchMarkovNet()
+        np.random.seed(1)
 
         length = 2
 
@@ -129,6 +132,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     def create_grid_model_simple_edges_old(self):
         """Create a grid-structured MRFs with edge potentials that are attractive."""
         mn = MarkovNet()
+        np.random.seed(1)
 
         length = 2
 

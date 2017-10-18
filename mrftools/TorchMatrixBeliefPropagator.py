@@ -207,7 +207,7 @@ class TorchMatrixBeliefPropagator(Inference):
 
     # WARNING: Torch has some weird significant figure issues not going past about 1e-6
     #   If left at 1e-8 otherwise, it will go for max iterations despite being 'done'
-    def infer(self, tolerance=1e-6, display='iter'):
+    def infer(self, tolerance=1e-8, display='iter'):
         """
         Run belief propagation until messages change less than tolerance.
 
