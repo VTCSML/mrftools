@@ -126,6 +126,25 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
         return mn
 
+    def create_grid_model_simple_edges_old(self):
+        """Create a grid-structured MRFs with edge potentials that are attractive."""
+        mn = MarkovNet()
+
+        length = 2
+
+        k = 8
+
+        for x in range(length):
+            for y in range(length):
+                mn.set_unary_factor((x, y), np.random.random(k))
+
+        for x in range(length - 1):
+            for y in range(length):
+                mn.set_edge_factor(((x, y), (x + 1, y)), np.eye(k))
+                mn.set_edge_factor(((y, x), (y, x + 1)), np.eye(k))
+
+        return mn
+
     def test_exactness(self):
         """Test that Matrix BP produces the true marginals in a chain model."""
         mn = self.create_chain_model()
@@ -184,9 +203,45 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                 pair_belief = torch.exp(bp.pair_beliefs[(var, neighbor)])
                 assert np.allclose(torch.sum(pair_belief), 1.0), "pairwise belief is not normalize"
 
-    # New Torch model gets won't ever get to tolerance?
-    # Change won't increment after some point, perhaps because messages ends up being too similar to message_mat
-    # LOOK INTO THIS!!
+    def test_conditioning(self):
+        """Test that conditioning on variable properly sets variables to conditioned state"""
+        mn = self.create_loop_model()
+
+        bp = TorchMatrixBeliefPropagator(mn)
+
+        bp.condition(2, 0)
+
+        bp.infer()
+        bp.load_beliefs()
+
+        assert np.allclose(bp.var_beliefs[2][0], 0), "Conditioned variable was not set to correct state"
+
+        beliefs0 = bp.var_beliefs[0]
+
+        bp.condition(2, 1)
+        bp.infer()
+        bp.load_beliefs()
+        beliefs1 = bp.var_beliefs[0]
+
+        assert not np.allclose(beliefs0.numpy(), beliefs1.numpy()), "Conditioning var 2 did not change beliefs of var 0"
+
+    def test_overflow(self):
+        """Test that MatrixBP does not fail when given very large, poorly scaled factors"""
+        mn = self.create_chain_model()
+
+        # set a really large factor
+        mn.set_unary_factor(0, torch.FloatTensor([1000, 2000, 3000, 4000]))
+
+        mn.create_matrices()
+
+        bp = TorchMatrixBeliefPropagator(mn)
+
+        with np.errstate(all='raise'):
+            bp.infer()
+            bp.load_beliefs()
+
+    # GRID MODEL FAILS BECAUSE OF FLOAT v DOUBLE
+    # GRID MODEL (SIMPLE EDGES) FAILS BECAUSE .ravel METHOD DOES NOT EXIST YET
     '''
     def test_speedup(self):
         """Test that matrix BP is faster than loop-based BP"""
@@ -228,43 +283,6 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                            + "\n" + repr(bp.pair_beliefs[edge]) \
                            + "\n" + repr(old_bp.pair_beliefs[edge])
 
-    def test_conditioning(self):
-        """Test that conditioning on variable properly sets variables to conditioned state"""
-        mn = self.create_loop_model()
-
-        bp = TorchMatrixBeliefPropagator(mn)
-
-        bp.condition(2, 0)
-
-        bp.infer()
-        bp.load_beliefs()
-
-        assert np.allclose(bp.var_beliefs[2][0], 0), "Conditioned variable was not set to correct state"
-
-        beliefs0 = bp.var_beliefs[0]
-
-        bp.condition(2, 1)
-        bp.infer()
-        bp.load_beliefs()
-        beliefs1 = bp.var_beliefs[0]
-
-        assert not np.allclose(beliefs0, beliefs1), "Conditioning var 2 did not change beliefs of var 0"
-
-    def test_overflow(self):
-        """Test that MatrixBP does not fail when given very large, poorly scaled factors"""
-        mn = self.create_chain_model()
-
-        # set a really large factor
-        mn.set_unary_factor(0, [1000, 2000, 3000, 4000])
-
-        mn.create_matrices()
-
-        bp = TorchMatrixBeliefPropagator(mn)
-
-        with np.errstate(all='raise'):
-            bp.infer()
-            bp.load_beliefs()
-
     def test_grid_consistency(self):
         """Test that matrix BP infers consistent marginals on a grid MRF"""
         mn = self.create_grid_model()
@@ -282,8 +300,9 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_belief_propagator_messages(self):
         """Test that matrix BP and loop-based BP calculate the same messages and beliefs each iteration of inference"""
+        model_old = self.create_grid_model_simple_edges_old()
         model = self.create_grid_model_simple_edges()
-        bp = BeliefPropagator(model)
+        bp = BeliefPropagator(model_old)
         bp.load_beliefs()
 
         mat_bp = TorchMatrixBeliefPropagator(model)

@@ -90,6 +90,9 @@ class TorchMatrixBeliefPropagator(Inference):
         """
         i = self.mn.var_index[var]
         self.augmented_mat[:, i] = -float('inf')
+
+        if not hasattr(state, "__iter__"):
+            state = [state]
         for s in state:
             self.augmented_mat[s, i] = 0
         if isinstance(state, int):

@@ -3,7 +3,6 @@ import numpy as np
 
 from Inference import Inference
 
-
 class MatrixBeliefPropagator(Inference):
     """
     Object that can run belief propagation on a MarkovNet. Uses sparse matrices to encode the
@@ -21,6 +20,12 @@ class MatrixBeliefPropagator(Inference):
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
 
+        isDouble = True
+        if isDouble:
+            self.dtype = 'd'
+        else:
+            self.dtype = 'f'
+
         # if the MarkovNet has not created its matrix representation of structure, create it
         if not self.mn.matrix_mode:
             self.mn.create_matrices()
@@ -29,13 +34,13 @@ class MatrixBeliefPropagator(Inference):
         self.message_mat = None
         self.initialize_messages()
 
-        self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
-        self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges))
+        self.belief_mat = np.zeros((self.mn.max_states, len(self.mn.variables)), dtype=self.dtype)
+        self.pair_belief_tensor = np.zeros((self.mn.max_states, self.mn.max_states, self.mn.num_edges), dtype=self.dtype)
 
         self.max_iter = 300  # default maximum iterations
 
         # the augmented_mat is used to condition variables or for loss-augmented inference for max-margin learning
-        self.augmented_mat = np.zeros((self.mn.max_states, len(self.mn.variables)))
+        self.augmented_mat = np.zeros((self.mn.max_states, len(self.mn.variables)), dtype=self.dtype)
         self.fully_conditioned = False  # true if every variable has been conditioned
 
         # conditioned stores the indices of variables that have been conditioned, initialized to all False
@@ -58,7 +63,7 @@ class MatrixBeliefPropagator(Inference):
 
         :return: None
         """
-        self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges))
+        self.message_mat = np.zeros((self.mn.max_states, 2 * self.mn.num_edges), dtype=self.dtype)
 
     def augment_loss(self, var, state):
         """
@@ -86,6 +91,7 @@ class MatrixBeliefPropagator(Inference):
         """
         i = self.mn.var_index[var]
         self.augmented_mat[:, i] = -np.inf
+
         self.augmented_mat[state, i] = 0
         if isinstance(state, int):
             # only if the variable is fully conditioned to be in a single state, mark that the variable is conditioned

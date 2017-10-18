@@ -29,6 +29,12 @@ class MarkovNet(object):
         self.message_index = None
         self.degrees = None
 
+        isDouble = True
+        if isDouble:
+            self.dtype = 'd'
+        else:
+            self.dtype = 'f'
+
     def set_unary_factor(self, variable, potential):
         """
         Set the potential function for the unary factor. Implicitly declare variable. 
@@ -151,8 +157,8 @@ class MarkovNet(object):
         self.matrix_mode = True
 
         self.max_states = max([len(x) for x in self.unary_potentials.values()])
-        self.unary_mat = -np.inf * np.ones((self.max_states, len(self.variables)))
-        self.degrees = np.zeros(len(self.variables))
+        self.unary_mat = -np.inf * np.ones((self.max_states, len(self.variables)), dtype=self.dtype)
+        self.degrees = np.zeros(len(self.variables), dtype=self.dtype)
 
         # var_index allows looking up the numerical index of a variable by its hashable name
         self.var_index = dict()
@@ -174,7 +180,7 @@ class MarkovNet(object):
                 if var < neighbor:
                     self.num_edges += 1
 
-        self.edge_pot_tensor = -np.inf * np.ones((self.max_states, self.max_states, 2 * self.num_edges))
+        self.edge_pot_tensor = -np.inf * np.ones((self.max_states, self.max_states, 2 * self.num_edges), dtype=self.dtype)
         self.message_index = {}
 
         # set up sparse matrix representation of adjacency
@@ -223,7 +229,7 @@ class MarkovNet(object):
                     message_num += 1
 
         # generate a sparse matrix representation of the message indices to variables that receive messages
-        self.message_to_map = coo_matrix((np.ones(len(to_rows)), (to_rows, to_cols)),
+        self.message_to_map = coo_matrix((np.ones(len(to_rows), dtype=self.dtype), (to_rows, to_cols)),
                                          (2 * self.num_edges, len(self.variables)))
 
         # store an array that lists which variable each message is sent to
