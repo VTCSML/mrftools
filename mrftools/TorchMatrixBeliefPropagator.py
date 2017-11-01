@@ -1,8 +1,14 @@
 """BeliefPropagator class."""
-import numpy as np
-
+# import numpy as np
 from Inference import Inference
-import torch
+import torch as t
+'''
+https://github.com/pytorch/pytorch/issues/1668
+if torch.cuda.available():
+    import torch.cuda as t
+else:
+    import torch as t
+'''
 
 class TorchMatrixBeliefPropagator(Inference):
     """
@@ -10,7 +16,7 @@ class TorchMatrixBeliefPropagator(Inference):
     indexing underlying belief propagation.
     """
 
-    def __init__(self, markov_net):
+    def __init__(self, markov_net, is_cuda):
         """
         Initialize belief propagator for markov_net.
 
@@ -18,6 +24,7 @@ class TorchMatrixBeliefPropagator(Inference):
         :type markov_net: MarkovNet object encoding the probability distribution
         """
         self.mn = markov_net
+        self.is_cuda = is_cuda
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
 
@@ -30,19 +37,25 @@ class TorchMatrixBeliefPropagator(Inference):
         self.orig_message_mat = None
         self.initialize_messages()
 
-        self.belief_mat = torch.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        self.belief_mat = t.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        if self.is_cuda:
+            self.belief_mat = self.belief_mat.cuda()
 
-        self.pair_belief_tensor = torch.DoubleTensor(self.mn.max_states, self.mn.max_states, self.mn.num_edges).zero_()
+        self.pair_belief_tensor = t.DoubleTensor(self.mn.max_states, self.mn.max_states, self.mn.num_edges).zero_()
+        if self.is_cuda:
+            self.pair_belief_tensor = self.pair_belief_tensor.cuda()
 
         self.max_iter = 300  # default maximum iterations
 
         # the augmented_mat is used to condition variables or for loss-augmented inference for max-margin learning
-        self.augmented_mat = torch.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        self.augmented_mat = t.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        if self.is_cuda:
+            self.augmented_mat = self.augmented_mat.cuda()
 
         self.fully_conditioned = False  # true if every variable has been conditioned
 
         # conditioned stores the indices of variables that have been conditioned, initialized to all False
-        self.conditioned = np.zeros(len(self.mn.variables), dtype=bool)
+        self.conditioned = t.ByteTensor(len(self.mn.variables))
 
         # condition variables so they can't be in states greater than their cardinality
         self.disallow_impossible_states()
@@ -61,7 +74,9 @@ class TorchMatrixBeliefPropagator(Inference):
 
         :return: None
         """
-        self.message_mat = torch.DoubleTensor(self.mn.max_states, 2 * self.mn.num_edges).zero_()
+        self.message_mat = t.DoubleTensor(self.mn.max_states, 2 * self.mn.num_edges).zero_()
+        if self.is_cuda:
+            self.message_mat = self.message_mat.cuda()
 
     def augment_loss(self, var, state):
         """
@@ -99,7 +114,7 @@ class TorchMatrixBeliefPropagator(Inference):
             # only if the variable is fully conditioned to be in a single state, mark that the variable is conditioned
             self.conditioned[i] = True
 
-        if np.all(self.conditioned):
+        if self.conditioned.all():
             # compute beliefs and set flag to never recompute them
             self.compute_beliefs()
             self.compute_pairwise_beliefs()
@@ -124,7 +139,7 @@ class TorchMatrixBeliefPropagator(Inference):
             self.belief_mat = self.mn.unary_mat + self.augmented_mat
             self.belief_mat += sparse_dot(self.message_mat, self.mn.message_to_map)
 
-            self.belief_mat -= logsumexp(self.belief_mat, 0)
+            self.belief_mat -= torch_logsumexp(self.belief_mat, 0)
 
     def compute_pairwise_beliefs(self):
         """
@@ -134,7 +149,7 @@ class TorchMatrixBeliefPropagator(Inference):
         """
         if not self.fully_conditioned:
             adjusted_message_prod = self.belief_mat[:, self.mn.message_from] \
-                                    - torch.cat((self.message_mat[:, self.mn.num_edges:],
+                                    - t.cat((self.message_mat[:, self.mn.num_edges:],
                                                  self.message_mat[:, :self.mn.num_edges]), 1)
 
             # Have to convert NaNs to negative infinity at this point
@@ -148,7 +163,7 @@ class TorchMatrixBeliefPropagator(Inference):
 
             beliefs = self.mn.edge_pot_tensor[:, :, self.mn.num_edges:] + to_messages + from_messages
 
-            beliefs -= logsumexp(beliefs, (0, 1))
+            beliefs -= torch_logsumexp(beliefs, (0, 1))
 
             self.pair_belief_tensor = beliefs
 
@@ -163,20 +178,17 @@ class TorchMatrixBeliefPropagator(Inference):
         # Using the beliefs as the sum of all incoming log messages, subtract the outgoing messages and add the edge
         # potential.
         adjusted_message_prod = self.mn.edge_pot_tensor + self.belief_mat[:, self.mn.message_from] \
-                                - torch.cat((self.message_mat[:, self.mn.num_edges:],
+                                - t.cat((self.message_mat[:, self.mn.num_edges:],
                                              self.message_mat[:, :self.mn.num_edges]), 1)
 
         # Have to convert NaNs to negative infinity at this point
         adjusted_message_prod = torch_nan_to_neginf(adjusted_message_prod)
 
-        messages = torch.squeeze(logsumexp(adjusted_message_prod, 1))
-        messages = torch_nan_to_zero(messages - torch.max(messages, 0)[0])
+        messages = t.squeeze(torch_logsumexp(adjusted_message_prod, 1))
+        messages = torch_nan_to_zero(messages - t.max(messages, 0)[0])
 
-        change = torch.sum(torch_nan_to_zero(torch.abs(messages - self.message_mat)))
-        # Change (and disagreement) can only be calculated to around 1e-7 sigfigs at best, resulting in no change
-        # Also likely the source of the 'infinite' loop when timing
-        # print format(messages[0][0], '.20f')
-        # print format(self.message_mat[0][0], '.20f')
+        change = t.sum(torch_nan_to_zero(t.abs(messages - self.message_mat)))
+
         self.message_mat = messages
 
         return change
@@ -187,10 +199,10 @@ class TorchMatrixBeliefPropagator(Inference):
         :return: Vector of inconsistencies
         :rtype: array
         """
-        expanded_beliefs = torch.exp(self.belief_mat[:, self.mn.message_to])
+        expanded_beliefs = t.exp(self.belief_mat[:, self.mn.message_to])
 
-        pairwise_beliefs = torch.cat((torch.sum(torch.exp(self.pair_belief_tensor), 0),
-                                      torch.sum(torch.exp(self.pair_belief_tensor), 1)), 1)
+        pairwise_beliefs = t.cat((t.sum(t.exp(self.pair_belief_tensor), 0),
+                                      t.sum(t.exp(self.pair_belief_tensor), 1)), 1)
 
         return expanded_beliefs - pairwise_beliefs
 
@@ -201,7 +213,7 @@ class TorchMatrixBeliefPropagator(Inference):
 
         :return: the total absolute disagreement between each unary belief and its pairwise beliefs
         """
-        disagreement = torch.sum(torch.abs(self._compute_inconsistency_vector()))
+        disagreement = t.sum(t.abs(self._compute_inconsistency_vector()))
 
         return disagreement
 
@@ -267,8 +279,8 @@ class TorchMatrixBeliefPropagator(Inference):
         if self.fully_conditioned:
             entropy = 0
         else:
-            entropy = - torch.sum(torch_nan_to_zero(torch_nan_to_zero(self.pair_belief_tensor) * torch.exp(self.pair_belief_tensor))) \
-                      - torch.sum(torch_nan_to_zero(torch.mul(torch.mul((1 - self.mn.degrees), torch_nan_to_zero(self.belief_mat)), torch.exp(self.belief_mat))))
+            entropy = - t.sum(torch_nan_to_zero(torch_nan_to_zero(self.pair_belief_tensor) * t.exp(self.pair_belief_tensor))) \
+                      - t.sum(torch_nan_to_zero(t.mul(t.mul((1 - self.mn.degrees), torch_nan_to_zero(self.belief_mat)), t.exp(self.belief_mat))))
 
         return entropy
 
@@ -278,14 +290,16 @@ class TorchMatrixBeliefPropagator(Inference):
 
         :return: computed energy
         """
-        energy = torch.sum(torch_nan_to_zero(
-            torch.mul(torch_nan_to_zero(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]), torch.exp(self.pair_belief_tensor))
-        )) + torch.sum(torch_nan_to_zero(
-            torch.mul(torch_nan_to_zero(self.mn.unary_mat), torch.exp(self.belief_mat))
+        energy = t.sum(torch_nan_to_zero(
+            t.mul(torch_nan_to_zero(self.mn.edge_pot_tensor[:, :, self.mn.num_edges:]), t.exp(self.pair_belief_tensor))
+        )) + t.sum(torch_nan_to_zero(
+            t.mul(torch_nan_to_zero(self.mn.unary_mat), t.exp(self.belief_mat))
         ))
 
         return energy
 
+    # Currently don't care about this since it's a LogLinearModel
+    '''
     def get_feature_expectations(self):
         """
         Computes the feature expectations under the currently estimated marginal probabilities. Only works when the
@@ -305,6 +319,7 @@ class TorchMatrixBeliefPropagator(Inference):
         marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
 
         return marginals
+    '''
 
     def compute_energy_functional(self):
         """
@@ -323,7 +338,7 @@ class TorchMatrixBeliefPropagator(Inference):
         :return: Lagrangian objective function
         """
         objective = self.compute_energy_functional() + \
-                    torch.sum(torch_nan_to_zero(torch.mul(self.message_mat, self._compute_inconsistency_vector())))
+                    t.sum(torch_nan_to_zero(t.mul(self.message_mat, self._compute_inconsistency_vector())))
 
         return objective
 
@@ -335,11 +350,11 @@ class TorchMatrixBeliefPropagator(Inference):
         :type messages: ndarray
         :return: None
         """
-        assert torch.eq(self.message_mat.size(), messages.size())
+        assert t.eq(self.message_mat.size(), messages.size())
         self.message_mat = messages
 
 
-def logsumexp(matrix, dim=None):
+def torch_logsumexp(matrix, dim=None):
     """
     Compute log(sum(exp(matrix), dim)) in a numerically stable way.
 
@@ -347,25 +362,23 @@ def logsumexp(matrix, dim=None):
     :type matrix: ndarray
     :param dim: integer indicating which dimension to sum along
     :type dim: int
-    :return: numerically stable equivalent of np.log(np.sum(np.exp(matrix), dim)))
+    :return: numerically stable equivalent of log(sum(exp(matrix), dim)))
     :rtype: ndarray
     """
-    # WARNING: torch only sums and maxes over 1 dim, whereas np can do many must stick with numpy in this case
-    '''
-    try:
-        return torch.log(torch.sum(torch.exp(matrix), dim, keepdim=True))
-    except:
-        max_val = torch_nan_to_zero(torch.max(matrix, dim, keepdim=True)[0])
-        return torch.log(torch.sum(torch.exp(matrix - max_val), dim, keepdim=True)) + max_val
-    '''
-    np_matrix = matrix.numpy()
-    try:
-        with np.errstate(over='raise', under='raise'):
-            return torch.from_numpy(np.log(np.sum(np.exp(np_matrix), dim, keepdims=True)))
-    except:
-        max_val = np.nan_to_num(np_matrix.max(axis=dim, keepdims=True))
-        with np.errstate(under='ignore', divide='ignore'):
-            return torch.from_numpy(np.log(np.sum(np.exp(np_matrix - max_val), dim, keepdims=True)) + max_val)
+    # max_val = torch_nan_to_num(matrix.max(dim=dim[0], keepdim=True)[0].max(dim=dim[1], keepdim=True)[0])
+    # t.log(t.exp(matrix - max_val).sum(dim=dim[0], keepdim=True).sum(dim=dim[1], keepdim=True)) + max_val
+    if not hasattr(dim, "__iter__"):
+        max_val = torch_nan_to_num(t.max(matrix, dim=dim, keepdim=True)[0])
+        ret_val = t.log(t.sum(t.exp(matrix - max_val), dim=dim, keepdim=True)) + max_val
+        return ret_val
+    else:
+        max_val = matrix
+        for d in dim:
+            max_val = max_val.max(dim=d, keepdim=True)[0]
+        exp_val = t.exp(matrix - max_val)
+        for d in dim:
+            exp_val = exp_val.sum(dim=d, keepdim=True)
+        return t.log(exp_val) + max_val
 
 
 def sparse_dot(full_matrix, sparse_matrix):
@@ -376,34 +389,46 @@ def sparse_dot(full_matrix, sparse_matrix):
     :param full_matrix: dense matrix
     :type full_matrix: ndarray
     :param sparse_matrix: sparse matrix
-    :type sparse_matrix: torch.sparse.DoubleTensor
+    :type sparse_matrix: t.sparse.DoubleTensor
     :return: full_matrix.dot(sparse_matrix)
     :rtype: ndarray
     """
-    return torch.mm(sparse_matrix.t(), full_matrix.t()).t()
+    return t.mm(sparse_matrix.t(), full_matrix.t()).t()
 
 
 def torch_nan_to_zero(mat):
     """
     Replaces all NaNs in a Tensor with 0's since Torch doesn't have such a function. This is done easily because NaN != NaN
     :param mat: matrix to replace NaN in
-    :type mat: torch.Tensor
+    :type mat: t.Tensor
     :return: matrix with replaced 0's
-    :rtype: torch.Tensor
+    :rtype: t.Tensor
     """
     new_mat = mat
     new_mat[new_mat != new_mat] = 0
     return new_mat
 
-
 def torch_nan_to_neginf(mat):
     """
     Replaces all NaNs in a Tensor with -infinity since Torch doesn't have such a function. This is done easily because NaN != NaN
     :param mat: matrix to replace NaN in
-    :type mat: torch.Tensor
+    :type mat: t.Tensor
     :return: matrix with replaced -infinity's
-    :rtype: torch.Tensor
+    :rtype: t.Tensor
     """
     new_mat = mat
     new_mat[new_mat != new_mat] = -float('inf')
+    return new_mat
+
+def torch_nan_to_num(mat):
+    """
+    Replaces all NaNs in a Tensor with -infinity since Torch doesn't have such a function. This is done easily because NaN != NaN
+    :param mat: matrix to replace NaN in
+    :type mat: t.Tensor
+    :return: matrix with replaced -infinity's
+    :rtype: t.Tensor
+    """
+    new_mat = mat
+    new_mat[new_mat != new_mat] = 0
+    new_mat = t.clamp(new_mat, min=-1.79769313e+308, max=1.79769313e+308)
     return new_mat

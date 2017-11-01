@@ -22,3 +22,6 @@ from TorchMatrixBeliefPropagator import TorchMatrixBeliefPropagator
 from TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from opt import *
 from util import *
+from TorchMatrixBeliefPropagator import torch_logsumexp
+from TorchMatrixBeliefPropagator import torch_nan_to_num
+from MatrixBeliefPropagator import logsumexp

@@ -1,11 +1,11 @@
 """Markov network class for storing potential functions and structure."""
-import torch
+import torch as t
 
 
 class TorchMarkovNet(object):
     """Object containing the definition of a pairwise Markov net."""
 
-    def __init__(self):
+    def __init__(self, is_cuda):
         """Initialize a Markov net."""
         self.edge_potentials = dict()
         self.unary_potentials = dict()
@@ -27,6 +27,7 @@ class TorchMarkovNet(object):
         self.num_edges = None
         self.message_index = None
         self.degrees = None
+        self.is_cuda = is_cuda
 
     def set_unary_factor(self, variable, potential):
         """
@@ -125,7 +126,7 @@ class TorchMarkovNet(object):
         :param unary_mat: (num vars) by (max states) of unary potentials
         :return: None
         """
-        assert torch.eq(self.unary_mat.size(), unary_mat.size())
+        assert t.eq(self.unary_mat.size(), unary_mat.size())
         self.unary_mat[:, :] = unary_mat
 
     def set_edge_tensor(self, edge_tensor):
@@ -134,11 +135,11 @@ class TorchMarkovNet(object):
         :param edge_tensor: (max states) by (max states) by (num edges) tensor of the edge potentials
         :return: None
         """
-        if torch.eq(self.edge_pot_tensor.size(), edge_tensor.size()):
+        if t.eq(self.edge_pot_tensor.size(), edge_tensor.size()):
             self.edge_pot_tensor[:, :, :] = edge_tensor
         else:
-            mirrored_edge_tensor = torch.cat((edge_tensor, edge_tensor.permute(1, 0, 2)), 2)
-            assert torch.eq(self.edge_pot_tensor.size(), mirrored_edge_tensor.size())
+            mirrored_edge_tensor = t.cat((edge_tensor, edge_tensor.permute(1, 0, 2)), 2)
+            assert t.eq(self.edge_pot_tensor.size(), mirrored_edge_tensor.size())
 
             self.edge_pot_tensor[:, :, :] = mirrored_edge_tensor
 
@@ -151,9 +152,11 @@ class TorchMarkovNet(object):
         self.matrix_mode = True
 
         self.max_states = max([len(x) for x in self.unary_potentials.values()])
-        self.unary_mat = -float('inf') * torch.ones(self.max_states, len(self.variables)).double()
+        self.unary_mat = -float('inf') * t.ones(self.max_states, len(self.variables)).double()
 
-        self.degrees = torch.DoubleTensor(len(self.variables)).zero_()
+        self.degrees = t.DoubleTensor(len(self.variables)).zero_()
+        if self.is_cuda:
+            self.degrees = self.degrees.cuda()
 
         # var_index allows looking up the numerical index of a variable by its hashable name
         self.var_index = dict()
@@ -175,7 +178,10 @@ class TorchMarkovNet(object):
                 if var < neighbor:
                     self.num_edges += 1
 
-        self.edge_pot_tensor = -float('inf') * torch.ones(self.max_states, self.max_states, 2 * self.num_edges).double()
+        self.edge_pot_tensor = -float('inf') * t.ones(self.max_states, self.max_states, 2 * self.num_edges).double()
+        if self.is_cuda:
+            self.edge_pot_tensor = self.edge_pot_tensor.cuda()
+
         self.message_index = {}
 
         # set up sparse matrix representation of adjacency
@@ -224,16 +230,22 @@ class TorchMarkovNet(object):
                     message_num += 1
 
         # generate a sparse matrix representation of the message indices to variables that receive messages
-        self.message_to_map = torch.sparse.DoubleTensor(
-            torch.LongTensor([to_rows, to_cols]),
-            torch.ones(len(to_rows)).double(),
-            torch.Size([2 * self.num_edges, len(self.variables)])
+        self.message_to_map = t.sparse.DoubleTensor(
+            t.LongTensor([to_rows, to_cols]),
+            t.ones(len(to_rows)).double(),
+            t.Size([2 * self.num_edges, len(self.variables)])
         )
+        if self.is_cuda:
+            self.message_to_map = self.message_to_map.cuda()
 
         # store an array that lists which variable each message is sent to
-        self.message_to = torch.LongTensor(2 * self.num_edges).zero_()
-        self.message_to[torch.LongTensor(to_rows)] = torch.LongTensor(to_cols)
+        self.message_to = t.LongTensor(2 * self.num_edges).zero_()
+        if self.is_cuda:
+            self.message_to = self.message_to.cuda()
+        self.message_to[t.LongTensor(to_rows)] = t.LongTensor(to_cols)
 
         # store an array that lists which variable each message is received from
-        self.message_from = torch.LongTensor(2 * self.num_edges).zero_()
-        self.message_from[torch.LongTensor(from_rows)] = torch.LongTensor(from_cols)
+        self.message_from = t.LongTensor(2 * self.num_edges).zero_()
+        if self.is_cuda:
+            self.message_from = self.message_from.cuda()
+        self.message_from[t.LongTensor(from_rows)] = t.LongTensor(from_cols)

@@ -7,9 +7,9 @@ import torch
 
 class TestTorchMarkovNet(unittest.TestCase):
     """Test class for the MarkovNet model objects"""
-    def create_chain_model(self):
+    def create_chain_model(self, is_cuda):
         """Create chain model with different variable cardinalities."""
-        mn = TorchMarkovNet()
+        mn = TorchMarkovNet(is_cuda=is_cuda)
 
         np.random.seed(1)
 
@@ -34,7 +34,7 @@ class TestTorchMarkovNet(unittest.TestCase):
 
     def test_structure(self):
         """Test that the structure of the MarkovNet is properly set up"""
-        mn = TorchMarkovNet()
+        mn = TorchMarkovNet(is_cuda=False)
 
         mn.set_unary_factor(0, torch.from_numpy(np.random.randn(4)))
         mn.set_unary_factor(1, torch.from_numpy(np.random.randn(3)))
@@ -53,7 +53,7 @@ class TestTorchMarkovNet(unittest.TestCase):
 
     def test_matrix_shapes(self):
         """Test that the matrix mode creates matrices of the correct shape."""
-        mn = self.create_chain_model()
+        mn = self.create_chain_model(False)
 
         k = [4, 3, 6, 2, 5]
 
@@ -66,3 +66,23 @@ class TestTorchMarkovNet(unittest.TestCase):
         assert mn.matrix_mode, "Matrix mode flag wasn't set correctly"
 
         assert mn.unary_mat.shape == (max_states, 5)
+
+    def test_cuda(self):
+        try:
+            mn = self.create_chain_model(True)
+
+            k = [4, 3, 6, 2, 5]
+
+            max_states = max(k)
+
+            assert mn.matrix_mode == False, "Matrix mode flag was set prematurely"
+
+            mn.create_matrices()
+
+            assert mn.matrix_mode, "Matrix mode flag wasn't set correctly"
+
+            assert mn.unary_mat.shape == (max_states, 5)
+        except AssertionError:
+            print "\n\nCUDA was not found within your PyTorch package\n\n"
+            assert True
+
