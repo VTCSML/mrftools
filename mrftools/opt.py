@@ -54,13 +54,14 @@ def ada_grad(func, grad, x, args={}, callback=None):
     g_tol = args.get('g_tol', 0.01)
     eta = args.get('eta', 0.1)
     offset = args.get('offset', 1.0)
-    max_iter = args.get('max_iter', 10000)
+    max_iter = args.get('max_iter', 200)
 
     grad_norm = np.inf
     x_change = np.inf
 
     grad_sum = 0
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+        #print "iteration: %d"%t
         if callback:
             callback(x)
         func(x, args)

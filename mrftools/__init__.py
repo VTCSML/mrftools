@@ -18,5 +18,7 @@ from .MaxProductLinearProgramming import MaxProductLinearProgramming
 from .PairedDual import PairedDual
 from .PrimalDual import PrimalDual
 from .TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
+from .PartialMatrixBP import PartialMatrixBP
+from .PartialLearner import  PartialLearner
 from .opt import *
 from .util import *

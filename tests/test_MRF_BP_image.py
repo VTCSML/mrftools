@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import itertools
 
 def batch_load_images():
-    dir = "/Users/youlu/Documents/workspace/mrftools/test/train/"
+    dir = "/Users/youlu/Documents/workspace/mrftools/tests/train_data/"
     IL = ImageLoader(max_width=130, max_height=107)
     images, models, labels, names = IL.load_all_images_and_labels(dir, 2, num_images=np.inf)
     return images, models, labels, names
@@ -24,14 +24,9 @@ def train_CRF(images, models, labels, names):
     weights = learner.learn(initial_weights)
     return weights
 
-    
-     
-
-
-    
 if __name__ == '__main__':
-    start = time.time()
     images, models, labels, names = batch_load_images()
+    start = time.time()
     ww = train_CRF(images, models, labels, names)
     print ww
     end = time.time()

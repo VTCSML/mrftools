@@ -179,7 +179,7 @@ class PartialMatrixBP(MatrixBeliefPropagator):
         iteration = 0
         for it in range(0, self.max_iter):
             change = self.partial_update_messages()
-            print("Iteration %d, change in messages %f." % (it, change))
+            #print("Iteration %d, change in messages %f." % (it, change))
             if change < tolerance:
                 break
         
@@ -193,5 +193,4 @@ class PartialMatrixBP(MatrixBeliefPropagator):
         
             
         
-    
     
