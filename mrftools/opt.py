@@ -54,13 +54,14 @@ def ada_grad(func, grad, x, args={}, callback=None):
     g_tol = args.get('g_tol', 0.01)
     eta = args.get('eta', 0.1)
     offset = args.get('offset', 1.0)
-    max_iter = args.get('max_iter', 200)
+    max_iter = args.get('max_iter', 1000)
 
     grad_norm = np.inf
     x_change = np.inf
 
     grad_sum = 0
-    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+    #while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+    while t < max_iter:
         #print "iteration: %d"%t
         if callback:
             callback(x)
@@ -76,6 +77,7 @@ def ada_grad(func, grad, x, args={}, callback=None):
         # grad_norm = np.sqrt(g.dot(g))
 
         t += 1
+    print "end at iteration %d"%t
 
     if callback:
         callback(x)
@@ -151,7 +153,7 @@ def adam(func, grad, x, args={}, callback=None):
     b1 = args.get('b1', 0.9)
     b2 = args.get('b2', 0.999)
     step_size = args.get('step_size', 0.01)
-    max_iter = args.get('max_iter', 10000)
+    max_iter = args.get('max_iter', 1000)
 
     grad_norm = np.inf
     x_change = np.inf
@@ -256,7 +258,7 @@ class ObjectivePlotter(object):
         """
         elapsed_time = time.time() - self.timer
 
-        if elapsed_time > self.interval:
+        if elapsed_time > self.interval or 0 < self.t < 10:
             self.objectives.append(self.func(x))
             self.iters.append(self.t)
 
@@ -291,3 +293,6 @@ class ObjectivePlotter(object):
 
         self.last_x = x
         self.t += 1
+
+
+
