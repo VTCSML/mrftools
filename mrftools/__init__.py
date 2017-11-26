@@ -20,5 +20,6 @@ from .PrimalDual import PrimalDual
 from .TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from .PartialMatrixBP import PartialMatrixBP
 from .PartialLearner import  PartialLearner
+from .PartialConvexBeliefPropagator import PartialConvexBeliefPropagator
 from .opt import *
 from .util import *

@@ -258,7 +258,7 @@ class ObjectivePlotter(object):
         """
         elapsed_time = time.time() - self.timer
 
-        if elapsed_time > self.interval or 0 < self.t < 10:
+        if elapsed_time > self.interval or 0 < self.t < 200:
             self.objectives.append(self.func(x))
             self.iters.append(self.t)
 
