@@ -25,3 +25,4 @@ from util import *
 from TorchMatrixBeliefPropagator import torch_logsumexp
 from TorchMatrixBeliefPropagator import torch_nan_to_num
 from MatrixBeliefPropagator import logsumexp
+from UAIConverter import UAIConverter

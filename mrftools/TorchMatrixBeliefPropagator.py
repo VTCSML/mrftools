@@ -56,6 +56,8 @@ class TorchMatrixBeliefPropagator(Inference):
 
         # conditioned stores the indices of variables that have been conditioned, initialized to all False
         self.conditioned = t.ByteTensor(len(self.mn.variables))
+        if self.is_cuda:
+            self.conditioned = self.conditioned.cuda()
 
         # condition variables so they can't be in states greater than their cardinality
         self.disallow_impossible_states()
@@ -108,8 +110,12 @@ class TorchMatrixBeliefPropagator(Inference):
 
         if not hasattr(state, "__iter__"):
             state = [state]
-        for s in state:
-            self.augmented_mat[s, i] = 0
+        if self.is_cuda:
+            for s in t.LongTensor(state).cuda():
+                self.augmented_mat[s, i] = 0
+        else:
+            for s in state:
+                self.augmented_mat[s, i] = 0
         if isinstance(state, int):
             # only if the variable is fully conditioned to be in a single state, mark that the variable is conditioned
             self.conditioned[i] = True

@@ -550,10 +550,10 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             old_bp.load_beliefs()
 
             for var in mn.variables:
-                assert np.allclose(cuda_bp.var_beliefs[var].numpy(), old_bp.var_beliefs[var]), "unary beliefs don't agree"
+                assert np.allclose(cuda_bp.var_beliefs[var].cpu().numpy(), old_bp.var_beliefs[var]), "unary beliefs don't agree"
                 for neighbor in mn.get_neighbors(var):
                     edge = (var, neighbor)
-                    assert np.allclose(cuda_bp.pair_beliefs[edge].numpy(), old_bp.pair_beliefs[edge]), \
+                    assert np.allclose(cuda_bp.pair_beliefs[edge].cpu().numpy(), old_bp.pair_beliefs[edge]), \
                         "pairwise beliefs don't agree" + "\n" + repr(cuda_bp.pair_beliefs[edge]) \
                         + "\n" + repr(old_bp.pair_beliefs[edge])
         except AssertionError:

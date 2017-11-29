@@ -71,7 +71,6 @@ class TorchMarkovNet(object):
             (potential.size()[0], potential.size()[1], len(self.unary_potentials[edge[0]]),
              len(self.unary_potentials[edge[1]]))
 
-        # Works as far as I can tell?
         if edge[0] < edge[1]:
             self.edge_potentials[edge] = potential
         else:
@@ -128,6 +127,8 @@ class TorchMarkovNet(object):
         """
         assert t.eq(self.unary_mat.size(), unary_mat.size())
         self.unary_mat[:, :] = unary_mat
+        if self.is_cuda:
+            self.unary_mat = self.unary_mat.cuda()
 
     def set_edge_tensor(self, edge_tensor):
         """
@@ -240,12 +241,14 @@ class TorchMarkovNet(object):
 
         # store an array that lists which variable each message is sent to
         self.message_to = t.LongTensor(2 * self.num_edges).zero_()
+        self.message_to[t.LongTensor(to_rows)] = t.LongTensor(to_cols)
         if self.is_cuda:
             self.message_to = self.message_to.cuda()
-        self.message_to[t.LongTensor(to_rows)] = t.LongTensor(to_cols)
+            self.message_to[t.LongTensor(to_rows).cuda()] = t.LongTensor(to_cols)
 
         # store an array that lists which variable each message is received from
         self.message_from = t.LongTensor(2 * self.num_edges).zero_()
+        self.message_from[t.LongTensor(from_rows)] = t.LongTensor(from_cols)
         if self.is_cuda:
             self.message_from = self.message_from.cuda()
-        self.message_from[t.LongTensor(from_rows)] = t.LongTensor(from_cols)
+            self.message_from[t.LongTensor(from_rows).cuda()] = t.LongTensor(from_cols)
