@@ -2,7 +2,11 @@
 from mrftools import *
 import unittest
 import time
-import torch
+import torch as t
+
+my_l = 512
+my_k = 8
+slow = True
 
 class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     """Test class for TorchMatrixBeliefPropagator"""
@@ -15,35 +19,35 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         k = [4, 3, 6, 2, 5]
 
         if is_cuda:
-            mn.set_unary_factor(0, torch.from_numpy(np.random.randn(k[0])).cuda())
-            mn.set_unary_factor(1, torch.from_numpy(np.random.randn(k[1])).cuda())
-            mn.set_unary_factor(2, torch.from_numpy(np.random.randn(k[2])).cuda())
-            mn.set_unary_factor(3, torch.from_numpy(np.random.randn(k[3])).cuda())
+            mn.set_unary_factor(0, t.from_numpy(np.random.randn(k[0])).cuda())
+            mn.set_unary_factor(1, t.from_numpy(np.random.randn(k[1])).cuda())
+            mn.set_unary_factor(2, t.from_numpy(np.random.randn(k[2])).cuda())
+            mn.set_unary_factor(3, t.from_numpy(np.random.randn(k[3])).cuda())
         else:
-            mn.set_unary_factor(0, torch.from_numpy(np.random.randn(k[0])))
-            mn.set_unary_factor(1, torch.from_numpy(np.random.randn(k[1])))
-            mn.set_unary_factor(2, torch.from_numpy(np.random.randn(k[2])))
-            mn.set_unary_factor(3, torch.from_numpy(np.random.randn(k[3])))
+            mn.set_unary_factor(0, t.from_numpy(np.random.randn(k[0])))
+            mn.set_unary_factor(1, t.from_numpy(np.random.randn(k[1])))
+            mn.set_unary_factor(2, t.from_numpy(np.random.randn(k[2])))
+            mn.set_unary_factor(3, t.from_numpy(np.random.randn(k[3])))
 
 
         if is_cuda:
-            factor4 = torch.from_numpy(np.random.randn(k[4])).cuda()
+            factor4 = t.from_numpy(np.random.randn(k[4])).cuda()
         else:
-            factor4 = torch.from_numpy(np.random.randn(k[4]))
+            factor4 = t.from_numpy(np.random.randn(k[4]))
         factor4[2] = -float('inf')
 
         mn.set_unary_factor(4, factor4)
 
         if is_cuda:
-            mn.set_edge_factor((0, 1), torch.from_numpy(np.random.randn(k[0], k[1])).cuda())
-            mn.set_edge_factor((1, 2), torch.from_numpy(np.random.randn(k[1], k[2])).cuda())
-            mn.set_edge_factor((2, 3), torch.from_numpy(np.random.randn(k[2], k[3])).cuda())
-            mn.set_edge_factor((3, 4), torch.from_numpy(np.random.randn(k[3], k[4])).cuda())
+            mn.set_edge_factor((0, 1), t.from_numpy(np.random.randn(k[0], k[1])).cuda())
+            mn.set_edge_factor((1, 2), t.from_numpy(np.random.randn(k[1], k[2])).cuda())
+            mn.set_edge_factor((2, 3), t.from_numpy(np.random.randn(k[2], k[3])).cuda())
+            mn.set_edge_factor((3, 4), t.from_numpy(np.random.randn(k[3], k[4])).cuda())
         else:
-            mn.set_edge_factor((0, 1), torch.from_numpy(np.random.randn(k[0], k[1])))
-            mn.set_edge_factor((1, 2), torch.from_numpy(np.random.randn(k[1], k[2])))
-            mn.set_edge_factor((2, 3), torch.from_numpy(np.random.randn(k[2], k[3])))
-            mn.set_edge_factor((3, 4), torch.from_numpy(np.random.randn(k[3], k[4])))
+            mn.set_edge_factor((0, 1), t.from_numpy(np.random.randn(k[0], k[1])))
+            mn.set_edge_factor((1, 2), t.from_numpy(np.random.randn(k[1], k[2])))
+            mn.set_edge_factor((2, 3), t.from_numpy(np.random.randn(k[2], k[3])))
+            mn.set_edge_factor((3, 4), t.from_numpy(np.random.randn(k[3], k[4])))
 
         mn.create_matrices()
 
@@ -82,9 +86,9 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         k = [4, 3, 6, 2, 5]
 
         if is_cuda:
-            mn.set_edge_factor((3, 0), torch.from_numpy(np.random.randn(k[3], k[0])).cuda())
+            mn.set_edge_factor((3, 0), t.from_numpy(np.random.randn(k[3], k[0])).cuda())
         else:
-            mn.set_edge_factor((3, 0), torch.from_numpy(np.random.randn(k[3], k[0])))
+            mn.set_edge_factor((3, 0), t.from_numpy(np.random.randn(k[3], k[0])))
         mn.create_matrices()
         return mn
 
@@ -93,25 +97,25 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         mn = TorchMarkovNet(is_cuda=is_cuda)
         np.random.seed(1)
 
-        length = 64
+        length = my_l
 
-        k = 8
+        k = my_k
 
         for x in range(length):
             for y in range(length):
                 if is_cuda:
-                    mn.set_unary_factor((x, y), torch.from_numpy(np.random.random(k)).cuda())
+                    mn.set_unary_factor((x, y), t.from_numpy(np.random.random(k)).cuda())
                 else:
-                    mn.set_unary_factor((x, y), torch.from_numpy(np.random.random(k)))
+                    mn.set_unary_factor((x, y), t.from_numpy(np.random.random(k)))
 
         for x in range(length - 1):
             for y in range(length):
                 if is_cuda:
-                    mn.set_edge_factor(((x, y), (x + 1, y)), torch.from_numpy(np.random.random((k, k))).cuda())
-                    mn.set_edge_factor(((y, x), (y, x + 1)), torch.from_numpy(np.random.random((k, k))).cuda())
+                    mn.set_edge_factor(((x, y), (x + 1, y)), t.from_numpy(np.random.random((k, k))).cuda())
+                    mn.set_edge_factor(((y, x), (y, x + 1)), t.from_numpy(np.random.random((k, k))).cuda())
                 else:
-                    mn.set_edge_factor(((x, y), (x + 1, y)), torch.from_numpy(np.random.random((k, k))))
-                    mn.set_edge_factor(((y, x), (y, x + 1)), torch.from_numpy(np.random.random((k, k))))
+                    mn.set_edge_factor(((x, y), (x + 1, y)), t.from_numpy(np.random.random((k, k))))
+                    mn.set_edge_factor(((y, x), (y, x + 1)), t.from_numpy(np.random.random((k, k))))
 
         return mn
 
@@ -120,9 +124,9 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         mn = MarkovNet()
         np.random.seed(1)
 
-        length = 64
+        length = my_l
 
-        k = 8
+        k = my_k
 
         for x in range(length):
             for y in range(length):
@@ -147,18 +151,18 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         for x in range(length):
             for y in range(length):
                 if is_cuda:
-                    mn.set_unary_factor((x, y), torch.from_numpy(np.random.random(k)).cuda())
+                    mn.set_unary_factor((x, y), t.from_numpy(np.random.random(k)).cuda())
                 else:
-                    mn.set_unary_factor((x, y), torch.from_numpy(np.random.random(k)))
+                    mn.set_unary_factor((x, y), t.from_numpy(np.random.random(k)))
 
         for x in range(length - 1):
             for y in range(length):
                 if is_cuda:
-                    mn.set_edge_factor(((x, y), (x + 1, y)), torch.eye(k).cuda())
-                    mn.set_edge_factor(((y, x), (y, x + 1)), torch.eye(k).cuda())
+                    mn.set_edge_factor(((x, y), (x + 1, y)), t.eye(k).cuda())
+                    mn.set_edge_factor(((y, x), (y, x + 1)), t.eye(k).cuda())
                 else:
-                    mn.set_edge_factor(((x, y), (x + 1, y)), torch.eye(k))
-                    mn.set_edge_factor(((y, x), (y, x + 1)), torch.eye(k))
+                    mn.set_edge_factor(((x, y), (x + 1, y)), t.eye(k))
+                    mn.set_edge_factor(((y, x), (y, x + 1)), t.eye(k))
 
         return mn
 
@@ -184,22 +188,27 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_exactness(self):
         """Test that Matrix BP produces the true marginals in a chain model."""
-        mn = self.create_chain_model(is_cuda=False)
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        is_cuda = False
+        mn = self.create_chain_model(is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
         bp.infer(display='full')
         bp.load_beliefs()
 
         mn_old = self.create_chain_model_old()
         bf = BruteForce(mn_old)
 
-
         for i in mn.variables:
             print ("Brute force unary marginal of %d: %s" % (i, repr(bf.unary_marginal(i))))
-            print ("Belief prop unary marginal of %d: %s" % (i, repr(torch.exp(bp.var_beliefs[i]))))
-            assert np.allclose(bf.unary_marginal(i), torch.exp(bp.var_beliefs[i]).numpy()), "beliefs aren't exact on chain model"
+            print ("Belief prop unary marginal of %d: %s" % (i, repr(t.exp(bp.var_beliefs[i]))))
+            if is_cuda:
+                assert np.allclose(bf.unary_marginal(i),
+                                   t.exp(bp.var_beliefs[i]).cpu().numpy()), "beliefs aren't exact on chain model"
+            else:
+                assert np.allclose(bf.unary_marginal(i),
+                                   t.exp(bp.var_beliefs[i]).numpy()), "beliefs aren't exact on chain model"
 
         print ("Brute force pairwise marginal: " + repr(bf.pairwise_marginal(0, 1)))
-        print ("Belief prop pairwise marginal: " + repr(torch.exp(bp.pair_beliefs[(0, 1)])))
+        print ("Belief prop pairwise marginal: " + repr(t.exp(bp.pair_beliefs[(0, 1)])))
 
         print ("Bethe energy functional: %f" % bp.compute_energy_functional())
 
@@ -210,41 +219,48 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_consistency(self):
         """Test that loopy matrix BP infers marginals that are locally consistent."""
-        mn = self.create_loop_model(is_cuda=False)
+        is_cuda = False
+        mn = self.create_loop_model(is_cuda=is_cuda)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
         bp.infer(display='full')
 
         bp.load_beliefs()
 
         for var in mn.variables:
-            unary_belief = torch.exp(bp.var_beliefs[var])
+            unary_belief = t.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
-                pair_belief = torch.sum(torch.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                pair_belief = t.sum(t.exp(bp.pair_beliefs[(var, neighbor)]), 1)
                 print pair_belief, unary_belief
-                assert np.allclose(pair_belief.numpy(), unary_belief.numpy()), "unary and pairwise beliefs are inconsistent"
+                if is_cuda:
+                    assert np.allclose(pair_belief.cpu().numpy(),
+                                       unary_belief.cpu().numpy()), "unary and pairwise beliefs are inconsistent"
+                else:
+                    assert np.allclose(pair_belief.numpy(), unary_belief.numpy()), "unary and pairwise beliefs are inconsistent"
 
     def test_normalization(self):
         """Test that the unary and pairwise beliefs properly sum to 1.0"""
-        mn = self.create_loop_model(is_cuda=False)
+        is_cuda = False
+        mn = self.create_loop_model(is_cuda=is_cuda)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
         bp.infer(display='full')
 
         bp.load_beliefs()
 
         for var in mn.variables:
-            unary_belief = torch.exp(bp.var_beliefs[var])
-            assert np.allclose(torch.sum(unary_belief), 1.0), "unary belief is not normalized"
+            unary_belief = t.exp(bp.var_beliefs[var])
+            assert np.allclose(t.sum(unary_belief), 1.0), "unary belief is not normalized"
             for neighbor in mn.get_neighbors(var):
-                pair_belief = torch.exp(bp.pair_beliefs[(var, neighbor)])
-                assert np.allclose(torch.sum(pair_belief), 1.0), "pairwise belief is not normalize"
+                pair_belief = t.exp(bp.pair_beliefs[(var, neighbor)])
+                assert np.allclose(t.sum(pair_belief), 1.0), "pairwise belief is not normalize"
 
     def test_conditioning(self):
         """Test that conditioning on variable properly sets variables to conditioned state"""
-        mn = self.create_loop_model(is_cuda=False)
+        is_cuda = False
+        mn = self.create_loop_model(is_cuda=is_cuda)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
 
         bp.condition(2, 0)
 
@@ -264,14 +280,15 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_overflow(self):
         """Test that MatrixBP does not fail when given very large, poorly scaled factors"""
-        mn = self.create_chain_model(is_cuda=False)
+        is_cuda = False
+        mn = self.create_chain_model(is_cuda=is_cuda)
 
         # set a really large factor
-        mn.set_unary_factor(0, torch.FloatTensor([1000, 2000, 3000, 4000]))
+        mn.set_unary_factor(0, t.FloatTensor([1000, 2000, 3000, 4000]))
 
         mn.create_matrices()
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
 
         with np.errstate(all='raise'):
             bp.infer()
@@ -279,8 +296,9 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_grid_consistency(self):
         """Test that matrix BP infers consistent marginals on a grid MRF"""
-        mn = self.create_grid_model(is_cuda=False)
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        is_cuda = False
+        mn = self.create_grid_model(is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
         bp.infer(display='full')
 
         bp.load_beliefs()
@@ -288,16 +306,17 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         for var in mn.variables:
             unary_belief = np.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
-                pair_belief = torch.sum(torch.exp(bp.pair_beliefs[(var, neighbor)]), 1)
+                pair_belief = t.sum(t.exp(bp.pair_beliefs[(var, neighbor)]), 1)
                 # print pair_belief, unary_belief
                 assert np.allclose(pair_belief.numpy(), unary_belief.numpy()), "unary and pairwise beliefs are inconsistent"
 
     def test_speedup(self):
         """Test that matrix BP is faster than loop-based BP"""
-        mn = self.create_grid_model(is_cuda=False)
+        is_cuda = False
+        mn = self.create_grid_model(is_cuda=is_cuda)
         old_mn = self.create_grid_model_old()
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
         old_bp = MatrixBeliefPropagator(old_mn)
 
         bp.set_max_iter(1000)
@@ -333,12 +352,13 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_belief_propagator_messages(self):
         """Test that matrix BP and loop-based BP calculate the same messages and beliefs each iteration of inference"""
+        is_cuda = False
         model_old = self.create_grid_model_simple_edges_old()
-        model = self.create_grid_model_simple_edges(is_cuda=False)
+        model = self.create_grid_model_simple_edges(is_cuda=is_cuda)
         bp = BeliefPropagator(model_old)
         bp.load_beliefs()
 
-        mat_bp = TorchMatrixBeliefPropagator(markov_net=model, is_cuda=False)
+        mat_bp = TorchMatrixBeliefPropagator(markov_net=model, is_cuda=is_cuda)
         mat_bp.load_beliefs()
 
         for i in range(4):
@@ -353,7 +373,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                         edge_index = mat_bp.mn.message_index[(edge[1], edge[0])] + mat_bp.mn.num_edges
 
                     # ugly transition to and from numpy because of ravel
-                    mat_bp_message = torch.from_numpy(mat_bp.message_mat[:, edge_index].numpy().ravel())
+                    mat_bp_message = t.from_numpy(mat_bp.message_mat[:, edge_index].numpy().ravel())
 
                     assert np.allclose(bp_message, mat_bp_message.numpy()), \
                         "BP and matBP did not agree on message for edge %s in iter %d" % (repr(edge), i) \
@@ -373,16 +393,16 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             mat_bp.load_beliefs()
 
     def test_torch_logsumexp(self):
-        ins_try_mat2 = torch.DoubleTensor([[1.62434536, -2.50015019, -3.89192232, -0.98001738, -1.7067365],
+        ins_try_mat2 = t.DoubleTensor([[1.62434536, -2.50015019, -3.89192232, -0.98001738, -1.7067365],
                            [-1.37871011, -3.49762318, -3.663615, 1.13376944, -0.17242821],
                            [-1.37513475, 1.47182113, -2.63786005, -float('inf'), -float('inf')],
                            [-1.72311984, -float('inf'), 1.29355548, -float('inf'), -2.9843092],
                            [-float('inf'), -float('inf'), -4.25291378, -float('inf'), -1.37131876],
                            [-float('inf'), -float('inf'), -1.56686887, -float('inf'), -float('inf')]])
 
-        res_try_mat2 = torch.DoubleTensor([1.75064451, 1.49727762, 1.38283992, 1.24779407, 0.28323888])
+        res_try_mat2 = t.DoubleTensor([1.75064451, 1.49727762, 1.38283992, 1.24779407, 0.28323888])
 
-        ins_try_mat3 = torch.DoubleTensor([[[-1.35561165, -1.92600932, -2.51375888, -1.20307934, -2.3394558, -3.5011019, -1.41583884, -1.97543269],
+        ins_try_mat3 = t.DoubleTensor([[[-1.35561165, -1.92600932, -2.51375888, -1.20307934, -2.3394558, -3.5011019, -1.41583884, -1.97543269],
                                             [-1.98859991, -2.74598077, -2.8762014, 1.32163145, -3.26105924, -2.57888885, -0.55043521, -1.85899228],
                                             [-2.53039981, -0.30862473, -2.51098691, -float('inf'), 0.54215823, -2.97333881, -float('inf'), -float('inf')],
                                             [-2.42195099, -float('inf'), 0.24836905, -float('inf'), -float('inf'), -0.60327896, -float('inf'), -1.42182921],
@@ -419,23 +439,23 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                                             [-float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf')],
                                             [-float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf'), -float('inf')]]])
 
-        res_try_mat3 = torch.DoubleTensor([[[-0.5743833, -0.05723698, 0.44848604, 1.39866793, 0.61758397, -0.1898393, -0.19915766, 0.65294042]],
+        res_try_mat3 = t.DoubleTensor([[[-0.5743833, -0.05723698, 0.44848604, 1.39866793, 0.61758397, -0.1898393, -0.19915766, 0.65294042]],
                                            [[0.99318571, -0.65535341, 0.75019678, 2.00551315, -0.14936972, 0.41206502, -0.45297991, 0.94719271]],
                                            [[0.72019508, 0.00305616, -float('inf'), -0.70117939, -0.22937903, 1.60814951, 0.48277494, -float('inf')]],
                                            [[-float('inf'), 1.79061412, -float('inf'), -1.0210098, -0.03256725, -float('inf'), 0.9151542, -float('inf')]],
                                            [[-float('inf'), -0.11904638, -float('inf'), 0.05137918, -float('inf'), -float('inf'), 0.80059409, -float('inf')]],
                                            [[-float('inf'), 0.54616246, -float('inf'), -float('inf'), -float('inf'), -float('inf'), 1.08370665, -float('inf')]]])
 
-        ins_except = torch.DoubleTensor([[1.00000000e+03, 8.65407629e-01, -7.61206901e-01, -3.84054355e-01, -1.09989127e+00],
+        ins_except = t.DoubleTensor([[1.00000000e+03, 8.65407629e-01, -7.61206901e-01, -3.84054355e-01, -1.09989127e+00],
                                         [2.00000000e+03, -2.30153870e+00, 3.19039096e-01, 1.13376944e+00, -1.72428208e-01],
                                         [3.00000000e+03, 1.74481176e+00, -2.49370375e-01, -float('inf'), -float('inf')],
                                         [4.00000000e+03, -float('inf'), 1.46210794e+00, -float('inf'), 4.22137467e-02],
                                         [-float('inf'), -float('inf'), -2.06014071e+00, -float('inf'), 5.82815214e-01],
                                         [-float('inf'), -float('inf'), -3.22417204e-01, -float('inf'), -float('inf')]])
 
-        res_except = torch.DoubleTensor([4.00000000e+03, 2.10424425e+00, 2.05272230e+00, 1.33195481e+00, 1.38847124e+00])
+        res_except = t.DoubleTensor([4.00000000e+03, 2.10424425e+00, 2.05272230e+00, 1.33195481e+00, 1.38847124e+00])
 
-        ins_try_dim2 = torch.DoubleTensor([[[-3.67236818, -6.33946165, -5.65306655, -2.65163243],
+        ins_try_dim2 = t.DoubleTensor([[[-3.67236818, -6.33946165, -5.65306655, -2.65163243],
                                             [-4.21779995, -5.61582591, -4.49341063, -2.53519202],
                                             [1.0693653, -5.07447092, -float('inf'), -float('inf')],
                                             [-float('inf'), -2.29221174, -float('inf'), -2.09802895],
@@ -472,25 +492,25 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                                             [-float('inf'), -float('inf'), -float('inf'), -float('inf')],
                                             [-float('inf'), -float('inf'), -float('inf'), -float('inf')]]])
 
-        res_try_dim2 = torch.DoubleTensor([1.16561449, 2.09239801, 1.14294035, 2.06957452])
+        res_try_dim2 = t.DoubleTensor([1.16561449, 2.09239801, 1.14294035, 2.06957452])
 
         np_exp = np.exp(ins_try_mat3.numpy())
-        torch_exp = torch.exp(ins_try_mat3)
+        torch_exp = t.exp(ins_try_mat3)
 
         np_sum = np.sum(np_exp, 1, keepdims=True)
-        torch_sum = torch.sum(torch_exp, dim=1, keepdim=True)
+        torch_sum = t.sum(torch_exp, dim=1, keepdim=True)
 
         np_log = np.log(np_sum)
-        torch_log = torch.log(torch_sum)
+        torch_log = t.log(torch_sum)
 
         np_max = np.nan_to_num(np.max(ins_try_mat3.numpy(), axis=1, keepdims=True))
-        torch_max = torch_nan_to_num(torch.max(ins_try_mat3, dim=1, keepdim=True)[0])
+        torch_max = torch_nan_to_num(t.max(ins_try_mat3, dim=1, keepdim=True)[0])
 
         np_max_tuple = np.nan_to_num(np.max(ins_try_mat3.numpy(), axis=(0, 1), keepdims=True))
         torch_max_tuple = ins_try_mat3.max(dim=0, keepdim=True)[0].max(dim=1, keepdim=True)[0]
 
         np_sum_tuple = np.sum(np.exp(ins_try_mat3.numpy() - np_max_tuple), (0, 1), keepdims=True) + np_max_tuple
-        torch_sum_tuple = torch.exp(ins_try_mat3 - torch_max_tuple).sum(dim=0, keepdim=True).sum(dim=1, keepdim=True) + torch_max_tuple
+        torch_sum_tuple = t.exp(ins_try_mat3 - torch_max_tuple).sum(dim=0, keepdim=True).sum(dim=1, keepdim=True) + torch_max_tuple
 
         assert np.allclose(np_exp, torch_exp.numpy()), "exponential on tensors is different between numpy and torch"
         assert np.allclose(np_sum, torch_sum.numpy()), "sum on tensors is different between numpy and torch"
@@ -506,44 +526,59 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def test_gpu_speedup(self):
         try:
+            t_prime0 = time.time()
+
             cuda_mn = self.create_grid_model(is_cuda=True)
-            mn = self.create_grid_model(is_cuda=False)
-            old_mn = self.create_grid_model_old()
-
             cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True)
-            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
-            old_bp = MatrixBeliefPropagator(old_mn)
-
             cuda_bp.set_max_iter(1000)
-            bp.set_max_iter(1000)
-            old_bp.set_max_iter(1000)
-
             t0 = time.time()
             cuda_bp.infer(display='final')
             t1 = time.time()
-
             cuda_bp_time = t1-t0
 
+            mn = self.create_grid_model(is_cuda=False)
+            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+            bp.set_max_iter(1000)
             t0 = time.time()
             bp.infer(display='final')
             t1 = time.time()
-
             bp_time = t1 - t0
 
+            old_mn = self.create_grid_model_old()
+            old_bp = MatrixBeliefPropagator(old_mn)
+            old_bp.set_max_iter(1000)
             t0 = time.time()
             old_bp.infer(display='final')
             t1 = time.time()
-
             old_bp_time = t1 - t0
 
-            print("Torch Matrix BP took %f, Matrix BP took %f. Speedup was %f" %
-                  (bp_time, old_bp_time, old_bp_time / bp_time))
-            print("CUDA Torch Matrix BP took %f, Matrix BP took %f. Speedup was %f" %
-                  (cuda_bp_time, old_bp_time, old_bp_time / cuda_bp_time))
-            print("CUDA Torch Matrix BP took %f, Torch Matrix BP took %f. Speedup was %f" %
-                  (cuda_bp_time, bp_time, bp_time / cuda_bp_time))
-            assert bp_time > old_bp_time, "Torch Matrix BP was faster than Matrix BP"
-            assert cuda_bp_time < bp_time, "CUDA Torch Matrix BP was slower than Torch Matrix BP"
+            if slow:
+                slow_bp = BeliefPropagator(old_mn)
+                slow_bp.set_max_iter(1000)
+                t0 = time.time()
+                slow_bp.infer(display='final')
+                t1 = time.time()
+                slow_bp_time = t1 - t0
+
+            t_prime1 = time.time()
+
+            start_time = (t_prime1-t_prime0) - cuda_bp_time - bp_time - old_bp_time
+            if slow:
+                start_time = start_time - slow_bp_time
+
+            print("Build time took %f" %
+                  (start_time))
+            print("CUDA Torch Matrix BP took %f" %
+                  (cuda_bp_time))
+            print("Torch Matrix BP took %f" %
+                  (bp_time))
+            print("Sparse Matrix BP took %f" %
+                  (old_bp_time))
+            if slow:
+                print("Loop Matrix BP took %f" %
+                      (slow_bp_time))
+            #assert bp_time > old_bp_time, "Torch Matrix BP was faster than Matrix BP"
+            #assert cuda_bp_time < bp_time, "CUDA Torch Matrix BP was slower than Torch Matrix BP"
 
             # check marginals
             cuda_bp.load_beliefs()

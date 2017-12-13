@@ -154,6 +154,8 @@ class TorchMarkovNet(object):
 
         self.max_states = max([len(x) for x in self.unary_potentials.values()])
         self.unary_mat = -float('inf') * t.ones(self.max_states, len(self.variables)).double()
+        if self.is_cuda:
+            self.unary_mat = self.unary_mat.cuda()
 
         self.degrees = t.DoubleTensor(len(self.variables)).zero_()
         if self.is_cuda:
