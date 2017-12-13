@@ -80,16 +80,21 @@ class UAIConverter(object):
         for c in range(self.clique_num):
             if len(self.cliques[c]) == 1:
                 vals = self.clique_table[c]
-                self.mn.set_unary_factor(self.cliques[c][0], torch.from_numpy(np.array(vals[0])))
+                self.mn.set_unary_factor(self.cliques[c][0], torch.log(torch.from_numpy(np.array(vals[0]))))
+                #self.mn.set_unary_factor(self.cliques[c][0], torch.from_numpy(np.random.random(self.cardinalities[self.cliques[c][0]])))
             elif len(self.cliques[c]) == 2:
                 vals = self.clique_table[c]
                 self.mn.set_edge_factor((self.cliques[c][0], self.cliques[c][1]),
-                                        torch.from_numpy(np.array(vals)
+                                        torch.log(torch.from_numpy(np.array(vals)
                                                          .reshape(self.cardinalities[self.cliques[c][0]],
-                                                                  self.cardinalities[self.cliques[c][1]])))
+                                                                  self.cardinalities[self.cliques[c][1]]))))
+                #self.mn.set_edge_factor((self.cliques[c][0], self.cliques[c][1]),
+                 #                       torch.from_numpy(np.random.random((self.cardinalities[self.cliques[c][0]], self.cardinalities[self.cliques[c][1]]))))
             else:
                 raise ValueError("Somehow a clique of more than 2 got through")
 
         # Create the TorchMarkovNet and return
         self.mn.create_matrices()
         return self.mn
+
+        # Results are stored in Log10 for the PR

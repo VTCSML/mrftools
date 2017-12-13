@@ -34,3 +34,13 @@ class TestUAIConverter(unittest.TestCase):
             bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
             bp.infer(display='full')
             bp.load_beliefs()
+
+    def test_Segmentation(self):
+        files = [f for f in os.listdir('test/Segmentation/prob')]
+        for file in files:
+            print file
+            conv = UAIConverter('test/Segmentation/prob/' + file, is_cuda=False)
+            mn = conv.convert()
+            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+            bp.infer(display='full')
+            bp.load_beliefs()
