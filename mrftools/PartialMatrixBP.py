@@ -6,13 +6,14 @@ import itertools
 import copy
 from scipy.sparse import csc_matrix
 import random
+random.seed(10)
 
 class PartialMatrixBP(MatrixBeliefPropagator):
     def __init__(self, markov_net):
         super(PartialMatrixBP, self).__init__(markov_net)
         #self._global_belief_mat = np.zeros(self.belief_mat.shape)
         #self._global_message_mat = np.zeros(self.message_mat.shape)
-        self.initialize_global_mats()
+        #self.initialize_global_mats()
 
         # selected_nodes are nodes selected by the algorithm and we need to update messages from it or to it
         self._selected_nodes_ids = None

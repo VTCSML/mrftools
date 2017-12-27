@@ -133,7 +133,7 @@ def compare_beliefs(pbp_beliefs, mbp_beliefs):
 
 if __name__ == '__main__':
     size = 100
-    N = 50
+    N = 5
     images, models, labels, names = batch_load_images(size)
     start = time.time()
     #ww = train_CRF_PartialBP(N, images, models, labels, names)

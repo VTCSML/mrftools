@@ -3,6 +3,7 @@ from mrftools import *
 import unittest
 import time
 from mrftools.PartialMatrixBP import PartialMatrixBP
+from mrftools.FastPartialBP import FastPartialMatrixBP
 import create_tree
 
 def create_grid_model(length):
@@ -61,7 +62,7 @@ def create_tree_model(num_nodes):
         mn.set_edge_factor(edge, np.random.random((k, k)))
     return mn
 
-def test_beliefs_tree_model(N, num_nodes):
+def beliefs_tree_model_test(N, num_nodes):
     mn = create_tree_model(num_nodes)
     
     matrix_bp = MatrixBeliefPropagator(mn)
@@ -82,7 +83,7 @@ def test_beliefs_tree_model(N, num_nodes):
         print "Belief prop unary marginal of %d: %s" % (i, repr(np.exp(matrix_bp.var_beliefs[i])))
         assert np.allclose(np.exp(partial_bp.var_beliefs[i]), np.exp(matrix_bp.var_beliefs[i])), "beliefs aren't exact on tree model"
     
-def test_MatrixBP_runtime(length):
+def MatrixBP_runtime_test(length):
     start = time.time()
     model = create_grid_model(length)
     mat_bp = MatrixBeliefPropagator(model)
@@ -91,7 +92,7 @@ def test_MatrixBP_runtime(length):
     end = time.time()
     print "running time: %f"%(end-start)
 
-def test_PartialBP_runtime(N, length):
+def PartialBP_runtime_test(N, length):
     start = time.time()
     model = create_grid_model(length)
     part_bp = PartialMatrixBP(model)
@@ -99,13 +100,22 @@ def test_PartialBP_runtime(N, length):
     end = time.time()
     print "running time: %f"%(end-start)
 
+def FastPartialBP_runtime_test(N, length):
+    start = time.time()
+    model = create_grid_model(length)
+    part_bp = FastPartialMatrixBP(model)
+    part_bp.partial_infer(N)
+    end = time.time()
+    print "running time: %f"%(end-start)
+
 if __name__ == '__main__':
-    N = 10
-    length = 256
+    N = 100
+    length = 300
     num_nodes = 500
     #test_beliefs_tree_model(N, num_nodes)
-    test_PartialBP_runtime(N, length)
-    #test_MatrixBP_runtime(length)
+    FastPartialBP_runtime_test(N, length)
+    PartialBP_runtime_test(N, length)
+    #MatrixBP_runtime_test(length)
     print "end"
     
     

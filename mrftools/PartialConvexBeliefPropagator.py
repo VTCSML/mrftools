@@ -10,7 +10,7 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
     def __init__(self, markov_net, counting_numbers=None):
 
         super(PartialConvexBeliefPropagator, self).__init__(markov_net, counting_numbers)
-        self.initialize_mats()
+        #self.initialize_mats()
 
         # selected_nodes are nodes selected by the algorithm and we need to update messages from it or to it
         self._selected_nodes_ids = None
@@ -185,6 +185,51 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
             #print("Iteration %d, change in messages %f." % (it, change))
             if change < tolerance:
                 break
+
+    def partial_compute_pairwise_beliefs(self):
+
+        num_update_edges = len(self._update_messages_ids) / 2
+
+        adjusted_message_prod = self.belief_mat[:, self._needed_from_nodes_ids] \
+                                - np.nan_to_num(self.message_mat[:, self._reversed_messages_ids] \
+                                                / self.edge_counting_numbers[self._update_messages_ids])
+
+
+
+
+        to_messages = adjusted_message_prod[:,:num_update_edges].reshape(
+            (self.mn.max_states, 1, num_update_edges))
+
+        from_messages = adjusted_message_prod[:,:num_update_edges].reshape(
+            (1, self.mn.max_states, num_update_edges))
+
+        beliefs = self.mn.edge_pot_tensor[:, :, self._update_messages_ids[num_update_edges:]] \
+                  / self.edge_counting_numbers[self._update_messages_ids[num_update_edges:]] \
+                  + to_messages + from_messages
+        beliefs -= logsumexp(beliefs, (0, 1))
+        self.pair_belief_tensor[:, :, self._update_messages_ids[:num_update_edges]] = beliefs
+
+
+    def get_feature_expectations(self):
+        """
+        Computes the feature expectations under the currently estimated marginal probabilities. Only works when the
+        model is a LogLinearModel class with features for edges.
+
+        :return: vector of the marginals in order of the flattened unary features first, then the flattened pairwise
+                    features
+        """
+        self.partial_compute_beliefs()
+        #self.partial_compute_pairwise_beliefs()
+        self.compute_pairwise_beliefs()
+
+        summed_features = self.mn.unary_feature_mat.dot(np.exp(self.belief_mat).T)
+
+        summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(
+            (self.mn.max_states ** 2, self.mn.num_edges)).T)
+
+        marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
+
+        return marginals
 
 
 
