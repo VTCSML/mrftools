@@ -606,9 +606,9 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             t_total0 = time.time()
             print("k = %d" % self.my_k)
             if slow:
-                print("length\t\tTorch-CUDA\t\tTorch-Py\t\tSparse-Py\t\tLoop-Py\t\tBuild Time")
+                print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tLoop-Py\tBuild Time")
             else:
-                print("length\t\tTorch-CUDA\t\tTorch-Py\t\tSparse-Py\t\tBuild Time")
+                print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tBuild Time")
 
             while self.my_k <= 64:
                 t_prime0 = time.time()
@@ -653,10 +653,10 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                     start_time = start_time - slow_bp_time
 
                 if slow:
-                    print("%d\t\t\t%f\t\t%f\t\t%f\t\t%f\t%f" %
+                    print("%d\t%f\t%f\t%f\t%f\t%f" %
                           (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, start_time))
                 else:
-                    print("%d\t\t\t%f\t\t%f\t\t%f\t%f" %
+                    print("%d\t%f\t%f\t%f\t%f" %
                           (self.my_l, cuda_bp_time, bp_time, old_bp_time, start_time))
                 self.my_l *= 2
                 """
