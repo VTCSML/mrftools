@@ -257,20 +257,20 @@ class ImageFeatureLoader(object):
         for j, edge in enumerate(edges):
             diff = 0
             edge_feats_vec = np.zeros(nthresh + 1)
-            # pair_wise_feature = image_features[:,edge[0][0], edge[0][1]] - image_features[:,edge[1][0], edge[1][1]]
-            # diff = norm(pair_wise_feature, 2)
-            # diff_list.append(diff)
+            pair_wise_feature = image_features[:,edge[0][0], edge[0][1]] - image_features[:,edge[1][0], edge[1][1]]
+            diff = norm(pair_wise_feature, 2)
+            diff_list.append(diff)
             # for n in range(nthresh):
             #     thresh = .5 * n / nthresh
             #     edge_feats_vec[n] = 1 * (diff > thresh)
             # edge_feats_vec[-1] = 1.0  # add bias feature
-            edge_feature_mat[j, :] = edge_feats_vec
+            # edge_feature_mat[j, :] = edge_feats_vec
 
         edge_feature_vectors = [np.array(x) for x in edge_feature_mat.tolist()]
         edge_feature_dict = dict(zip(edges, edge_feature_vectors))
-        plt.hist(diff_list, normed=True, bins=10)
-        plt.savefig("/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/results/%s.jpg"%name)
-        plt.clf()
+        # plt.hist(diff_list, normed=False, bins=10)
+        # plt.savefig("/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/results/%s.jpg"%name)
+        # plt.clf()
 
         return feature_dict, edge_feature_dict
 

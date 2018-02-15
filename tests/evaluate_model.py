@@ -50,7 +50,7 @@ def batch_load_images_features(dir, size, dataset, num_class):
     models, labels, names = IFL.load_all_features_labels(dir, dataset, num_class)
     return models, labels, names
 
-def train_model(models, labels, num_class, inference_type):
+def train_model(models, labels, num_class, inference_type, plot_path):
     plt.clf()
     learner = Learner(inference_type)
     num_states = num_class
@@ -65,8 +65,9 @@ def train_model(models, labels, num_class, inference_type):
 
     plotter = ObjectivePlotter(func=learner.objective)
     weights = learner.learn(initial_weights, callback=plotter.callback)
-    filename = "ConvexMBP_S%d.jpg"%size
-    plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
+    plt.savefig(plot_path)
+    # filename = "ConvexMBP_S%d.jpg"%size
+    # plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
     return weights
 
 def predict_labels(weights, models, inference_type, size):
@@ -93,9 +94,9 @@ def process_labels(labels, size):
         processed_labels.append(processed_label)
     return processed_labels
 
-def old_features_train(dir, output_dir, size, num_class, output_name, inference_type):
+def old_features_train(dir, output_dir, size, num_class, output_name, inference_type, plot_path):
     images, models, labels, names = batch_load_images(dir, size, num_class)
-    weights = train_model(models, labels, num_class, inference_type)
+    weights = train_model(models, labels, num_class, inference_type, plot_path)
     output_path = osp.join(output_dir, "%s.txt"%output_name)
     save_load_weights.save_weights(weights, output_path)
     return weights
@@ -128,8 +129,8 @@ def old_visualize_labels_predictions(labels, predictions, output_dir, names):
         imsave(output_path, out)
 
 
-def old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name):
-    #old_features_train(train_dir, output_dir, size, num_class, output_weights_name, inference_type)
+def old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name, plot_path):
+    old_features_train(train_dir, output_dir, size, num_class, output_weights_name, inference_type, plot_path)
     weights = save_load_weights.load_weights(osp.join(output_dir, "%s.txt"%output_weights_name))
     old_features_evaluate(test_dir, output_dir, weights, size, num_class, output_evaluation_name, inference_type)
 
@@ -152,9 +153,9 @@ def fcn_visualize_labels_predictions(labels, predictions, output_dir, names):
 
 
 
-def FCN_features_train(dir, dataset, output_dir, size, num_class, output_name, inference_type):
+def FCN_features_train(dir, dataset, output_dir, size, num_class, output_name, inference_type, plot_path):
     models, labels, names = batch_load_images_features(dir, size, dataset, num_class)
-    weights = train_model(models, labels, num_class, inference_type)
+    weights = train_model(models, labels, num_class, inference_type, plot_path)
     output_path = osp.join(output_dir, "%s.txt"%output_name)
     save_load_weights.save_weights(weights, output_path)
     return weights
@@ -175,8 +176,9 @@ def FCN_features_evaluate(dir, dataset, output_dir, weights, size, num_class, ou
     fcn_visualize_labels_predictions(processed_labels, predictions, viz_output_dir, names)
 
 
-def FCN_features_main(dir, trainset, testset, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name):
-    FCN_features_train(dir, trainset, output_dir, size, num_class, output_weights_name, inference_type)
+def FCN_features_main(dir, trainset, testset, output_dir, size, num_class, inference_type,\
+                      output_weights_name, output_evaluation_name, plot_path):
+    FCN_features_train(dir, trainset, output_dir, size, num_class, output_weights_name, inference_type, plot_path)
     weights = save_load_weights.load_weights(osp.join(output_dir, "%s.txt"%output_weights_name))
     FCN_features_evaluate(dir, testset, output_dir, weights, size, num_class, output_evaluation_name, inference_type)
 
@@ -190,12 +192,15 @@ if __name__ == '__main__':
     train_dir = "/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse_test/train_data/"
     test_dir = "/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse_test/test_data/"
     output_dir = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_test/"
+
     size = 100
+    plot_path = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/ConvexMBP_S%d.jpg"%size
+
     num_class = 2
     inference_type = ConvexBeliefPropagator
     output_weights_name = "Convex_weights"
     output_evaluation_name = "Convex_test_results"
-    #old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name)
+    old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name, plot_path)
 
 
 
@@ -203,7 +208,7 @@ if __name__ == '__main__':
 
     dir = "/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse"
     fcn_output_dir = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/"
-    FCN_features_main(dir, "train", "test", fcn_output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name)
+    FCN_features_main(dir, "train", "test", fcn_output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name, plot_path)
 
 
 

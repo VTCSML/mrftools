@@ -24,6 +24,7 @@ def plot_objective_ConvexMatrixBP(models, labels, size):
     # filename = "ConvexMBP_S%d.jpg"%size
     # plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
     #return weights
+    return 0
 
 
 
