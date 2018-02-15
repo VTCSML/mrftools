@@ -25,6 +25,7 @@ def sgd(func, grad, x, args={}, callback=None):
 
     while change > tolerance and t < max_iter:
         old_x = x
+        print "iteration: %d"%t
         g = grad(x, args)
         #lr = pow(t, -0.5)
         lr = 0.5
