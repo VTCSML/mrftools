@@ -21,5 +21,6 @@ from .TreeReweightedBeliefPropagator import TreeReweightedBeliefPropagator
 from .PartialMatrixBP import PartialMatrixBP
 from .PartialLearner import  PartialLearner
 from .PartialConvexBeliefPropagator import PartialConvexBeliefPropagator
+from .ImageFeatureLoader import ImageFeatureLoader
 from .opt import *
 from .util import *

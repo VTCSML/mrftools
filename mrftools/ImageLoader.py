@@ -57,7 +57,8 @@ class ImageLoader(object):
         :return: PIL image object with the labels as the greyscale intensity value.
         :rtype: 
         """
-        label_file = os.path.splitext(image_name)[0] + '_label.txt'
+        #label_file = os.path.splitext(image_name)[0] + '_label.txt'
+        label_file = os.path.splitext(image_name)[0] + '.txt'
         label_mat = np.loadtxt(label_file)
 
         label_img = Image.fromarray(label_mat.astype(np.uint8))
@@ -279,14 +280,14 @@ class ImageLoader(object):
         for j, edge in enumerate(edges):
             diff = 0
             edge_feats_vec = np.zeros(nthresh + 1)
-            for z in range(channels):
-                diff += np.true_divide((pixels[edge[0]][z] - pixels[edge[1]][z]), 255) ** 2
-
-            diff = np.sqrt(diff)
-            for n in range(nthresh):
-                thresh = .5 * n / nthresh
-                edge_feats_vec[n] = 1 * (diff > thresh)
-            edge_feats_vec[-1] = 1.0  # add bias feature
+            # for z in range(channels):
+            #     diff += np.true_divide((pixels[edge[0]][z] - pixels[edge[1]][z]), 255) ** 2
+            #
+            # diff = np.sqrt(diff)
+            # for n in range(nthresh):
+            #     thresh = .5 * n / nthresh
+            #     edge_feats_vec[n] = 1 * (diff > thresh)
+            # edge_feats_vec[-1] = 1.0  # add bias feature
             edge_feature_mat[j, :] = edge_feats_vec
 
         # package up feature matrix as feature dictionary

@@ -3,6 +3,7 @@ from mrftools import *
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
+from mrftools import save_load_weights
 
 
 def batch_load_images(size):
@@ -10,6 +11,23 @@ def batch_load_images(size):
     IL = ImageLoader(max_width=size, max_height=size)
     images, models, labels, names = IL.load_all_images_and_labels(dir, 2, num_images=np.inf)
     return images, models, labels, names
+
+
+def ConvexPartialBP_correctness(N, images, models, labels, names, size):
+
+    learner = PartialLearner(N, PartialConvexBeliefPropagator)
+    num_states = 2
+    d_edge = models[0].num_edge_features.values()[0]
+    d_unary = len(models[0].unary_features[(0,0)])
+    d_weights = d_unary * num_states + d_edge * np.power(num_states, 2)
+    initial_weights = np.zeros(d_weights)
+
+    for model, label in zip(models, labels):
+        learner.add_data(label, model)
+
+    weights = learner.learn(initial_weights, callback=None)
+
+    return weights
 
 def plot_objective_ConvexPartialBP(N, images, models, labels, names, size):
     #plt.clf()
@@ -40,10 +58,14 @@ def plot_objective_ConvexMatrixBP(images, models, labels, names, size):
     initial_weights = np.zeros(d_weights)
     for model, label in zip(models, labels):
         learner.add_data(label, model)
-    plotter = ObjectivePlotter(func=learner.objective)
-    weights = learner.learn(initial_weights, callback=plotter.callback)
-    filename = "ConvexMBP_S%d.jpg"%size
-    plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
+
+    weights = learner.learn(initial_weights, callback=None)
+
+    # plotter = ObjectivePlotter(func=learner.objective)
+    # weights = learner.learn(initial_weights, callback=plotter.callback)
+    # filename = "ConvexMBP_S%d.jpg"%size
+    # plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
+
     return weights
 
 def plot_dualobjective_ConvexPartialBP(N, images, models, labels, names, size):
@@ -86,13 +108,19 @@ def plot_dualobjective_ConvexMatrixBP(images, models, labels, names, size):
 
 if __name__ == '__main__':
     size = 10
-    N = 10
+    N = 5
     images, models, labels, names = batch_load_images(size)
     start = time.time()
 
+    #ww = ConvexPartialBP_correctness(N, images, models, labels, names, size)
 
-    ww = plot_objective_ConvexPartialBP(N, images, models, labels, names, size)
-    #ww = plot_objective_ConvexMatrixBP(images, models, labels, names, size)
+
+    # ww = plot_objective_ConvexPartialBP(N, images, models, labels, names, size)
+    ww = plot_objective_ConvexMatrixBP(images, models, labels, names, size)
+
+    # path = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/ww.txt"
+    # save_load_weights.save_weights(ww, path)
+    # ww = save_load_weights.load_weights(path)
 
     #ww = plot_dualobjective_ConvexMatrixBP(images, models, labels, names, size)
     #ww = plot_dualobjective_ConvexPartialBP(N, images, models, labels, names, size)

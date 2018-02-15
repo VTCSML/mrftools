@@ -19,14 +19,17 @@ def sgd(func, grad, x, args={}, callback=None):
     t = 1
     if not args:
         args = {}
-    tolerance = args.get('tolerance', 1e-8)
-    max_iter = args.get('max_iter', 10000)
+    tolerance = args.get('tolerance', 1e-6)
+    max_iter = args.get('max_iter', 2000)
     change = np.inf
 
     while change > tolerance and t < max_iter:
         old_x = x
         g = grad(x, args)
-        x = x - 0.5 * g / t
+        #lr = pow(t, -0.5)
+        lr = 0.5
+        x = x - lr * g
+        #x = x - 0.5 * g / t
         change = np.sum(np.abs(x - old_x))
         t += 1
         if callback:
@@ -54,14 +57,14 @@ def ada_grad(func, grad, x, args={}, callback=None):
     g_tol = args.get('g_tol', 0.01)
     eta = args.get('eta', 0.1)
     offset = args.get('offset', 1.0)
-    max_iter = args.get('max_iter', 1000)
+    max_iter = args.get('max_iter', 2000)
 
     grad_norm = np.inf
     x_change = np.inf
 
     grad_sum = 0
-    #while grad_norm > g_tol and x_change > x_tol and t < max_iter:
-    while t < max_iter:
+    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+    #while t < max_iter:
         #print "iteration: %d"%t
         if callback:
             callback(x)
@@ -258,7 +261,7 @@ class ObjectivePlotter(object):
         """
         elapsed_time = time.time() - self.timer
 
-        if elapsed_time > self.interval or 0 < self.t < 200:
+        if elapsed_time > self.interval or 0 < self.t < 10:
             self.objectives.append(self.func(x))
             self.iters.append(self.t)
 

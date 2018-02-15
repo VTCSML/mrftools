@@ -8,6 +8,7 @@ from mrftools import save_load_weights
 import skimage.color
 import skimage.util
 from skimage.io import imsave
+from os.path import splitext
 
 def _fast_hist(label_true, label_pred, n_class):
     mask = (label_true >= 0) & (label_true < n_class)
@@ -43,10 +44,10 @@ def batch_load_images(dir, size, num_class):
     images, models, labels, names = IL.load_all_images_and_labels(dir, num_class, num_images=np.inf)
     return images, models, labels, names
 
-def batch_load_images_features(dir, size, num_class):
+def batch_load_images_features(dir, size, dataset, num_class):
     #dir = "/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse"
     IFL = ImageFeatureLoader(max_width=size, max_height=size)
-    models, labels, names = IFL.load_all_features_labels(dir, "dataset", num_class)
+    models, labels, names = IFL.load_all_features_labels(dir, dataset, num_class)
     return models, labels, names
 
 def train_model(models, labels, num_class, inference_type):
@@ -111,9 +112,9 @@ def old_features_evaluate(dir, output_dir, weights, size, num_class, output_name
         f.write("fwavacc: " + "%s"%fwavacc)
 
     viz_output_dir = osp.join(output_dir, "visualization")
-    visualize_labels_predictions(processed_labels, predictions, viz_output_dir, names)
+    old_visualize_labels_predictions(processed_labels, predictions, viz_output_dir, names)
 
-def visualize_labels_predictions(labels, predictions, output_dir, names):
+def old_visualize_labels_predictions(labels, predictions, output_dir, names):
     cmap = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
     cmap = cmap.astype(np.float32)
     for i in range(0, len(labels)):
@@ -128,10 +129,56 @@ def visualize_labels_predictions(labels, predictions, output_dir, names):
 
 
 def old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name):
-    old_features_train(train_dir, output_dir, size, num_class, output_weights_name, inference_type)
+    #old_features_train(train_dir, output_dir, size, num_class, output_weights_name, inference_type)
     weights = save_load_weights.load_weights(osp.join(output_dir, "%s.txt"%output_weights_name))
     old_features_evaluate(test_dir, output_dir, weights, size, num_class, output_evaluation_name, inference_type)
 
+
+
+
+
+def fcn_visualize_labels_predictions(labels, predictions, output_dir, names):
+    cmap = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
+    cmap = cmap.astype(np.float32)
+    for i in range(0, len(labels)):
+        label = labels[i]
+        prediction = predictions[i]
+        name = names[i]
+        output_path = osp.join(output_dir, "%s.jpg"%name)
+        viz_label = skimage.color.label2rgb(label, colors=cmap[1:], bg_label=0)
+        viz_pred = skimage.color.label2rgb(prediction, colors=cmap[1:], bg_label=0)
+        out = np.concatenate((viz_label,viz_pred),axis=1)
+        imsave(output_path, out)
+
+
+
+def FCN_features_train(dir, dataset, output_dir, size, num_class, output_name, inference_type):
+    models, labels, names = batch_load_images_features(dir, size, dataset, num_class)
+    weights = train_model(models, labels, num_class, inference_type)
+    output_path = osp.join(output_dir, "%s.txt"%output_name)
+    save_load_weights.save_weights(weights, output_path)
+    return weights
+
+
+def FCN_features_evaluate(dir, dataset, output_dir, weights, size, num_class, output_name, inference_type):
+    models, labels, names = batch_load_images_features(dir, size, dataset, num_class)
+    predictions = predict_labels(weights, models, inference_type, size)
+    processed_labels = process_labels(labels, size)
+    acc, acc_cls, mean_iu, fwavacc = label_accuracy_score(processed_labels, predictions, num_class)
+    with open(osp.join(output_dir, '%s.txt'%output_name), 'w') as f:
+        f.write("acc: " + "%s"%acc + "\n")
+        f.write("acc_cls: " + "%s"%acc_cls + "\n")
+        f.write("mean_iu: " + "%s"%mean_iu + "\n")
+        f.write("fwavacc: " + "%s"%fwavacc)
+
+    viz_output_dir = osp.join(output_dir, "visualization")
+    fcn_visualize_labels_predictions(processed_labels, predictions, viz_output_dir, names)
+
+
+def FCN_features_main(dir, trainset, testset, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name):
+    FCN_features_train(dir, trainset, output_dir, size, num_class, output_weights_name, inference_type)
+    weights = save_load_weights.load_weights(osp.join(output_dir, "%s.txt"%output_weights_name))
+    FCN_features_evaluate(dir, testset, output_dir, weights, size, num_class, output_evaluation_name, inference_type)
 
 
 
@@ -148,7 +195,15 @@ if __name__ == '__main__':
     inference_type = ConvexBeliefPropagator
     output_weights_name = "Convex_weights"
     output_evaluation_name = "Convex_test_results"
-    old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name)
+    #old_features_main(train_dir, test_dir, output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name)
+
+
+
+
+
+    dir = "/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse"
+    fcn_output_dir = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/"
+    FCN_features_main(dir, "train", "test", fcn_output_dir, size, num_class, inference_type, output_weights_name, output_evaluation_name)
 
 
 

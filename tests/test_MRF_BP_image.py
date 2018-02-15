@@ -6,7 +6,7 @@ import itertools
 
 def batch_load_images():
     dir = "/Users/youlu/Documents/workspace/mrftools/tests/train_data/"
-    IL = ImageLoader(max_width=130, max_height=107)
+    IL = ImageLoader(max_width=10, max_height=10)
     images, models, labels, names = IL.load_all_images_and_labels(dir, 2, num_images=np.inf)
     return images, models, labels, names
     

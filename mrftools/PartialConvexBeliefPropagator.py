@@ -29,6 +29,13 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
         self._reversed_messages_ids = None
         self._needed_from_nodes_ids = None
 
+        # messages we need to use for updating pairwise_potential, which is reversed
+        # the start nodes of each edges, which is used to update pairwise_potential
+
+        self._update_pot_messages_ids = None
+        self._update_pot_reversed_messages_ids = None
+        self._update_pot_needed_from_nodes_ids = None
+
         # needed_edges are edges we need when we update the update_nodes
 
         self._needed_messages_ids = None
@@ -36,6 +43,7 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
 
         # partial_to_map is the T in note. It is a len(self._needed_edges) * len(self._update_nodes) matrix
         self._partial_to_map = None
+        
 
     def initialize_mats(self):
         self.belief_mat = self.mn.unary_mat + self.augmented_mat
@@ -65,6 +73,12 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
         needed_messages, needed_messages_ids = self.get_needed_messages()
         self._needed_messages_ids = needed_messages_ids
         self._needed_messages = needed_messages
+
+        update_pot_messages_ids, update_pot_reversed_messages_ids, update_pot_needed_from_nodes_ids \
+            = self.get_update_pairwise_potential_ids()
+        self._update_pot_reversed_messages_ids = update_pot_reversed_messages_ids
+        self._update_pot_needed_from_nodes_ids = update_pot_needed_from_nodes_ids
+        self._update_pot_messages_ids = update_pot_messages_ids
         self._partial_to_map = self.create_edge_index_mat()
 
     def select_nodes(self, N):
@@ -98,7 +112,8 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
 
     def get_update_messages(self):
         update_edges = set()
-        for node in self._selected_nodes:
+        #for node in self._selected_nodes:
+        for node in self._update_nodes:
             neighbors = self.mn.neighbors[node]
             for neighbor in neighbors:
                 #if self.mn.var_index[node] < self.mn.var_index[neighbor]:
@@ -123,6 +138,34 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
             needed_from_nodes_ids[i] = message_from_node_id
             needed_from_nodes_ids[i + num_edges] = reversed_message_from_node_id
         return update_messages_ids, reversed_messages_ids, needed_from_nodes_ids
+
+    def get_update_pairwise_potential_ids(self):
+        update_pot = set()
+        for node in self._update_nodes:
+        #for node in self._selected_nodes:
+            neighbors = self.mn.neighbors[node]
+            for neighbor in neighbors:
+                if node < neighbor:
+                    update_pot.add((node, neighbor))
+                else:
+                    update_pot.add((neighbor, node))
+        update_pot = list(update_pot)
+        num_edges = len(update_pot)
+        update_pot_messages_ids = [1]*(2 * num_edges) # messages we need to update
+        update_pot_reversed_messages_ids = [1]*(2 * num_edges) # messages we need to use for updating pairwise_potential, which is reversed
+        update_pot_needed_from_nodes_ids = [1]*(2 * num_edges) # the start nodes of each edges, which is used to update pairwise_potential
+        for i in range(0, num_edges):
+            message_id = self.mn.message_index[update_pot[i]]
+            reversed_messages_id = message_id + self.mn.num_edges
+            message_from_node_id = self.mn.var_index[update_pot[i][0]]
+            reversed_message_from_node_id = self.mn.var_index[update_pot[i][1]]
+            update_pot_messages_ids[i] = message_id
+            update_pot_messages_ids[i + num_edges] = reversed_messages_id
+            update_pot_reversed_messages_ids[i] = reversed_messages_id
+            update_pot_reversed_messages_ids[i + num_edges] = message_id
+            update_pot_needed_from_nodes_ids[i] = message_from_node_id
+            update_pot_needed_from_nodes_ids[i + num_edges] = reversed_message_from_node_id
+        return update_pot_messages_ids, update_pot_reversed_messages_ids, update_pot_needed_from_nodes_ids
 
     def get_needed_messages(self):
         needed_messages = set()
@@ -177,6 +220,7 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
         return change
 
     def partial_infer(self,  N, tolerance=1e-8):
+        #print "partial_infer"
         self.select_update_part(N)
         change = np.inf
         iteration = 0
@@ -187,27 +231,28 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
                 break
 
     def partial_compute_pairwise_beliefs(self):
+        if not self.fully_conditioned:
+            num_update_edges = len(self._update_pot_needed_from_nodes_ids) / 2
 
-        num_update_edges = len(self._update_messages_ids) / 2
+            adjusted_message_prod = self.belief_mat[:, self._update_pot_needed_from_nodes_ids] \
+                                - np.nan_to_num(self.message_mat[:, self._update_pot_reversed_messages_ids] \
+                                                / self.edge_counting_numbers[self._update_pot_reversed_messages_ids])
 
-        adjusted_message_prod = self.belief_mat[:, self._needed_from_nodes_ids] \
-                                - np.nan_to_num(self.message_mat[:, self._reversed_messages_ids] \
-                                                / self.edge_counting_numbers[self._update_messages_ids])
+            to_messages = adjusted_message_prod[:, :num_update_edges].reshape(
+                (self.mn.max_states, 1, num_update_edges))
 
+            from_messages = adjusted_message_prod[:, num_update_edges:].reshape(
+                (1, self.mn.max_states, num_update_edges))
 
-
-
-        to_messages = adjusted_message_prod[:,:num_update_edges].reshape(
-            (self.mn.max_states, 1, num_update_edges))
-
-        from_messages = adjusted_message_prod[:,:num_update_edges].reshape(
-            (1, self.mn.max_states, num_update_edges))
-
-        beliefs = self.mn.edge_pot_tensor[:, :, self._update_messages_ids[num_update_edges:]] \
-                  / self.edge_counting_numbers[self._update_messages_ids[num_update_edges:]] \
+            beliefs = self.mn.edge_pot_tensor[:, :, self._update_pot_messages_ids[num_update_edges:]] \
+                  / self.edge_counting_numbers[self._update_pot_messages_ids[num_update_edges:]] \
                   + to_messages + from_messages
-        beliefs -= logsumexp(beliefs, (0, 1))
-        self.pair_belief_tensor[:, :, self._update_messages_ids[:num_update_edges]] = beliefs
+
+            beliefs -= logsumexp(beliefs, (0, 1))
+
+            self.pair_belief_tensor[:, :, self._update_pot_messages_ids[:num_update_edges]] = beliefs
+
+
 
 
     def get_feature_expectations(self):
@@ -219,8 +264,8 @@ class PartialConvexBeliefPropagator(ConvexBeliefPropagator):
                     features
         """
         self.partial_compute_beliefs()
-        #self.partial_compute_pairwise_beliefs()
-        self.compute_pairwise_beliefs()
+        #self.compute_pairwise_beliefs()
+        self.partial_compute_pairwise_beliefs()
 
         summed_features = self.mn.unary_feature_mat.dot(np.exp(self.belief_mat).T)
 
