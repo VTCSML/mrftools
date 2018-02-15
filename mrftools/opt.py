@@ -1,7 +1,9 @@
 """Optimization utility class containing various optimizers and utility objects for callback functions"""
 import time
-
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 import numpy as np
 from scipy.optimize import minimize
 
@@ -20,7 +22,7 @@ def sgd(func, grad, x, args={}, callback=None):
     if not args:
         args = {}
     tolerance = args.get('tolerance', 1e-6)
-    max_iter = args.get('max_iter', 2000)
+    max_iter = args.get('max_iter', 20000)
     change = np.inf
 
     while change > tolerance and t < max_iter:

@@ -1,6 +1,8 @@
 import unittest
 from mrftools import *
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os.path as osp
 import itertools
@@ -51,7 +53,7 @@ def batch_load_images_features(dir, size, dataset, num_class):
     return models, labels, names
 
 def train_model(models, labels, num_class, inference_type, plot_path):
-    #plt.clf()
+    plt.clf()
     learner = Learner(inference_type)
     num_states = num_class
     d_edge = models[0].num_edge_features.values()[0]
