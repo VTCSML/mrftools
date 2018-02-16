@@ -52,7 +52,7 @@ def batch_load_images_features(dir, size, dataset, num_class):
     models, labels, names = IFL.load_all_features_labels(dir, dataset, num_class)
     return models, labels, names
 
-def train_model(models, labels, num_class, inference_type, plot_path):
+def train_model(models, labels, num_class, inference_type, plot_path, output_dir):
     plt.clf()
     learner = Learner(inference_type)
     num_states = num_class
@@ -66,7 +66,7 @@ def train_model(models, labels, num_class, inference_type, plot_path):
     #weights = learner.learn(initial_weights, callback=None)
 
     plotter = ObjectivePlotter(func=learner.objective)
-    weights = learner.learn(initial_weights, callback=plotter.callback)
+    weights = learner.learn(initial_weights, output_dir, callback=plotter.callback)
     plt.savefig(plot_path)
     # filename = "ConvexMBP_S%d.jpg"%size
     # plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
@@ -157,7 +157,7 @@ def fcn_visualize_labels_predictions(labels, predictions, output_dir, names):
 
 def FCN_features_train(dir, dataset, output_dir, size, num_class, output_name, inference_type, plot_path):
     models, labels, names = batch_load_images_features(dir, size, dataset, num_class)
-    weights = train_model(models, labels, num_class, inference_type, plot_path)
+    weights = train_model(models, labels, num_class, inference_type, plot_path, output_dir)
     output_path = osp.join(output_dir, "%s.txt"%output_name)
     save_load_weights.save_weights(weights, output_path)
     return weights

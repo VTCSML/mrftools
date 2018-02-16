@@ -184,7 +184,7 @@ class Learner(object):
                                                                   do_inference)
         return self.gradient(weights)
 
-    def learn(self, weights, optimizer=sgd, callback=None, opt_args=None):
+    def learn(self, weights, output_dir, optimizer=sgd, callback=None, opt_args=None):
         """
         Fit model parameters my maximizing the variational likelihood
         :param weights: Initial weight vector. Can be used to warm start from a previous solution.
@@ -195,7 +195,7 @@ class Learner(object):
         :return: learned weights
         """
         self.start_time = time.time()
-        res = optimizer(self.subgrad_obj, self.subgrad_grad, weights, opt_args, callback=callback)
+        res = optimizer(self.subgrad_obj, self.subgrad_grad, weights, output_dir, opt_args, callback=callback)
         new_weights = res
 
         return new_weights

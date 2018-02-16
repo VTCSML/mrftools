@@ -3,12 +3,13 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
+import save_load_weights
+import os.path as osp
 import numpy as np
 from scipy.optimize import minimize
 
 
-def sgd(func, grad, x, args={}, callback=None):
+def sgd(func, grad, x, output_dir, args={}, callback=None):
     """
     Stochastic gradient descent with a linear rate decay
     :param func: function to be minimized (used here only to update the gradient)
@@ -18,7 +19,7 @@ def sgd(func, grad, x, args={}, callback=None):
     :param callback: function to be called with the current iterate each iteration
     :return: optimized solution
     """
-    t = 1
+    t = 0
     if not args:
         args = {}
     tolerance = args.get('tolerance', 1e-6)
@@ -34,6 +35,9 @@ def sgd(func, grad, x, args={}, callback=None):
         x = x - lr * g
         #x = x - 0.5 * g / t
         change = np.sum(np.abs(x - old_x))
+        if t % 100 == 0:
+            path = osp.join(output_dir, "weights_%d.txt"%t)
+            save_load_weights.save_weights(x, path)
         t += 1
         if callback:
             callback(x)
