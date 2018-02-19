@@ -57,8 +57,8 @@ class ImageLoader(object):
         :return: PIL image object with the labels as the greyscale intensity value.
         :rtype: 
         """
-        #label_file = os.path.splitext(image_name)[0] + '_label.txt'
-        label_file = os.path.splitext(image_name)[0] + '.txt'
+        label_file = os.path.splitext(image_name)[0] + '_label.txt'
+        #label_file = os.path.splitext(image_name)[0] + '.txt'
         label_mat = np.loadtxt(label_file)
 
         label_img = Image.fromarray(label_mat.astype(np.uint8))

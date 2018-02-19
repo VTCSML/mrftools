@@ -23,7 +23,7 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
     if not args:
         args = {}
     tolerance = args.get('tolerance', 1e-6)
-    max_iter = args.get('max_iter', 20000)
+    max_iter = args.get('max_iter', 10000)
     change = np.inf
 
     while change > tolerance and t < max_iter:
@@ -35,17 +35,22 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
         x = x - lr * g
         #x = x - 0.5 * g / t
         change = np.sum(np.abs(x - old_x))
-        if t % 100 == 0:
-            path = osp.join(output_dir, "weights_%d.txt"%t)
-            save_load_weights.save_weights(x, path)
-        t += 1
+        # if t % 100 == 0:
+        #     path = osp.join(output_dir, "weights_%d.txt"%t)
+        #     save_load_weights.save_weights(x, path)
+        #     ob_path = osp.join(output_dir, "objective.txt")
+        #     with open(ob_path, "a") as f:
+        #         f.write(str(func(x, args)))
+        #         f.write("\n")
+
         if callback:
-            callback(x)
+            callback(x, output_dir)
+        t += 1
 
     return x
 
 
-def ada_grad(func, grad, x, args={}, callback=None):
+def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     """
     Adagrad adaptive gradient optimizer
     
@@ -255,11 +260,13 @@ class ObjectivePlotter(object):
         self.grad = grad
         self.t = 0
         self.iters = []
+        self.time = []
+        self.starttime = time.clock()
 
         if self.grad:
             print("Iter\tf(x)\t\t\tnorm(g)\t\t\tdx")
 
-    def callback(self, x):
+    def callback(self, x, output_dir):
         """
         Plot the current objectvie value and the current solution, and prints diagnostic information about
         the current solution, objective, and gradient, when available.
@@ -268,16 +275,43 @@ class ObjectivePlotter(object):
         """
         elapsed_time = time.time() - self.timer
 
+        objective_value = None
+        running_time = None
+
+
+        if ((0 < self.t < 10) or self.t % 10 == 0):
+            objective_value = self.func(x)
+            if self.t < 1:
+                self.starttime = time.clock()
+            running_time = time.clock() - self.starttime
+            weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
+            save_load_weights.save_weights(x, weight_path)
+            with open(osp.join(output_dir, "time.txt"), "a") as f_t:
+                f_t.write(str(self.t) + "\t")
+                f_t.write(str(running_time))
+                f_t.write("\n")
+            with open(osp.join(output_dir, "objective.txt"), "a") as f_o:
+                f_o.write(str(objective_value))
+                f_o.write("\n")
+
+
         if elapsed_time > self.interval or 0 < self.t < 10:
-            self.objectives.append(self.func(x))
+            if objective_value == None:
+                objective_value = self.func(x)
+                running_time = time.clock() - self.starttime
+
+            self.objectives.append(objective_value)
             self.iters.append(self.t)
+            self.time.append(running_time)
 
             plt.clf()
 
             plt.subplot(131)
-            plt.plot(self.iters, self.objectives)
+            #plt.plot(self.iters, self.objectives)
+            plt.plot(self.time, self.objectives)
             plt.ylabel('Objective')
-            plt.xlabel('Iteration')
+            #plt.xlabel('Iteration')
+            plt.xlabel("time")
             plt.title(self.objectives[-1])
 
             plt.subplot(132)

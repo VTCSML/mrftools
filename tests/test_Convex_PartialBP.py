@@ -42,7 +42,8 @@ def plot_objective_ConvexPartialBP(N, images, models, labels, names, size):
         learner.add_data(label, model)
 
     plotter = ObjectivePlotter(func=learner.objective)
-    weights = learner.learn(initial_weights, callback=plotter.callback)
+    output_path = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/"
+    weights = learner.learn(initial_weights, output_path, callback=plotter.callback)
     filename = "ConvexPBP_N%d_S%d.jpg"%(N,size)
     plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
 
@@ -115,8 +116,8 @@ if __name__ == '__main__':
     #ww = ConvexPartialBP_correctness(N, images, models, labels, names, size)
 
 
-    # ww = plot_objective_ConvexPartialBP(N, images, models, labels, names, size)
-    ww = plot_objective_ConvexMatrixBP(images, models, labels, names, size)
+    ww = plot_objective_ConvexPartialBP(N, images, models, labels, names, size)
+    #ww = plot_objective_ConvexMatrixBP(images, models, labels, names, size)
 
     # path = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/ww.txt"
     # save_load_weights.save_weights(ww, path)
