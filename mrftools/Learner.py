@@ -8,7 +8,7 @@ from MatrixBeliefPropagator import MatrixBeliefPropagator
 
 class Learner(object):
     """
-    Learner class for log-lienar model parameter learning. This class contains methods for calculating various 
+    Learner class for log-linear model parameter learning. This class contains methods for calculating various
     objective functions and gradients, and implements a subgradient optimization for the variational likelihood.
     """
     def __init__(self, inference_type=MatrixBeliefPropagator):

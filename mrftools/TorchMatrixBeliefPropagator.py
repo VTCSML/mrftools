@@ -2,6 +2,7 @@
 # import numpy as np
 from Inference import Inference
 import torch as t
+from torch.autograd import Variable
 '''
 https://github.com/pytorch/pytorch/issues/1668
 if torch.cuda.available():
@@ -16,7 +17,7 @@ class TorchMatrixBeliefPropagator(Inference):
     indexing underlying belief propagation.
     """
 
-    def __init__(self, markov_net, is_cuda):
+    def __init__(self, markov_net, is_cuda, var_on):
         """
         Initialize belief propagator for markov_net.
 
@@ -25,6 +26,7 @@ class TorchMatrixBeliefPropagator(Inference):
         """
         self.mn = markov_net
         self.is_cuda = is_cuda
+        self.var_on = var_on
         self.var_beliefs = dict()
         self.pair_beliefs = dict()
 
@@ -38,10 +40,18 @@ class TorchMatrixBeliefPropagator(Inference):
         self.initialize_messages()
 
         self.belief_mat = t.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        if self.var_on:
+            self.belief_mat = Variable(t.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_(),
+                                       requires_grad=self.var_on)
         if self.is_cuda:
             self.belief_mat = self.belief_mat.cuda()
 
+
         self.pair_belief_tensor = t.DoubleTensor(self.mn.max_states, self.mn.max_states, self.mn.num_edges).zero_()
+        if self.var_on:
+            self.pair_belief_tensor = Variable(
+                t.DoubleTensor(self.mn.max_states, self.mn.max_states, self.mn.num_edges).zero_(),
+                requires_grad=self.var_on)
         if self.is_cuda:
             self.pair_belief_tensor = self.pair_belief_tensor.cuda()
 
@@ -49,13 +59,16 @@ class TorchMatrixBeliefPropagator(Inference):
 
         # the augmented_mat is used to condition variables or for loss-augmented inference for max-margin learning
         self.augmented_mat = t.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_()
+        if self.var_on:
+            self.augmented_mat = Variable(t.DoubleTensor(self.mn.max_states, len(self.mn.variables)).zero_(),
+                                          requires_grad=self.var_on)
         if self.is_cuda:
             self.augmented_mat = self.augmented_mat.cuda()
 
         self.fully_conditioned = False  # true if every variable has been conditioned
 
         # conditioned stores the indices of variables that have been conditioned, initialized to all False
-        self.conditioned = t.ByteTensor(len(self.mn.variables))
+        self.conditioned = t.ByteTensor(len(self.mn.variables)).zero_()
         if self.is_cuda:
             self.conditioned = self.conditioned.cuda()
 
@@ -77,6 +90,9 @@ class TorchMatrixBeliefPropagator(Inference):
         :return: None
         """
         self.message_mat = t.DoubleTensor(self.mn.max_states, 2 * self.mn.num_edges).zero_()
+        if self.var_on:
+            self.message_mat = Variable(t.DoubleTensor(self.mn.max_states, 2 * self.mn.num_edges).zero_(),
+                                        requires_grad=self.var_on)
         if self.is_cuda:
             self.message_mat = self.message_mat.cuda()
 
@@ -359,6 +375,29 @@ class TorchMatrixBeliefPropagator(Inference):
         assert t.eq(self.message_mat.size(), messages.size())
         self.message_mat = messages
 
+    def autograd_unary(self):
+        """
+        Computes the backward pass over the network and returns the gradient of the unary beliefs
+        :return: gradient of unary beliefs
+        """
+        if self.var_on:
+            self.belief_mat.backward()
+            return self.belief_mat.grad
+        else:
+            print "Variables flag (var_on) not set to True to allow for autograd"
+            return
+
+    def autograd_pairwise(self):
+        """
+        Computes the backward pass over the network and returns the gradient of the pairwise beliefs
+        :return: gradient of pairwise beliefs
+        """
+        if self.var_on:
+            self.pair_beliefs.backward()
+            return self.pair_beliefs.grad
+        else:
+            print "Variables flag (var_on) not set to True to allow for autograd"
+            return
 
 def torch_logsumexp(matrix, dim=None):
     """
@@ -391,6 +430,9 @@ def sparse_dot(full_matrix, sparse_matrix):
     """
     Convenience function to compute the dot product of a full matrix and a sparse matrix.
     Useful to avoid writing code with a lot of transposes.
+
+    ISSUE: Sparse operations on Variables not yet supported (is supported for Tensors)
+    https://github.com/pytorch/pytorch/issues/2389
 
     :param full_matrix: dense matrix
     :type full_matrix: ndarray

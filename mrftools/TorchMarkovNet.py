@@ -1,11 +1,12 @@
 """Markov network class for storing potential functions and structure."""
 import torch as t
+from torch.autograd import Variable
 
 
 class TorchMarkovNet(object):
     """Object containing the definition of a pairwise Markov net."""
 
-    def __init__(self, is_cuda):
+    def __init__(self, is_cuda, var_on):
         """Initialize a Markov net."""
         self.edge_potentials = dict()
         self.unary_potentials = dict()
@@ -28,6 +29,7 @@ class TorchMarkovNet(object):
         self.message_index = None
         self.degrees = None
         self.is_cuda = is_cuda
+        self.var_on = var_on
 
     def set_unary_factor(self, variable, potential):
         """
@@ -127,6 +129,8 @@ class TorchMarkovNet(object):
         """
         assert t.eq(self.unary_mat.size(), unary_mat.size())
         self.unary_mat[:, :] = unary_mat
+        if self.var_on:
+            self.unary_mat[:, :] = Variable(unary_mat, requires_grad=self.var_on)
         if self.is_cuda:
             self.unary_mat = self.unary_mat.cuda()
 
@@ -154,10 +158,15 @@ class TorchMarkovNet(object):
 
         self.max_states = max([len(x) for x in self.unary_potentials.values()])
         self.unary_mat = -float('inf') * t.ones(self.max_states, len(self.variables)).double()
+        if self.var_on:
+            self.unary_mat = Variable(-float('inf') * t.ones(self.max_states, len(self.variables)).double(),
+                                      requires_grad=self.var_on)
         if self.is_cuda:
             self.unary_mat = self.unary_mat.cuda()
 
-        self.degrees = t.DoubleTensor(len(self.variables)).zero_()
+        self.degrees =t.DoubleTensor(len(self.variables)).zero_()
+        if self.var_on:
+            self.degrees = Variable(t.DoubleTensor(len(self.variables)).zero_(), requires_grad=self.var_on)
         if self.is_cuda:
             self.degrees = self.degrees.cuda()
 
@@ -182,6 +191,10 @@ class TorchMarkovNet(object):
                     self.num_edges += 1
 
         self.edge_pot_tensor = -float('inf') * t.ones(self.max_states, self.max_states, 2 * self.num_edges).double()
+        if self.var_on:
+            self.edge_pot_tensor = Variable(
+                -float('inf') * t.ones(self.max_states, self.max_states, 2 * self.num_edges).double(),
+                requires_grad=self.var_on)
         if self.is_cuda:
             self.edge_pot_tensor = self.edge_pot_tensor.cuda()
 
@@ -238,19 +251,30 @@ class TorchMarkovNet(object):
             t.ones(len(to_rows)).double(),
             t.Size([2 * self.num_edges, len(self.variables)])
         )
+        if self.var_on:
+            # ISSUE: Sparse Variable ops not yet implemented
+            self.message_to_map = Variable(t.sparse.DoubleTensor(
+                t.LongTensor([to_rows, to_cols]),
+                t.ones(len(to_rows)).double(),
+                t.Size([2 * self.num_edges, len(self.variables)])
+            ), requires_grad=self.var_on)
         if self.is_cuda:
             self.message_to_map = self.message_to_map.cuda()
 
         # store an array that lists which variable each message is sent to
         self.message_to = t.LongTensor(2 * self.num_edges).zero_()
         self.message_to[t.LongTensor(to_rows)] = t.LongTensor(to_cols)
+        if self.var_on:
+            self.message_to = Variable(t.LongTensor(2 * self.num_edges).zero_(), requires_grad=self.var_on)
         if self.is_cuda:
             self.message_to = self.message_to.cuda()
-            self.message_to[t.LongTensor(to_rows).cuda()] = t.LongTensor(to_cols)
+            self.message_to[t.LongTensor(to_rows).cuda()] = t.LongTensor(to_cols).cuda()
 
         # store an array that lists which variable each message is received from
         self.message_from = t.LongTensor(2 * self.num_edges).zero_()
         self.message_from[t.LongTensor(from_rows)] = t.LongTensor(from_cols)
+        if self.var_on:
+            self.message_from = Variable(t.LongTensor(2 * self.num_edges).zero_(), requires_grad=self.var_on)
         if self.is_cuda:
             self.message_from = self.message_from.cuda()
-            self.message_from[t.LongTensor(from_rows).cuda()] = t.LongTensor(from_cols)
+            self.message_from[t.LongTensor(from_rows).cuda()] = t.LongTensor(from_cols).cuda()

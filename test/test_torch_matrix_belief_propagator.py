@@ -8,7 +8,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     """Test class for TorchMatrixBeliefPropagator"""
     def create_chain_model(self, is_cuda):
         """Create chain MRF with variable of different cardinalities."""
-        mn = TorchMarkovNet(is_cuda=is_cuda)
+        mn = TorchMarkovNet(is_cuda=is_cuda, var_on=False)
 
         np.random.seed(1)
 
@@ -91,7 +91,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def create_grid_model(self, is_cuda, my_l, my_k):
         """Create a grid-structured MRF"""
-        mn = TorchMarkovNet(is_cuda=is_cuda)
+        mn = TorchMarkovNet(is_cuda=is_cuda, var_on=False)
         np.random.seed(1)
 
         length = my_l
@@ -138,7 +138,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
     def create_grid_model_simple_edges(self, is_cuda):
         """Create a grid-structured MRFs with edge potentials that are attractive."""
-        mn = TorchMarkovNet(is_cuda=is_cuda)
+        mn = TorchMarkovNet(is_cuda=is_cuda, var_on=False)
         np.random.seed(1)
 
         length = 2
@@ -187,7 +187,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         """Test that Matrix BP produces the true marginals in a chain model."""
         is_cuda = False
         mn = self.create_chain_model(is_cuda=is_cuda)
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
         bp.infer(display='full')
         bp.load_beliefs()
 
@@ -219,7 +219,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         is_cuda = False
         mn = self.create_loop_model(is_cuda=is_cuda)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
         bp.infer(display='full')
 
         bp.load_beliefs()
@@ -240,7 +240,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         is_cuda = False
         mn = self.create_loop_model(is_cuda=is_cuda)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
         bp.infer(display='full')
 
         bp.load_beliefs()
@@ -257,7 +257,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         is_cuda = False
         mn = self.create_loop_model(is_cuda=is_cuda)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
 
         bp.condition(2, 0)
 
@@ -285,7 +285,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
         mn.create_matrices()
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
 
         with np.errstate(all='raise'):
             bp.infer()
@@ -295,7 +295,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         """Test that matrix BP infers consistent marginals on a grid MRF"""
         is_cuda = False
         mn = self.create_grid_model(is_cuda=is_cuda, my_l=64, my_k=8)
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
         bp.infer(display='full')
 
         bp.load_beliefs()
@@ -313,7 +313,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         mn = self.create_grid_model(is_cuda=is_cuda, my_l=64, my_k=8)
         old_mn = self.create_grid_model_old(my_l=64, my_k=8)
 
-        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
         old_bp = MatrixBeliefPropagator(old_mn)
 
         bp.set_max_iter(1000)
@@ -355,7 +355,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         bp = BeliefPropagator(model_old)
         bp.load_beliefs()
 
-        mat_bp = TorchMatrixBeliefPropagator(markov_net=model, is_cuda=is_cuda)
+        mat_bp = TorchMatrixBeliefPropagator(markov_net=model, is_cuda=is_cuda, var_on=False)
         mat_bp.load_beliefs()
 
         for i in range(4):
@@ -522,26 +522,33 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
 
     def test_gpu_speedup(self):
-        self.my_l = 64
+        self.my_l = 8
         self.my_k = 8
         slow = True
 
         try:
+            # CUDA must be "started up" in order to achieve max speeds
+            # Approximate loss of X seconds on first run otherwise
+            init_mn = self.create_grid_model(is_cuda=True, my_l=2, my_k=2)
+            init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
+            init_bp.set_max_iter(1000)
+            init_bp.infer(display='off')
+
             t_prime0 = time.time()
 
             cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
-            cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True)
+            cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
             cuda_bp.set_max_iter(1000)
             t0 = time.time()
-            cuda_bp.infer(display='final')
+            cuda_bp.infer(display='off')
             t1 = time.time()
             cuda_bp_time = t1-t0
 
             mn = self.create_grid_model(is_cuda=False, my_l=self.my_l, my_k=self.my_k)
-            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False, var_on=False)
             bp.set_max_iter(1000)
             t0 = time.time()
-            bp.infer(display='final')
+            bp.infer(display='off')
             t1 = time.time()
             bp_time = t1 - t0
 
@@ -549,7 +556,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             old_bp = MatrixBeliefPropagator(old_mn)
             old_bp.set_max_iter(1000)
             t0 = time.time()
-            old_bp.infer(display='final')
+            old_bp.infer(display='off')
             t1 = time.time()
             old_bp_time = t1 - t0
 
@@ -557,7 +564,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                 slow_bp = BeliefPropagator(old_mn)
                 slow_bp.set_max_iter(1000)
                 t0 = time.time()
-                slow_bp.infer(display='final')
+                slow_bp.infer(display='off')
                 t1 = time.time()
                 slow_bp_time = t1 - t0
 
@@ -603,6 +610,13 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         slow = True
 
         try:
+            # CUDA must be "started up" in order to achieve max speeds
+            # Approximate loss of X seconds on first run otherwise
+            init_mn = self.create_grid_model(is_cuda=True, my_l=2, my_k=2)
+            init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
+            init_bp.set_max_iter(1000)
+            init_bp.infer(display='off')
+
             t_total0 = time.time()
             print("k = %d" % self.my_k)
             if slow:
@@ -614,7 +628,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                 t_prime0 = time.time()
 
                 cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
-                cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True)
+                cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
                 cuda_bp.set_max_iter(1000)
 
                 t0 = time.time()
@@ -623,7 +637,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                 cuda_bp_time = t1 - t0
 
                 mn = self.create_grid_model(is_cuda=False, my_l=self.my_l, my_k=self.my_k)
-                bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False)
+                bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False, var_on=False)
                 bp.set_max_iter(1000)
                 t0 = time.time()
                 bp.infer(display='off')
@@ -678,3 +692,42 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         except AssertionError:
             print "\n\nCUDA was not found within your PyTorch package\n\n"
             assert True
+
+    def test_cuda_time_loss(self):
+        self.my_l = 8
+        self.my_k = 8
+        try:
+            init_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
+            init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
+            init_bp.set_max_iter(1000)
+            init_time0 = time.time()
+            init_bp.infer(display='off')
+            init_time1 = time.time()
+
+            init_time = init_time1 - init_time0
+
+            cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
+            cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
+            cuda_bp.set_max_iter(1000)
+            t0 = time.time()
+            cuda_bp.infer(display='off')
+            t1 = time.time()
+            cuda_bp_time = t1 - t0
+
+            time_diff = init_time - cuda_bp_time
+            print("Total time lost to CUDA initialization %f" % (time_diff))
+            print("In this case, this is a factor of %f times slower" % (time_diff/cuda_bp_time))
+
+        except AssertionError:
+            print "\n\nCUDA was not found within your PyTorch package\n\n"
+            assert True
+
+
+    def test_autograd(self):
+        is_cuda = True
+        mn = self.create_grid_model(is_cuda=is_cuda, my_l=64, my_k=8)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)
+        bp.infer(display='full')
+
+        bp.load_beliefs()
+        print bp.autograd_unary()

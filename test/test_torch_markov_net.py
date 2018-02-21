@@ -9,7 +9,7 @@ class TestTorchMarkovNet(unittest.TestCase):
     """Test class for the MarkovNet model objects"""
     def create_chain_model(self, is_cuda):
         """Create chain model with different variable cardinalities."""
-        mn = TorchMarkovNet(is_cuda=is_cuda)
+        mn = TorchMarkovNet(is_cuda=is_cuda, var_on=False)
 
         np.random.seed(1)
 
@@ -34,7 +34,7 @@ class TestTorchMarkovNet(unittest.TestCase):
 
     def test_structure(self):
         """Test that the structure of the MarkovNet is properly set up"""
-        mn = TorchMarkovNet(is_cuda=False)
+        mn = TorchMarkovNet(is_cuda=False, var_on=False)
 
         mn.set_unary_factor(0, torch.from_numpy(np.random.randn(4)))
         mn.set_unary_factor(1, torch.from_numpy(np.random.randn(3)))
