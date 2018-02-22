@@ -105,10 +105,31 @@ def plot_dualobjective_ConvexMatrixBP(images, models, labels, names, size):
     return weights
 
 
+def plot_objective_Cyclic_ConvexPartialBP(num_R, num_C, models, labels, size):
+    #plt.clf()
+    learner = PartialLearner_CyclicBlock(num_R, num_C, PartialConvexBP_CyclicBolck)
+    num_states = 2
+    d_edge = models[0].num_edge_features.values()[0]
+    d_unary = len(models[0].unary_features[(0,0)])
+    d_weights = d_unary * num_states + d_edge * np.power(num_states, 2)
+    initial_weights = np.zeros(d_weights)
+
+    for model, label in zip(models, labels):
+        learner.add_data(label, model)
+
+    plotter = ObjectivePlotter(func=learner.objective)
+    output_path = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/"
+    weights = learner.learn(initial_weights, output_path, callback=plotter.callback)
+    filename = "Cyclic_ConvexPBP_S%d.jpg"%size
+    plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
+
+    return weights
+
+
 
 
 if __name__ == '__main__':
-    size = 10
+    size = 100
     N = 5
     images, models, labels, names = batch_load_images(size)
     start = time.time()
@@ -116,7 +137,8 @@ if __name__ == '__main__':
     #ww = ConvexPartialBP_correctness(N, images, models, labels, names, size)
 
 
-    ww = plot_objective_ConvexPartialBP(N, images, models, labels, names, size)
+    #ww = plot_objective_ConvexPartialBP(N, images, models, labels, names, size)
+
     #ww = plot_objective_ConvexMatrixBP(images, models, labels, names, size)
 
     # path = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/ww.txt"
@@ -125,6 +147,9 @@ if __name__ == '__main__':
 
     #ww = plot_dualobjective_ConvexMatrixBP(images, models, labels, names, size)
     #ww = plot_dualobjective_ConvexPartialBP(N, images, models, labels, names, size)
+
+
+    ww = plot_objective_Cyclic_ConvexPartialBP(10, 10, models, labels, size)
 
 
 

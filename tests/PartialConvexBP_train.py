@@ -56,7 +56,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BP accuracy')
     parser.add_argument("-i", "--input_dir", default="/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse", type=str, help="path to the input data")
     parser.add_argument("-o", "--out_dir", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/", type=str, help="path to the results")
-    parser.add_argument("-p", "--plot_path", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/ConvexMBP_100.jpg", type=str, help="path to save the plot")
+    parser.add_argument("-p", "--plot_path", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/ConvexPBP_100.jpg", type=str, help="path to save the plot")
     parser.add_argument("-s", "--size", default=100, type=int, help="iamge size")
     parser.add_argument("-f", "--num_nodes", default=10, type=int, help="number of nodes selected each time")
     parser.add_argument("-c", "--num_class", default=2, type=int, help="number of class")
@@ -64,4 +64,4 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--inference_type", default="PartialConvexBeliefPropagator", type = str, help="the inference type")
     args = parser.parse_args()
     inference = Inference_names[args.inference_type]
-    FCN_features_train(args.input_dir, "train", args.out_dir, args.size, args.num_nodes, args.num_class, args.output_name, inference, args.plot_path)
+    FCN_features_train(args.input_dir, "subset", args.out_dir, args.size, args.num_nodes, args.num_class, args.output_name, inference, args.plot_path)

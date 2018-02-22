@@ -22,16 +22,16 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
     t = 0
     if not args:
         args = {}
-    tolerance = args.get('tolerance', 1e-6)
-    max_iter = args.get('max_iter', 10000)
+    tolerance = args.get('tolerance', 3e-4)
+    max_iter = args.get('max_iter', 30000)
     change = np.inf
 
     while change > tolerance and t < max_iter:
         old_x = x
         print "iteration: %d"%t
         g = grad(x, args)
-        #lr = pow(t, -0.5)
-        lr = 0.5
+        lr = pow(t+1, -0.5)
+        #lr = 0.001
         x = x - lr * g
         #x = x - 0.5 * g / t
         change = np.sum(np.abs(x - old_x))
@@ -65,11 +65,11 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     t = 1
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 1e-6)
-    g_tol = args.get('g_tol', 0.01)
-    eta = args.get('eta', 0.1)
+    x_tol = args.get('x_tol', 5e-4)
+    g_tol = args.get('g_tol', 1e-4)
+    eta = args.get('eta', 1.0)
     offset = args.get('offset', 1.0)
-    max_iter = args.get('max_iter', 2000)
+    max_iter = args.get('max_iter', 30000)
 
     grad_norm = np.inf
     x_change = np.inf
@@ -78,8 +78,7 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
     #while t < max_iter:
         #print "iteration: %d"%t
-        if callback:
-            callback(x)
+        print "iteration: %d"%t
         func(x, args)
         g = grad(x, args)
         grad_sum += g * g
@@ -89,13 +88,14 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
 
-        # grad_norm = np.sqrt(g.dot(g))
+        if callback:
+           callback(x, output_dir)
 
         t += 1
     print "end at iteration %d"%t
 
-    if callback:
-        callback(x)
+    # if callback:
+    #     callback(x, output_dir)
     return x
 
 
@@ -279,7 +279,7 @@ class ObjectivePlotter(object):
         running_time = None
 
 
-        if ((0 < self.t < 10) or self.t % 10 == 0):
+        if ((0 < self.t < 10) or self.t % 100 == 0):
             objective_value = self.func(x)
             if self.t < 1:
                 self.starttime = time.clock()

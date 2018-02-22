@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BP accuracy')
     parser.add_argument("-i", "--input_dir", default="/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse", type=str, help="path to the input data")
     parser.add_argument("-o", "--out_dir", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/", type=str, help="path to the results")
-    parser.add_argument("-p", "--plot_path", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/ConvexMBP_100.jpg", type=str, help="path to save the plot")
+    parser.add_argument("-p", "--plot_path", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/ConvexPartialBP_100.jpg", type=str, help="path to save the plot")
     parser.add_argument("-x", "--row_size", default=10, type=int, help="number of rows separated")
     parser.add_argument("-y", "--column_size", default=10, type=int, help="number of columns separated")
     parser.add_argument("-s", "--size", default=100, type=int, help="iamge size")

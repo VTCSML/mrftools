@@ -280,14 +280,14 @@ class ImageLoader(object):
         for j, edge in enumerate(edges):
             diff = 0
             edge_feats_vec = np.zeros(nthresh + 1)
-            # for z in range(channels):
-            #     diff += np.true_divide((pixels[edge[0]][z] - pixels[edge[1]][z]), 255) ** 2
-            #
-            # diff = np.sqrt(diff)
-            # for n in range(nthresh):
-            #     thresh = .5 * n / nthresh
-            #     edge_feats_vec[n] = 1 * (diff > thresh)
-            # edge_feats_vec[-1] = 1.0  # add bias feature
+            for z in range(channels):
+                diff += np.true_divide((pixels[edge[0]][z] - pixels[edge[1]][z]), 255) ** 2
+
+            diff = np.sqrt(diff)
+            for n in range(nthresh):
+                thresh = .5 * n / nthresh
+                edge_feats_vec[n] = 1 * (diff > thresh)
+            edge_feats_vec[-1] = 1.0  # add bias feature
             edge_feature_mat[j, :] = edge_feats_vec
 
         # package up feature matrix as feature dictionary

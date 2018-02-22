@@ -26,7 +26,7 @@ class Learner(object):
         self.conditioned_belief_propagators = []
         self.belief_propagators = []
         self.l1_regularization = 0.00
-        self.l2_regularization = 2e-9
+        self.l2_regularization = 1e-2
         self.weight_dim = None
         self.fully_observed = True
         self.initialization_flag = False
@@ -184,7 +184,7 @@ class Learner(object):
                                                                   do_inference)
         return self.gradient(weights)
 
-    def learn(self, weights, output_dir, optimizer=sgd, callback=None, opt_args=None):
+    def learn(self, weights, output_dir, optimizer=ada_grad, callback=None, opt_args=None):
         """
         Fit model parameters my maximizing the variational likelihood
         :param weights: Initial weight vector. Can be used to warm start from a previous solution.
@@ -253,7 +253,7 @@ class Learner(object):
         objective = 0.0
         # add regularization penalties
         objective += self.l1_regularization * np.sum(np.abs(weights))
-        objective += 0.5 * self.l2_regularization * weights.dot(weights)
+        objective += self.l2_regularization * weights.dot(weights)
         objective += self.term_q_p
 
         return objective
