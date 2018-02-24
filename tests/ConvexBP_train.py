@@ -19,6 +19,7 @@ Inference_names = {"ConvexBeliefPropagator":ConvexBeliefPropagator,\
                    "PartialMatrixBP":PartialMatrixBP}
 
 if __name__ == '__main__':
+    print "Convex BP"
 
     parser = argparse.ArgumentParser(description='BP accuracy')
     parser.add_argument("-i", "--input_dir", default="/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse", type=str, help="path to the input data")

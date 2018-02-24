@@ -53,6 +53,7 @@ def FCN_features_train(dir, dataset, output_dir, size, num_R, num_C, num_class, 
 
 
 if __name__ == '__main__':
+    print "Cyclic Partial BP"
 
     parser = argparse.ArgumentParser(description='BP accuracy')
     parser.add_argument("-i", "--input_dir", default="/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse", type=str, help="path to the input data")

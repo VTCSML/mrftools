@@ -1,7 +1,7 @@
 """Optimization utility class containing various optimizers and utility objects for callback functions"""
 import time
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import save_load_weights
 import os.path as osp
@@ -65,19 +65,18 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     t = 1
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 5e-4)
-    g_tol = args.get('g_tol', 1e-4)
+    x_tol = args.get('x_tol', 1e-4)
+    g_tol = args.get('g_tol', 1e-6)
     eta = args.get('eta', 1.0)
     offset = args.get('offset', 1.0)
-    max_iter = args.get('max_iter', 30000)
+    max_iter = args.get('max_iter', 30001)
 
     grad_norm = np.inf
     x_change = np.inf
 
     grad_sum = 0
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
-    #while t < max_iter:
-        #print "iteration: %d"%t
+
         print "iteration: %d"%t
         func(x, args)
         g = grad(x, args)
@@ -279,7 +278,7 @@ class ObjectivePlotter(object):
         running_time = None
 
 
-        if ((0 < self.t < 10) or self.t % 100 == 0):
+        if ((0 < self.t < 10) or self.t % 5 == 0):
             objective_value = self.func(x)
             if self.t < 1:
                 self.starttime = time.clock()
