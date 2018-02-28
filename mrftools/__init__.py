@@ -25,5 +25,6 @@ from .PartialConvexBP_CyclicBlock import PartialConvexBP_CyclicBolck
 from .PartialLearner_CyclicBlock import PartialLearner_CyclicBlock
 import save_load_weights
 from .ImageFeatureLoader import ImageFeatureLoader
+from .ImageFeatureLoader_scene import ImageFeatureLoader_scene
 from .opt import *
 from .util import *

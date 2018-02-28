@@ -2,7 +2,7 @@ import unittest
 from mrftools import *
 import numpy as np
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os.path as osp
 import itertools
@@ -68,9 +68,11 @@ def train_model(models, labels, num_class, inference_type, plot_path, output_dir
     plotter = ObjectivePlotter(func=learner.objective)
     weights = learner.learn(initial_weights, output_dir, callback=plotter.callback)
     plt.savefig(plot_path)
+
     # filename = "ConvexMBP_S%d.jpg"%size
     # plt.savefig("/Users/youlu/Documents/workspace/mrftools/tests/test_results/%s"%filename)
     return weights
+    #return 0
 
 def predict_labels(weights, models, inference_type, size):
     predictions = list()

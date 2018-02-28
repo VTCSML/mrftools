@@ -18,7 +18,7 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 
 
-class ImageFeatureLoader(object):
+class ImageFeatureLoader_scene(object):
 
     def __init__(self, max_width=0, max_height=0):
         """
@@ -130,7 +130,7 @@ class ImageFeatureLoader(object):
         num_images = len(names)
         for name in names:
             #print name
-            model = ImageFeatureLoader.create_model(image_features[name], num_states, name)
+            model = ImageFeatureLoader_scene.create_model(image_features[name], num_states, name)
             label_vec = self.load_label_dict(image_labels[name])
             models.append(model)
             labels.append(label_vec)
@@ -147,9 +147,9 @@ class ImageFeatureLoader(object):
     def create_model(image_features,num_states, name):
         model = LogLinearModel()
         (c,h,w) = image_features.shape
-        tree_prob = ImageFeatureLoader.calculate_tree_probabilities_snake_shape(h, w)
+        tree_prob = ImageFeatureLoader_scene.calculate_tree_probabilities_snake_shape(h, w)
         model.tree_probabilities = tree_prob
-        feature_dict, edge_feature_dict = ImageFeatureLoader.compute_features(image_features, name)
+        feature_dict, edge_feature_dict = ImageFeatureLoader_scene.compute_features(image_features, name)
 
         # create pixel variables
         for pixel, feature_vec in feature_dict.items():
@@ -250,7 +250,7 @@ class ImageFeatureLoader(object):
             for y in range(height):
                 feature_dict[(x,y)] = image_features[:,x,y]
 
-        edges = ImageFeatureLoader.get_all_edges(height, width)
+        edges = ImageFeatureLoader_scene.get_all_edges(height, width)
 
         edge_feature_mat = np.zeros((len(edges), nthresh + 1))
         diff_list = list()
@@ -261,28 +261,15 @@ class ImageFeatureLoader(object):
             diff = norm(pair_wise_feature, 2)
             diff_list.append(diff)
             for n in range(nthresh):
-                thresh = .5 * n # / nthresh
+                thresh = 0.5 * n
                 edge_feats_vec[n] = 1 * (diff > thresh)
             edge_feats_vec[-1] = 1.0  # add bias feature
             edge_feature_mat[j, :] = edge_feats_vec
 
         edge_feature_vectors = [np.array(x) for x in edge_feature_mat.tolist()]
         edge_feature_dict = dict(zip(edges, edge_feature_vectors))
-        plt.hist(diff_list, normed=False, bins=10)
-        plt.savefig("/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/results/%s.jpg"%name)
-        plt.clf()
+        # plt.hist(diff_list, normed=False, bins=10)
+        # plt.savefig("/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/results/%s.jpg"%name)
+        # plt.clf()
 
         return feature_dict, edge_feature_dict
-
-
-
-
-
-
-
-
-
-
-
-
-
