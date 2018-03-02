@@ -1,7 +1,7 @@
 """Optimization utility class containing various optimizers and utility objects for callback functions"""
 import time
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import save_load_weights
 import os.path as osp
@@ -147,7 +147,7 @@ def rms_prop(func, grad, x, args={}, callback=None):
     return x
 
 
-def adam(func, grad, x, args={}, callback=None):
+def adam(func, grad, x, output_dir, args={}, callback=None):
     """
     Adam adaptive gradient optimizer
     :param func: function to be minimized (used here only to update the gradient)
@@ -161,13 +161,13 @@ def adam(func, grad, x, args={}, callback=None):
     t = 1
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 1e-3)
-    g_tol = args.get('g_tol', 1e-3)
-    eps = args.get('eps', 1e-8)
+    x_tol = args.get('x_tol', 1e-6)
+    g_tol = args.get('g_tol', 1e-6)
+    eps = args.get('eps', 10.0)
     b1 = args.get('b1', 0.9)
     b2 = args.get('b2', 0.999)
-    step_size = args.get('step_size', 0.01)
-    max_iter = args.get('max_iter', 1000)
+    step_size = args.get('step_size', 1.0)
+    max_iter = args.get('max_iter', 10001)
 
     grad_norm = np.inf
     x_change = np.inf
@@ -176,8 +176,8 @@ def adam(func, grad, x, args={}, callback=None):
     v = np.zeros(len(x))
 
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
-        if callback:
-            callback(x)
+        print "iteration: %d"%t
+
         func(x, args)
         g = grad(x, args)
 
@@ -192,8 +192,8 @@ def adam(func, grad, x, args={}, callback=None):
         x_change = np.sqrt(change.dot(change))
 
         t += 1
-    if callback:
-        callback(x)
+        if callback:
+            callback(x, output_dir)
     return x
 
 

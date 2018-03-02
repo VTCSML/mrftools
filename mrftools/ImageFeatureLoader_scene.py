@@ -261,7 +261,7 @@ class ImageFeatureLoader_scene(object):
             diff = norm(pair_wise_feature, 2)
             diff_list.append(diff)
             for n in range(nthresh):
-                thresh = 0.5 * n
+                thresh = 1.0 * n
                 edge_feats_vec[n] = 1 * (diff > thresh)
             edge_feats_vec[-1] = 1.0  # add bias feature
             edge_feature_mat[j, :] = edge_feats_vec
