@@ -65,7 +65,7 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     t = 1
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 1e-4)
+    x_tol = args.get('x_tol', 1e-6)
     g_tol = args.get('g_tol', 1e-6)
     eta = args.get('eta', 1.0)
     offset = args.get('offset', 1.0)

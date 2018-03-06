@@ -54,15 +54,16 @@ class PartialConvexBP_CyclicBolck(ConvexBeliefPropagator):
         updated_node_list = list()
         for r in range(1,num_R+1):
             for c in range(1,num_C+1):
-                left = (float(c - 1.0)/num_C) * size[1]
-                right = (float(c)/num_C) * size[1]
-                top = (float(r - 1.0)/num_R) * size[0]
-                bottom = (float(r)/num_R) * size[0]
+                left = float(c - 1.0)/num_C * size[1]
+                right = float(c)/num_C * size[1]
+                top = float(r - 1.0)/num_R * size[0]
+                bottom = float(r)/num_R * size[0]
                 node_subset = list()
                 for variable in self.mn.variables:
                     if top <= variable[0] < bottom and left <= variable[1] < right:
                         node_subset.append(variable)
-                updated_node_list.append(node_subset)
+                if node_subset != []:
+                    updated_node_list.append(node_subset)
         updated_node_id_list = list()
         for node_subset in updated_node_list:
             node_subset_id = list()
@@ -73,8 +74,8 @@ class PartialConvexBP_CyclicBolck(ConvexBeliefPropagator):
         return updated_node_list, updated_node_id_list
 
     def separate_graph(self, num_R, num_C):
-        self._num_subsets = num_R * num_C
         updated_node_list, updated_node_ids_list = self.separate_nodes(num_R, num_C)
+        self._num_subsets = len(updated_node_list)
         self._update_nodes_list = updated_node_list
         self._update_nodes_ids_list = updated_node_ids_list
         for i in range(0, self._num_subsets):
