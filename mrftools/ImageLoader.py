@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from LogLinearModel import LogLinearModel
+from .LogLinearModel import LogLinearModel
 
 
 class ImageLoader(object):

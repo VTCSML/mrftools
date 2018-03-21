@@ -1,7 +1,7 @@
 """Convexified Belief Propagation Class"""
 import numpy as np
 
-from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
+from .MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
 
 class ConvexBeliefPropagator(MatrixBeliefPropagator):

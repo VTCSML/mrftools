@@ -1,7 +1,7 @@
 """Class to do tree-reweighted belief propagation with matrix-based computation."""
 import numpy as np
 
-from MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
+from .MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 
 
 class MatrixTRBeliefPropagator(MatrixBeliefPropagator):

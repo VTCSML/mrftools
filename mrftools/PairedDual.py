@@ -1,8 +1,8 @@
 """
 Paired dual learner class
 """
-from Learner import Learner
-from opt import *
+from .Learner import Learner
+from .opt import *
 
 
 class PairedDual(Learner):

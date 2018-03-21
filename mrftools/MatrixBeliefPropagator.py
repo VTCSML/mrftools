@@ -1,7 +1,7 @@
 """BeliefPropagator class."""
 import numpy as np
 
-from Inference import Inference
+from .Inference import Inference
 
 class MatrixBeliefPropagator(Inference):
     """
@@ -335,7 +335,7 @@ def logsumexp(matrix, dim=None):
     :rtype: ndarray
     """
     try:
-        with np.errstate(over='raise', under='raise'):
+        with np.errstate(over='raise', under='raise', divide='raise'):
             return np.log(np.sum(np.exp(matrix), dim, keepdims=True))
     except:
         max_val = np.nan_to_num(matrix.max(axis=dim, keepdims=True))

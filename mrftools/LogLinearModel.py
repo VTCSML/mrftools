@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from MarkovNet import MarkovNet
+from .MarkovNet import MarkovNet
 
 
 class LogLinearModel(MarkovNet):

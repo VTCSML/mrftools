@@ -4,7 +4,8 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import minimize
-from ConvexBeliefPropagator import ConvexBeliefPropagator
+from .ConvexBeliefPropagator import ConvexBeliefPropagator
+
 
 def instantiate_convex_map(self, model):
     """

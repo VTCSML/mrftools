@@ -1,9 +1,9 @@
 """Class to do generative learning directly on MRF parameters."""
 from copy import deepcopy
 
-from Learner import Learner
-from LogLinearModel import LogLinearModel
-from MatrixBeliefPropagator import MatrixBeliefPropagator
+from .Learner import Learner
+from .LogLinearModel import LogLinearModel
+from .MatrixBeliefPropagator import MatrixBeliefPropagator
 
 
 class ApproxMaxLikelihood(Learner):

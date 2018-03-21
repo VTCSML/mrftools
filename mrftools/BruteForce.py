@@ -153,7 +153,7 @@ class BruteForce(object):
 
             map_dic[state_list] = np.exp(self.mn.evaluate_state(states))
 
-        map_results = max(map_dic.iteritems(), key=operator.itemgetter(1))
+        map_results = max(map_dic.items(), key=operator.itemgetter(1))
         map_values = map_results[1]
         map_states = map_results[0]
         belief_mat = -np.inf * np.ones((max(num_states), len(variables)))
