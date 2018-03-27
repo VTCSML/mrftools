@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.sparse import csc_matrix
 import random
+import copy
 
 from .MatrixBeliefPropagator import MatrixBeliefPropagator, logsumexp, sparse_dot
 from .ConvexBeliefPropagator import ConvexBeliefPropagator
@@ -46,6 +47,13 @@ class PartialConvexBP_CyclicBolck(ConvexBeliefPropagator):
 
         self._subgraph_index = random.randint(0, 100)
         self._num_subsets = 0
+
+        self._summed_features = None
+        self._summed_pair_features = None
+        self._no_sum_features = True
+
+        self._old_belief_mat = None
+        self._old_pair_belief_tensor = None
 
     def separate_nodes(self, num_R, num_C):
         size = list(max(self.mn.variables))
@@ -191,12 +199,16 @@ class PartialConvexBP_CyclicBolck(ConvexBeliefPropagator):
         change = np.inf
         iteration = 0
         self._subgraph_index = self._subgraph_index + 1
+        #print self._subgraph_index
+
         #print self._subgraph_index % self._num_subsets
+
         for it in range(0, self.max_iter):
             change = self.partial_update_messages()
             #print("Iteration %d, change in messages %f." % (it, change))
             if change < tolerance:
                 break
+
 
     def partial_compute_pairwise_beliefs(self):
         if not self.fully_conditioned:
@@ -240,20 +252,81 @@ class PartialConvexBP_CyclicBolck(ConvexBeliefPropagator):
         if self._update_nodes_list == None:
             self.compute_beliefs()
             self.compute_pairwise_beliefs()
+
+
+
         else:
             self.partial_compute_beliefs()
             self.partial_compute_pairwise_beliefs()
 
 
+        if self._no_sum_features == True:
+            self._summed_features = self.mn.unary_feature_mat.dot(np.exp(self.belief_mat).T)
+            self._summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(\
+                (self.mn.max_states ** 2, self.mn.num_edges)).T)
+            self._no_sum_features = True
+
+            self._old_belief_mat = copy.deepcopy(self.belief_mat)
+            self._old_pair_belief_tensor = copy.deepcopy(self.pair_belief_tensor)
+
+        else:
+
+            f = self._subgraph_index % self._num_subsets
+            update_nodes_ids = self._update_nodes_ids_list[f]
+            update_pot_messages_ids = self._update_pot_messages_ids_list[f]
+            num_update_edges = len(update_pot_messages_ids) / 2
 
 
+            diff_belief_mat = np.exp(np.nan_to_num(self.belief_mat[:, update_nodes_ids])) - \
+                                     np.exp(np.nan_to_num(self._old_belief_mat[:, update_nodes_ids]))
+
+            diff_pair_belief_tensor = np.exp(np.nan_to_num(self.pair_belief_tensor[:, :, update_pot_messages_ids[:num_update_edges]])) - \
+                np.exp(np.nan_to_num(self._old_pair_belief_tensor[:, :, update_pot_messages_ids[:num_update_edges]]))
 
 
-        summed_features = self.mn.unary_feature_mat.dot(np.exp(self.belief_mat).T)
+            sub_unary_feature_mat = self.mn.unary_feature_mat[:,update_nodes_ids]
+            sub_edge_feature_mat = self.mn.edge_feature_mat[:, update_pot_messages_ids[:num_update_edges]]
 
-        summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(
-            (self.mn.max_states ** 2, self.mn.num_edges)).T)
+            sub_sum_features = sub_unary_feature_mat.dot(diff_belief_mat.T)
+            sub_sum_pair_features = sub_edge_feature_mat.dot(diff_pair_belief_tensor.reshape(
+                (self.mn.max_states ** 2, num_update_edges)).T)
 
-        marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
+            self._summed_features = self._summed_features + sub_sum_features
+            self._summed_pair_features = self._summed_pair_features + sub_sum_pair_features
+
+            self._old_belief_mat = copy.deepcopy(self.belief_mat)
+            self._old_pair_belief_tensor = copy.deepcopy(self.pair_belief_tensor)
+
+
+        marginals = np.append(self._summed_features.reshape(-1), self._summed_pair_features.reshape(-1))
 
         return marginals
+
+
+    # def get_feature_expectations(self):
+    #     """
+    #     Computes the feature expectations under the currently estimated marginal probabilities. Only works when the
+    #     model is a LogLinearModel class with features for edges.
+    #
+    #     :return: vector of the marginals in order of the flattened unary features first, then the flattened pairwise
+    #                 features
+    #     """
+    #
+    #     if self._update_nodes_list == None:
+    #         self.compute_beliefs()
+    #         self.compute_pairwise_beliefs()
+    #
+    #     else:
+    #         self.partial_compute_beliefs()
+    #         self.partial_compute_pairwise_beliefs()
+    #
+    #
+    #     summed_features = self.mn.unary_feature_mat.dot(np.exp(self.belief_mat).T)
+    #
+    #     summed_pair_features = self.mn.edge_feature_mat.dot(np.exp(self.pair_belief_tensor).reshape(
+    #         (self.mn.max_states ** 2, self.mn.num_edges)).T)
+    #
+    #     marginals = np.append(summed_features.reshape(-1), summed_pair_features.reshape(-1))
+    #
+    #     return marginals
+
