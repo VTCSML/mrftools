@@ -235,7 +235,8 @@ class Learner(object):
         :return: objective value
         """
 
-        self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, True)
+        #self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, True)
+        self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, False)
 
         term_p = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in
                       self.belief_propagators]) / len(self.belief_propagators)
@@ -272,7 +273,8 @@ class Learner(object):
             grad = np.zeros(len(weights))
             return grad
         else:
-            self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, False)
+            #self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, False)
+            self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, True)
 
             grad = np.zeros(len(weights))
 

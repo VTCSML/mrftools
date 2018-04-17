@@ -95,10 +95,10 @@ if __name__ == '__main__':
     print "process results"
 
     parser = argparse.ArgumentParser(description='BP accuracy')
-    parser.add_argument("-p", "--input_dir", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/scene_FCN/pbp_5", type=str, help="path to the weights")
+    parser.add_argument("-p", "--input_dir", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/scene_FCN/pbp_pixel", type=str, help="path to the weights")
     parser.add_argument("-d", "--data_dir", default="/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/scene", type=str, help="path to the data")
     parser.add_argument("-s", "--size", default=50, type=int, help="iamge size")
-    parser.add_argument("-a", "--algorithm", default="pbp5", type=str, help="algorithm name")
+    parser.add_argument("-a", "--algorithm", default="pbp_pixel", type=str, help="algorithm name")
     parser.add_argument("-w", "--weight_star", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/scene_FCN/convexBP/weights_1965.txt", type=str, help="path to weight star")
     parser.add_argument("-c", "--num_class", default=9, type=int, help="number of class")
     args = parser.parse_args()
@@ -107,9 +107,10 @@ if __name__ == '__main__':
     iterations, running_time = load_time(osp.join(args.input_dir, "time.txt"))
     all_weights = load_all_weights(iterations, args.input_dir)
 
-    # norm_list = compute_norm(all_weights, weights_star)
-    # output_processed_results(running_time, norm_list, args.input_dir, "weights_norm", args.algorithm)
+    norm_list = compute_norm(all_weights, weights_star)
+    output_processed_results(running_time, norm_list, args.input_dir, "weights_norm", args.algorithm)
+    print "done weights"
 
     models, labels, names = batch_load_images_features(args.data_dir, args.size, "valid", args.num_class)
-    new_running_time_list, obj_value_list = get_true_objective_values(all_weights, models, labels, 50, running_time, iterations)
+    new_running_time_list, obj_value_list = get_true_objective_values(all_weights, models, labels, 500, running_time, iterations)
     output_processed_results(new_running_time_list, obj_value_list, args.input_dir, "true_objective_values", args.algorithm)

@@ -22,7 +22,7 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
     t = 0
     if not args:
         args = {}
-    tolerance = args.get('tolerance', 3e-4)
+    tolerance = args.get('tolerance', 3e-3)
     max_iter = args.get('max_iter', 30000)
     change = np.inf
 
@@ -65,11 +65,11 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     t = 1
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 1e-6)
+    x_tol = args.get('x_tol', 8e-5)
     g_tol = args.get('g_tol', 1e-6)
-    eta = args.get('eta', 1.0)
+    eta = args.get('eta', 0.5)
     offset = args.get('offset', 1.0)
-    max_iter = args.get('max_iter', 30001)
+    max_iter = args.get('max_iter', 20001)
 
     grad_norm = np.inf
     x_change = np.inf
@@ -77,18 +77,42 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     grad_sum = 0
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
 
+
         print "iteration: %d"%t
-        func(x, args)
+        #print "fun1"
+
+        #func(x, args)
+
+        #print "grad"
         g = grad(x, args)
+
+        if callback:
+           callback(x, output_dir)
+
+
+
         grad_sum += g * g
-        change = eta * g / (np.sqrt(grad_sum) + offset)
+
+        if t < 20000:
+            lr = pow(t + 1e1, -0.5)
+            change = lr * g
+        else:
+            change = eta * g / (np.sqrt(grad_sum) + offset)
+
+
+
         x = x - change
+        #print "x change"
+        a = x
 
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
 
-        if callback:
-           callback(x, output_dir)
+
+
+
+
+
 
         t += 1
     print "end at iteration %d"%t
@@ -178,8 +202,13 @@ def adam(func, grad, x, output_dir, args={}, callback=None):
     while grad_norm > g_tol and x_change > x_tol and t < max_iter:
         print "iteration: %d"%t
 
-        func(x, args)
+        # func(x, args)
+        # g = grad(x, args)
+
         g = grad(x, args)
+
+        if callback:
+           callback(x, output_dir)
 
         m = (1 - b1) * g + b1 * m
         v = (1 - b2) * (g ** 2) + b2 * v
@@ -192,8 +221,8 @@ def adam(func, grad, x, output_dir, args={}, callback=None):
         x_change = np.sqrt(change.dot(change))
 
         t += 1
-        if callback:
-            callback(x, output_dir)
+        # if callback:
+        #     callback(x, output_dir)
     return x
 
 
@@ -277,11 +306,14 @@ class ObjectivePlotter(object):
         objective_value = None
         running_time = None
 
+        if self.t < 1:
+            self.starttime = time.clock()
 
-        if ((0 < self.t < 10) or self.t % 5 == 0):
+
+        if ((0 < self.t < 10) or self.t % 1000 == 0):
+            #print "fun2"
             objective_value = self.func(x)
-            if self.t < 1:
-                self.starttime = time.clock()
+
             running_time = time.clock() - self.starttime
             weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
             save_load_weights.save_weights(x, weight_path)

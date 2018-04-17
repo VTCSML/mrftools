@@ -214,6 +214,7 @@ class MatrixBeliefPropagator(Inference):
             iteration += 1
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
+        #print "end at %d"%iteration
 
     def load_beliefs(self):
         """
@@ -290,8 +291,8 @@ class MatrixBeliefPropagator(Inference):
 
         :return: computed energy functional
         """
-        self.compute_beliefs()
-        self.compute_pairwise_beliefs()
+        # self.compute_beliefs()
+        # self.compute_pairwise_beliefs()
         return self.compute_energy() + self.compute_bethe_entropy()
 
     def compute_dual_objective(self):

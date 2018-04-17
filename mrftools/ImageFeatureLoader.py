@@ -15,8 +15,6 @@ from PIL import Image
 from torch.nn.functional import upsample
 from numpy.linalg import norm
 
-import matplotlib.pyplot as plt
-
 
 class ImageFeatureLoader(object):
 
@@ -54,7 +52,9 @@ class ImageFeatureLoader(object):
         img1 = img
 
         if self.max_width > 0 and self.max_height > 0:
-            img = img.resize((self.max_width, self.max_height), resample=PIL.Image.BICUBIC)
+            img = img.resize((self.max_height, self.max_width), resample=PIL.Image.BICUBIC)
+            #img = img.resize((self.max_width, self.max_height), resample=PIL.Image.BICUBIC)
+
 
         return img
 
@@ -243,14 +243,23 @@ class ImageFeatureLoader(object):
     @staticmethod
     def compute_features(image_features, name):
         (channel, height, width) = image_features.shape
+        ()
         feature_dict = {}
         nthresh = 10
 
-        for x in range(width):
-            for y in range(height):
+        # for x in range(width):
+        #     for y in range(height):
+        #         feature_dict[(x,y)] = image_features[:,x,y]
+        #
+        # edges = ImageFeatureLoader.get_all_edges(height, width)
+
+        for x in range(height):
+            for y in range(width):
                 feature_dict[(x,y)] = image_features[:,x,y]
 
-        edges = ImageFeatureLoader.get_all_edges(height, width)
+        edges = ImageFeatureLoader.get_all_edges(width, height)
+
+
 
         edge_feature_mat = np.zeros((len(edges), nthresh + 1))
         diff_list = list()
@@ -268,9 +277,9 @@ class ImageFeatureLoader(object):
 
         edge_feature_vectors = [np.array(x) for x in edge_feature_mat.tolist()]
         edge_feature_dict = dict(zip(edges, edge_feature_vectors))
-        plt.hist(diff_list, normed=False, bins=10)
-        plt.savefig("/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/results/%s.jpg"%name)
-        plt.clf()
+        # plt.hist(diff_list, normed=False, bins=10)
+        # plt.savefig("/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/results/%s.jpg"%name)
+        # plt.clf()
 
         return feature_dict, edge_feature_dict
 
