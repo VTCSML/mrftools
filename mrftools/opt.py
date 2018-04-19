@@ -310,7 +310,7 @@ class ObjectivePlotter(object):
             self.starttime = time.clock()
 
 
-        if ((0 < self.t < 10) or self.t % 1000 == 0):
+        if ((0 < self.t < 10) or self.t % 5 == 0):
             #print "fun2"
             objective_value = self.func(x)
 

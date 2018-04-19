@@ -25,7 +25,7 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--input_dir", default="/Users/youlu/Documents/PycharmProjects/fcn_8s_pytorch/data/horse", type=str, help="path to the input data")
     parser.add_argument("-o", "--out_dir", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/horse_FCN/", type=str, help="path to the results")
     parser.add_argument("-p", "--plot_path", default="/Users/youlu/Documents/workspace/mrftools/tests/test_results/ConvexBP_100.jpg", type=str, help="path to save the plot")
-    parser.add_argument("-s", "--size", default=100, type=int, help="iamge size")
+    parser.add_argument("-s", "--size", default=10, type=int, help="iamge size")
     parser.add_argument("-c", "--num_class", default=2, type=int, help="number of class")
     parser.add_argument("-n", "--output_name", default = "ConvexBP_weights", type = str, help="the weights name")
     parser.add_argument("-t", "--inference_type", default="ConvexBeliefPropagator", type = str, help="the inference type")
