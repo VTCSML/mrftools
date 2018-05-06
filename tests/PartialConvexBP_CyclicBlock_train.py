@@ -67,4 +67,4 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--inference_type", default="PartialConvexBP_CyclicBlock", type = str, help="the inference type")
     args = parser.parse_args()
     inference = Inference_names[args.inference_type]
-    FCN_features_train(args.input_dir, "train", args.out_dir, args.size, args.row_size, args.column_size, args.num_class, args.output_name, inference, args.plot_path)
+    FCN_features_train(args.input_dir, "subset", args.out_dir, args.size, args.row_size, args.column_size, args.num_class, args.output_name, inference, args.plot_path)

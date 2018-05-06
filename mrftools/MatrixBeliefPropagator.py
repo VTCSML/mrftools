@@ -201,6 +201,7 @@ class MatrixBeliefPropagator(Inference):
         """
         change = np.inf
         iteration = 0
+        change_list = list()
         while change > tolerance and iteration < self.max_iter:
             change = self.update_messages()
             if display == "full":
@@ -211,10 +212,12 @@ class MatrixBeliefPropagator(Inference):
                       "energy functional: %f, dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
             elif display == "iter":
                 print("Iteration %d, change in messages %f." % (iteration, change))
+                change_list.append((iteration, change))
             iteration += 1
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
         #print "end at %d"%iteration
+        return change_list
 
     def load_beliefs(self):
         """

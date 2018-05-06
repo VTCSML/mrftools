@@ -22,29 +22,39 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
     t = 0
     if not args:
         args = {}
-    tolerance = args.get('tolerance', 3e-3)
-    max_iter = args.get('max_iter', 30000)
-    change = np.inf
+    x_tol = args.get('x_tol', 1e-4)
+    g_tol = args.get('g_tol', 1e-6)
+    max_iter = args.get('max_iter', 20001)
+    grad_norm = np.inf
+    x_change = np.inf
+    lr_list = list()
 
-    while change > tolerance and t < max_iter:
-        old_x = x
+    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+
         print "iteration: %d"%t
         g = grad(x, args)
-        lr = pow(t+1, -0.5)
-        #lr = 0.001
-        x = x - lr * g
-        #x = x - 0.5 * g / t
-        change = np.sum(np.abs(x - old_x))
-        # if t % 100 == 0:
-        #     path = osp.join(output_dir, "weights_%d.txt"%t)
-        #     save_load_weights.save_weights(x, path)
-        #     ob_path = osp.join(output_dir, "objective.txt")
-        #     with open(ob_path, "a") as f:
-        #         f.write(str(func(x, args)))
-        #         f.write("\n")
 
         if callback:
-            callback(x, output_dir)
+           callback(x, output_dir)
+
+
+        lr = pow(t+ 1e1, -0.5)
+        #lr = pow(, -0.5)
+        change = lr * g
+        lr_list.append(lr)
+
+        f = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/sgd.txt"
+        np.savetxt(f, lr_list)
+
+
+
+        #lr = 0.001
+
+        x = x - change
+
+        grad_norm = np.sqrt(g.dot(g))
+        x_change = np.sqrt(change.dot(change))
+
         t += 1
 
     return x
@@ -62,10 +72,10 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     :return: optimized solution
     """
 
-    t = 1
+    t = 0
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 8e-5)
+    x_tol = args.get('x_tol', 1e-4)
     g_tol = args.get('g_tol', 1e-6)
     eta = args.get('eta', 0.5)
     offset = args.get('offset', 1.0)
@@ -75,8 +85,9 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     x_change = np.inf
 
     grad_sum = 0
-    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
 
+    lr_list = list()
+    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
 
         print "iteration: %d"%t
         #print "fun1"
@@ -89,29 +100,31 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
         if callback:
            callback(x, output_dir)
 
-
-
         grad_sum += g * g
 
-        if t < 20000:
+        if t < 0:
             lr = pow(t + 1e1, -0.5)
             change = lr * g
         else:
-            change = eta * g / (np.sqrt(grad_sum) + offset)
+            lr = eta / (np.sqrt(grad_sum) + offset)
+            change = lr * g
 
+
+        # index = [1, 20, 66, 69, 120]
+        # lr_list.append((t, lr[index]))
+        # f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adagrad.txt", "w")
+        # for i in range(0,len(lr_list)):
+        #     it, line = lr_list[i]
+        #     f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
+        #     f.write("\n")
+        # f.close()
 
 
         x = x - change
         #print "x change"
-        a = x
 
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
-
-
-
-
-
 
 
         t += 1
@@ -120,6 +133,139 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     # if callback:
     #     callback(x, output_dir)
     return x
+
+
+def adam(func, grad, x, output_dir, args={}, callback=None):
+    """
+    Adam adaptive gradient optimizer
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
+
+    t = 0
+    if not args:
+        args = {}
+    x_tol = args.get('x_tol', 8e-5)
+    g_tol = args.get('g_tol', 1e-6)
+    eps = args.get('eps', 0.1)
+    b1 = args.get('b1', 0.9)
+    b2 = args.get('b2', 0.999)
+    step_size = args.get('step_size', 0.1)
+    max_iter = args.get('max_iter', 10001)
+
+    grad_norm = np.inf
+    x_change = np.inf
+
+    m = np.zeros(len(x))
+    v = np.zeros(len(x))
+
+    lr_list = list()
+
+    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+        print "iteration: %d"%t
+
+        g = grad(x, args)
+
+        if callback:
+           callback(x, output_dir)
+
+        m = (1 - b1) * g + b1 * m
+        v = (1 - b2) * (g ** 2) + b2 * v
+        m_hat = m / (1 - b1 ** (t + 1))
+        v_hat = v / (1 - b2 ** (t + 1))
+        lr = step_size / (np.sqrt(v_hat) + eps)
+        change = lr * m_hat
+        x = x - change
+
+        index = [1, 20, 66, 69, 120]
+        lr_list.append((t, lr[index]))
+        f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adam.txt", "w")
+        for i in range(0,len(lr_list)):
+            it, line = lr_list[i]
+            f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
+            f.write("\n")
+        f.close()
+
+        grad_norm = np.sqrt(g.dot(g))
+        x_change = np.sqrt(change.dot(change))
+
+        t += 1
+
+    return x
+
+
+def ada_delta(func, grad, x, output_dir, args={}, callback=None):
+
+    t = 0
+    if not args:
+        args = {}
+    x_tol = args.get('x_tol', 8e-5)
+    g_tol = args.get('g_tol', 1e-6)
+    eta = args.get('offset', 1e-6)
+    eta1 = args.get('eta', 1e-6)
+    rhot = 0.9
+    max_iter = args.get('max_iter', 20001)
+
+    grad_norm = np.inf
+    x_change = np.inf
+
+    grad_sum = 0
+    Eg = 0.0
+    Ex = 0.0
+
+    lr_list = list()
+    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+
+        print "iteration: %d"%t
+        #print "fun1"
+
+        #func(x, args)
+
+        #print "grad"
+        g = grad(x, args)
+
+        if callback:
+           callback(x, output_dir)
+
+        Eg = rhot * Eg + (1 - rhot) * pow(g,2)
+
+        rms_g = pow(Eg + eta1, 0.5)
+        rms_x = pow(Ex + eta, 0.5)
+
+        lr = rms_x / rms_g
+        change = lr * g
+
+
+        index = [1, 20, 66, 69, 120]
+        lr_list.append((t, lr[index]))
+        f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adadelta.txt", "w")
+        for i in range(0,len(lr_list)):
+            it, line = lr_list[i]
+            f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
+            f.write("\n")
+        f.close()
+
+
+        x = x - change
+
+        grad_norm = np.sqrt(g.dot(g))
+        x_change = np.sqrt(change.dot(change))
+
+        Ex = rhot * Ex + (1 - rhot) * pow(change,2)
+
+
+        t += 1
+    print "end at iteration %d"%t
+
+    # if callback:
+    #     callback(x, output_dir)
+    return x
+
+
 
 
 def rms_prop(func, grad, x, args={}, callback=None):
@@ -168,61 +314,6 @@ def rms_prop(func, grad, x, args={}, callback=None):
 
     if callback:
         callback(x)
-    return x
-
-
-def adam(func, grad, x, output_dir, args={}, callback=None):
-    """
-    Adam adaptive gradient optimizer
-    :param func: function to be minimized (used here only to update the gradient)
-    :param grad: gradient function that returns the gradient of the function to be minimized
-    :param x: vector initial value of value being optimized over
-    :param args: arguments with optimizer options and for the func and grad functions
-    :param callback: function to be called with the current iterate each iteration
-    :return: optimized solution
-    """
-
-    t = 1
-    if not args:
-        args = {}
-    x_tol = args.get('x_tol', 1e-6)
-    g_tol = args.get('g_tol', 1e-6)
-    eps = args.get('eps', 10.0)
-    b1 = args.get('b1', 0.9)
-    b2 = args.get('b2', 0.999)
-    step_size = args.get('step_size', 1.0)
-    max_iter = args.get('max_iter', 10001)
-
-    grad_norm = np.inf
-    x_change = np.inf
-
-    m = np.zeros(len(x))
-    v = np.zeros(len(x))
-
-    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
-        print "iteration: %d"%t
-
-        # func(x, args)
-        # g = grad(x, args)
-
-        g = grad(x, args)
-
-        if callback:
-           callback(x, output_dir)
-
-        m = (1 - b1) * g + b1 * m
-        v = (1 - b2) * (g ** 2) + b2 * v
-        m_hat = m / (1 - b1 ** (t + 1))
-        v_hat = v / (1 - b2 ** (t + 1))
-        change = step_size * m_hat / (np.sqrt(v_hat) + eps)
-        x = x - change
-
-        grad_norm = np.sqrt(g.dot(g))
-        x_change = np.sqrt(change.dot(change))
-
-        t += 1
-        # if callback:
-        #     callback(x, output_dir)
     return x
 
 

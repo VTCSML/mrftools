@@ -44,8 +44,7 @@ def train_model(models, labels, num_class, inference_type, plot_path, output_dir
     weights = learner.learn(initial_weights, output_dir, callback=plotter.callback)
     plt.savefig(plot_path)
 
-    #return weights
-    return 0
+    return weights
 
 
 def FCN_features_train(dir, dataset, output_dir, size, num_class, output_name, inference_type, plot_path):
@@ -73,4 +72,4 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--inference_type", default="ConvexBeliefPropagator", type = str, help="the inference type")
     args = parser.parse_args()
     inference = Inference_names[args.inference_type]
-    FCN_features_train(args.input_dir, "valid", args.out_dir, args.size, args.num_class, args.output_name, inference, args.plot_path)
+    FCN_features_train(args.input_dir, "subset", args.out_dir, args.size, args.num_class, args.output_name, inference, args.plot_path)

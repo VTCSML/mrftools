@@ -9,7 +9,7 @@ class PartialLearner_CyclicBlock(Learner):
         super(PartialLearner_CyclicBlock, self).__init__(inference_type)
         self._num_R = num_R
         self._num_C = num_C
-        self._t = 1
+        self._t = 0
 
     def do_inference(self, belief_propagators):
         """
@@ -27,7 +27,7 @@ class PartialLearner_CyclicBlock(Learner):
             if bp._update_nodes_list == None:
                 bp.separate_graph(self._num_R, self._num_C)
 
-            if self._t < 5:
+            if self._t <= 5:
                 bp.infer(display=self.display)
             else:
                 bp.partial_infer()

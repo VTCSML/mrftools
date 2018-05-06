@@ -94,6 +94,7 @@ class ConvexBeliefPropagator(MatrixBeliefPropagator):
 
         change = np.sum(np.abs(messages - self.message_mat))
 
+
         self.message_mat = messages
 
         return change
