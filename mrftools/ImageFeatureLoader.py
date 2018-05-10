@@ -52,15 +52,15 @@ class ImageFeatureLoader(object):
         img1 = img
 
         if self.max_width > 0 and self.max_height > 0:
-            img = img.resize((self.max_height, self.max_width), resample=PIL.Image.BICUBIC)
-            #img = img.resize((self.max_width, self.max_height), resample=PIL.Image.BICUBIC)
+            #img = img.resize((self.max_height, self.max_width), resample=PIL.Image.BICUBIC)
+            img = img.resize((self.max_width, self.max_height), resample=PIL.Image.BICUBIC)
 
 
         return img
 
     def preprocess_label(self, label):
-        h,w = label.size()
-        resize_label = label.view(1,1,h,w)
+        w,h = label.size()
+        resize_label = label.view(1,1,w,h)
         resize_label = upsample(resize_label, size=[self.max_width, self.max_height], mode = 'bilinear')
         label_data = resize_label.data.numpy()[0,0,:,:]
         label_data = np.round(label_data)
@@ -68,8 +68,8 @@ class ImageFeatureLoader(object):
         return label_data
 
     def preprocess_features(self, image):
-        c,h,w = image.size()
-        image= image.view(1,c,h,w)
+        c,w,h = image.size()
+        image= image.view(1,c,w,h)
         image = upsample(image, size=[self.max_width, self.max_height], mode = 'bilinear')
         image_data = image.data.numpy()[0,:,:,:]
         return image_data
@@ -94,9 +94,9 @@ class ImageFeatureLoader(object):
 
     def load_label_dict(self, label):
         label_dict = dict()
-        (h,w) = label.shape
-        for x in range(0,h):
-            for y in range(0,w):
+        (w,h) = label.shape
+        for x in range(0,w):
+            for y in range(0,h):
                 label_dict[(x, y)] = label[x, y]
         return label_dict
 
@@ -146,8 +146,8 @@ class ImageFeatureLoader(object):
     @staticmethod
     def create_model(image_features,num_states, name):
         model = LogLinearModel()
-        (c,h,w) = image_features.shape
-        tree_prob = ImageFeatureLoader.calculate_tree_probabilities_snake_shape(h, w)
+        (c,w,h) = image_features.shape
+        tree_prob = ImageFeatureLoader.calculate_tree_probabilities_snake_shape(w,h)
         model.tree_probabilities = tree_prob
         feature_dict, edge_feature_dict = ImageFeatureLoader.compute_features(image_features, name)
 
@@ -187,7 +187,7 @@ class ImageFeatureLoader(object):
             plt.pause(1e-10)
 
     @staticmethod
-    def get_all_edges(height,width):
+    def get_all_edges(width,height):
 
         edges = []
 
@@ -242,7 +242,7 @@ class ImageFeatureLoader(object):
 
     @staticmethod
     def compute_features(image_features, name):
-        (channel, height, width) = image_features.shape
+        (channel, width, height) = image_features.shape
         ()
         feature_dict = {}
         nthresh = 10
@@ -253,8 +253,8 @@ class ImageFeatureLoader(object):
         #
         # edges = ImageFeatureLoader.get_all_edges(height, width)
 
-        for x in range(height):
-            for y in range(width):
+        for x in range(width):
+            for y in range(height):
                 feature_dict[(x,y)] = image_features[:,x,y]
 
         edges = ImageFeatureLoader.get_all_edges(width, height)

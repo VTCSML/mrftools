@@ -38,13 +38,68 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
            callback(x, output_dir)
 
 
-        lr = pow(t+ 1e1, -0.5)
-        #lr = pow(, -0.5)
+        #lr = pow(t+ 1e1, -0.5)
+        #lr = 2e-3 #scene_lr
+        lr = 5e-3 # horse_lr
         change = lr * g
         lr_list.append(lr)
 
         f = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/sgd.txt"
         np.savetxt(f, lr_list)
+
+
+
+        #lr = 0.001
+
+        x = x - change
+
+        grad_norm = np.sqrt(g.dot(g))
+        x_change = np.sqrt(change.dot(change))
+
+        t += 1
+
+    return x
+
+
+def momentum(func, grad, x, output_dir, args={}, callback=None):
+    """
+    Stochastic gradient descent with a linear rate decay
+    :param func: function to be minimized (used here only to update the gradient)
+    :param grad: gradient function that returns the gradient of the function to be minimized
+    :param x: vector initial value of value being optimized over
+    :param args: arguments with optimizer options and for the func and grad functions
+    :param callback: function to be called with the current iterate each iteration
+    :return: optimized solution
+    """
+    t = 0
+    if not args:
+        args = {}
+    x_tol = args.get('x_tol', 1e-4)
+    g_tol = args.get('g_tol', 1e-6)
+    max_iter = args.get('max_iter', 20001)
+    grad_norm = np.inf
+    x_change = np.inf
+    lr_list = list()
+    beta = 0.9
+    z = 0.0
+
+    while grad_norm > g_tol and x_change > x_tol and t < max_iter:
+
+        print "iteration: %d"%t
+        g = grad(x, args)
+
+        if callback:
+           callback(x, output_dir)
+
+
+        lr = pow(t+ 1e1, -0.5)
+        z = beta * z + g
+        #lr = pow(, -0.5)
+        change = lr * z
+        # lr_list.append(lr)
+        #
+        # f = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/sgd.txt"
+        # np.savetxt(f, lr_list)
 
 
 
@@ -77,8 +132,8 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
         args = {}
     x_tol = args.get('x_tol', 1e-4)
     g_tol = args.get('g_tol', 1e-6)
-    eta = args.get('eta', 0.5)
-    offset = args.get('offset', 1.0)
+    eta = args.get('eta', 3e-2)
+    offset = args.get('offset', 3e-2)
     max_iter = args.get('max_iter', 20001)
 
     grad_norm = np.inf
@@ -110,14 +165,14 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
             change = lr * g
 
 
-        # index = [1, 20, 66, 69, 120]
-        # lr_list.append((t, lr[index]))
-        # f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adagrad.txt", "w")
-        # for i in range(0,len(lr_list)):
-        #     it, line = lr_list[i]
-        #     f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
-        #     f.write("\n")
-        # f.close()
+        index = [1, 20, 66, 69, 120]
+        lr_list.append((t, lr[index]))
+        f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adagrad.txt", "w")
+        for i in range(0,len(lr_list)):
+            it, line = lr_list[i]
+            f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
+            f.write("\n")
+        f.close()
 
 
         x = x - change
@@ -206,9 +261,9 @@ def ada_delta(func, grad, x, output_dir, args={}, callback=None):
     x_tol = args.get('x_tol', 8e-5)
     g_tol = args.get('g_tol', 1e-6)
     eta = args.get('offset', 1e-6)
-    eta1 = args.get('eta', 1e-6)
+    eta1 = args.get('eta', 3e-6)
     rhot = 0.9
-    max_iter = args.get('max_iter', 20001)
+    max_iter = args.get('max_iter', 562)
 
     grad_norm = np.inf
     x_change = np.inf
@@ -401,20 +456,20 @@ class ObjectivePlotter(object):
             self.starttime = time.clock()
 
 
-        if ((0 < self.t < 10) or self.t % 5 == 0):
+        if ((0 < self.t < 10) or self.t % 5000 == 0):
             #print "fun2"
             objective_value = self.func(x)
 
             running_time = time.clock() - self.starttime
-            weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
-            save_load_weights.save_weights(x, weight_path)
-            with open(osp.join(output_dir, "time.txt"), "a") as f_t:
-                f_t.write(str(self.t) + "\t")
-                f_t.write(str(running_time))
-                f_t.write("\n")
-            with open(osp.join(output_dir, "objective.txt"), "a") as f_o:
-                f_o.write(str(objective_value))
-                f_o.write("\n")
+            # weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
+            # save_load_weights.save_weights(x, weight_path)
+            # with open(osp.join(output_dir, "time.txt"), "a") as f_t:
+            #     f_t.write(str(self.t) + "\t")
+            #     f_t.write(str(running_time))
+            #     f_t.write("\n")
+            # with open(osp.join(output_dir, "objective.txt"), "a") as f_o:
+            #     f_o.write(str(objective_value))
+            #     f_o.write("\n")
 
 
         if elapsed_time > self.interval or 0 < self.t < 10:

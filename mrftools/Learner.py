@@ -318,3 +318,51 @@ class Learner(object):
         objec += self.term_q_p
 
         return objec
+
+
+    def subgrad_obj1(self, weights, options=None, do_inference=True):
+        """
+        Compute the variational negative log likelihood. Performs inference on latent variables in the labeled
+        inference objects before calling the EM objective
+
+        :param weights: Weight vector containing the same number of entries as all weights for this model
+        :param do_inference: Boolean value indicating whether or not to run inference. Defaults to True.
+        :return: objective value (float)
+        """
+        if self.label_expectations is None or not self.fully_observed:
+            self.label_expectations = self.calculate_expectations(weights, self.conditioned_belief_propagators,
+                                                                  do_inference)
+        return self.objective1(weights)
+
+
+    def objective1(self, weights, options=None):
+        """
+        Return the primal regularized negative variational log likelihood
+        :param weights: weight vector containing weights for all potentials
+        :param options: Unused (for now) options for objective function
+        :return: objective value
+        """
+
+        self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, True)
+        #self.inferred_expectations = self.calculate_expectations(weights, self.belief_propagators, False)
+
+        term_p = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in
+                      self.belief_propagators]) / len(self.belief_propagators)
+
+        if not self.fully_observed:
+            # recompute energy functional for label distributions only in latent variable case
+            self.set_weights(weights, self.conditioned_belief_propagators)
+            term_q = sum([np.true_divide(x.compute_energy_functional(), len(x.mn.variables)) for x in
+                          self.conditioned_belief_propagators]) / len(self.conditioned_belief_propagators)
+        else:
+            term_q = np.dot(self.label_expectations, weights)
+
+        self.term_q_p = term_p - term_q
+
+        objective = 0.0
+        # add regularization penalties
+        objective += self.l1_regularization * np.sum(np.abs(weights))
+        objective += self.l2_regularization * weights.dot(weights)
+        objective += self.term_q_p
+
+        return objective

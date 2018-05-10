@@ -327,7 +327,7 @@ class PartialConvexBP_CyclicBolck(ConvexBeliefPropagator):
 
     def update_summed_features(self):
 
-        if self._t <= 5:
+        if self._t <= 3:
             self.compute_beliefs()
             self.compute_pairwise_beliefs()
 

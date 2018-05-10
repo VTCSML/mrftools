@@ -22,7 +22,8 @@ class PairedDual(Learner):
         self.bp_iter = bp_iter
         self.warm_up = warm_up
 
-    def learn(self, weights, optimizer=ada_grad, callback=None, opt_args=None):
+    #def learn(self, weights, optimizer=sgd, callback=None, opt_args=None):
+    def learn(self, weights, output_dir, optimizer=sgd, callback=None, opt_args=None):
         """
         Fit model parameters my jointly solving the full dual saddle-point objective that includes optimization over
         estimated expectations of output variables and latent variables as well as weight optimization. 
@@ -40,6 +41,7 @@ class PairedDual(Learner):
                 bp.update_messages()
 
         self.start_time = time.time()
-        new_weights = optimizer(self.dual_obj, self.subgrad_grad, weights, args=opt_args, callback=callback)
+        #new_weights = optimizer(self.dual_obj, self.subgrad_grad, weights, args=opt_args, callback=callback)
+        new_weights = optimizer(self.subgrad_obj, self.subgrad_grad, weights, output_dir, opt_args, callback=callback)
 
         return new_weights
