@@ -44,12 +44,7 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
         change = lr * g
         lr_list.append(lr)
 
-        f = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/sgd.txt"
-        np.savetxt(f, lr_list)
 
-
-
-        #lr = 0.001
 
         x = x - change
 
@@ -96,11 +91,6 @@ def momentum(func, grad, x, output_dir, args={}, callback=None):
         z = beta * z + g
         #lr = pow(, -0.5)
         change = lr * z
-        # lr_list.append(lr)
-        #
-        # f = "/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/sgd.txt"
-        # np.savetxt(f, lr_list)
-
 
 
         #lr = 0.001
@@ -165,16 +155,6 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
             change = lr * g
 
 
-        index = [1, 20, 66, 69, 120]
-        lr_list.append((t, lr[index]))
-        f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adagrad.txt", "w")
-        for i in range(0,len(lr_list)):
-            it, line = lr_list[i]
-            f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
-            f.write("\n")
-        f.close()
-
-
         x = x - change
         #print "x change"
 
@@ -236,14 +216,6 @@ def adam(func, grad, x, output_dir, args={}, callback=None):
         change = lr * m_hat
         x = x - change
 
-        index = [1, 20, 66, 69, 120]
-        lr_list.append((t, lr[index]))
-        f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adam.txt", "w")
-        for i in range(0,len(lr_list)):
-            it, line = lr_list[i]
-            f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
-            f.write("\n")
-        f.close()
 
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
@@ -293,16 +265,6 @@ def ada_delta(func, grad, x, output_dir, args={}, callback=None):
 
         lr = rms_x / rms_g
         change = lr * g
-
-
-        index = [1, 20, 66, 69, 120]
-        lr_list.append((t, lr[index]))
-        f = open("/Users/youlu/Documents/workspace/mrftools/tests/test_results/diff_lr/adadelta.txt", "w")
-        for i in range(0,len(lr_list)):
-            it, line = lr_list[i]
-            f.write(str(it) + "\t" + str(line[0]) + "\t" + str(line[1]) + "\t" + str(line[2]) + "\t" + str(line[3]) + "\t" + str(line[4]))
-            f.write("\n")
-        f.close()
 
 
         x = x - change
@@ -456,20 +418,20 @@ class ObjectivePlotter(object):
             self.starttime = time.clock()
 
 
-        if ((0 < self.t < 10) or self.t % 5000 == 0):
+        if ((0 < self.t < 10) or self.t % 5 == 0):
             #print "fun2"
             objective_value = self.func(x)
 
             running_time = time.clock() - self.starttime
-            # weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
-            # save_load_weights.save_weights(x, weight_path)
-            # with open(osp.join(output_dir, "time.txt"), "a") as f_t:
-            #     f_t.write(str(self.t) + "\t")
-            #     f_t.write(str(running_time))
-            #     f_t.write("\n")
-            # with open(osp.join(output_dir, "objective.txt"), "a") as f_o:
-            #     f_o.write(str(objective_value))
-            #     f_o.write("\n")
+            weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
+            save_load_weights.save_weights(x, weight_path)
+            with open(osp.join(output_dir, "time.txt"), "a") as f_t:
+                f_t.write(str(self.t) + "\t")
+                f_t.write(str(running_time))
+                f_t.write("\n")
+            with open(osp.join(output_dir, "objective.txt"), "a") as f_o:
+                f_o.write(str(objective_value))
+                f_o.write("\n")
 
 
         if elapsed_time > self.interval or 0 < self.t < 10:
