@@ -63,6 +63,7 @@ class Learner(object):
         else:
             bp = self.inference_type(model)
 
+
         if self.loss_augmented:
             # if we are using augmented loss for max-margin learning, add loss-augmented potentials to inference
             for (var, state) in labels.items():
@@ -84,16 +85,21 @@ class Learner(object):
         else:
             conditioned_bp = self.inference_type(model)
 
+
         for (var, state) in labels.items():
             conditioned_bp.condition(var, state)
 
-        for var in model.variables:
-            if var not in labels.keys():
-                self.fully_observed = False
+
+
+        # for var in model.variables:
+        #     if var not in labels.keys():
+        #         self.fully_observed = False
+
 
         self.conditioned_belief_propagators.append(conditioned_bp)
 
         self.num_examples += 1
+
 
     def _set_initialize_every_iter(self, flag):
         """

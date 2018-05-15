@@ -1,7 +1,7 @@
 """Optimization utility class containing various optimizers and utility objects for callback functions"""
 import time
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import save_load_weights
 import os.path as osp
@@ -40,7 +40,8 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
 
         #lr = pow(t+ 1e1, -0.5)
         #lr = 2e-3 #scene_lr
-        lr = 5e-3 # horse_lr
+        #lr = 5e-3 # horse_lr
+        lr = 1e-3 # whole scene lr
         change = lr * g
         lr_list.append(lr)
 

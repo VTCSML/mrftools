@@ -26,6 +26,6 @@ from .PartialLearner_CyclicBlock import PartialLearner_CyclicBlock
 import save_load_weights
 from .ImageFeatureLoader import ImageFeatureLoader
 from .ImageFeatureLoader_scene import ImageFeatureLoader_scene
-from .GradientInference import GradientInference
+#from .GradientInference import GradientInference
 from .opt import *
 from .util import *
