@@ -35,7 +35,8 @@ class MaxProductLinearProgramming(MaxProductBeliefPropagator):
 
         messages = np.nan_to_num(messages - messages.max(0))
 
-        change = np.sum(np.abs(messages - self.message_mat))
+        with np.errstate(over='ignore'):
+            change = np.sum(np.abs(messages - self.message_mat))
 
         self.message_mat = messages
 

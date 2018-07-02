@@ -1,6 +1,6 @@
 """BeliefPropagator class."""
 # import numpy as np
-from Inference import Inference
+from .Inference import Inference
 import torch as t
 from torch.autograd import Variable
 '''

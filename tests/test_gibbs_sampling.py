@@ -28,16 +28,16 @@ class TestGibbsSampling(unittest.TestCase):
 
         gb = GibbsSampler(mn)
         gb.init_states()
-        itr = 1000
+        burn_in = 1000
         num = 10000
-        gb.gibbs_sampling(itr, num)
+        gb.gibbs_sampling(burn_in, num)
 
         bf = BruteForce(mn)
         for var in mn.variables:
             gb_result = gb.count_occurrences(var) / num
             bf_result = bf.unary_marginal(var)
-            print(gb_result)
-            print(bf_result)
+            print("Gibbs result: ", gb_result)
+            print("Brute force result", bf_result)
             np.testing.assert_allclose(gb_result, bf_result, rtol=1e-1, atol=0)
 
 

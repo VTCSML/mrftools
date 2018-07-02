@@ -6,7 +6,7 @@ from collections import Counter
 
 import numpy as np
 import pandas as pd
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 
 
 class GibbsSampler(object):
@@ -97,5 +97,5 @@ class GibbsSampler(object):
         :rtype: arraylike
         """
         counts = Counter(pd.DataFrame(self.samples)[var])
-        count_array = np.asarray(list(counts.values()))
+        count_array = np.asarray([counts[x] for x in range(self.mn.num_states[var])])
         return count_array
