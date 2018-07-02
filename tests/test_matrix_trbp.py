@@ -175,8 +175,8 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
             trbp_z = trbp.compute_energy_functional()
             true_z = np.log(bf.compute_z())
 
-            print ("Tree Bethe energy functional:       %f" % trbp_z)
-            print ("Brute force log partition function: %f" % true_z)
+            print("Tree Bethe energy functional:       %f" % trbp_z)
+            print("Brute force log partition function: %f" % true_z)
 
             print ("Is the TRBP energy functional an upper bound? %s" %
                    (trbp_z >= true_z))

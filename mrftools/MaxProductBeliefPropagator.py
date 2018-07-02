@@ -1,7 +1,7 @@
 """Class to run max-product belief propagation."""
 import numpy as np
 
-from MatrixBeliefPropagator import MatrixBeliefPropagator, sparse_dot, logsumexp
+from .MatrixBeliefPropagator import MatrixBeliefPropagator, sparse_dot, logsumexp
 
 
 class MaxProductBeliefPropagator(MatrixBeliefPropagator):

@@ -57,14 +57,14 @@ class TestConvexBP(unittest.TestCase):
         cbp.load_beliefs()
 
         for i in mn.variables:
-            print ("Convex unary marginal of %d: %s" % (i, repr(np.exp(cbp.var_beliefs[i]))))
-            print ("Matrix TRBP unary marginal of %d: %s" % (i, repr(np.exp(trbp_mat.var_beliefs[i]))))
+            print("Convex unary marginal of %d: %s" % (i, repr(np.exp(cbp.var_beliefs[i]))))
+            print("Matrix TRBP unary marginal of %d: %s" % (i, repr(np.exp(trbp_mat.var_beliefs[i]))))
             assert np.allclose(np.exp(cbp.var_beliefs[i]), np.exp(trbp_mat.var_beliefs[i])), "unary beliefs don't match"
 
-        print ("Convex pairwise marginal: " + repr(np.exp(cbp.pair_beliefs[(0, 1)])))
-        print ("Matrix TRBP pairwise marginal: " + repr(np.exp(trbp_mat.pair_beliefs[(0, 1)])))
+        print("Convex pairwise marginal: " + repr(np.exp(cbp.pair_beliefs[(0, 1)])))
+        print("Matrix TRBP pairwise marginal: " + repr(np.exp(trbp_mat.pair_beliefs[(0, 1)])))
 
-        print ("Pairwise marginal error %f" %
+        print("Pairwise marginal error %f" %
                np.sum(np.abs(np.exp(cbp.pair_beliefs[(0, 1)]) - np.exp(trbp_mat.pair_beliefs[(0, 1)]))))
 
         # plt.subplot(211)
@@ -79,8 +79,8 @@ class TestConvexBP(unittest.TestCase):
                                                                                      "\nCBP:" + repr(
             np.exp(cbp.pair_beliefs[(0, 1)])) + "\nMatTRBP:" + repr(np.exp(trbp_mat.pair_beliefs[(0, 1)]))
 
-        print ("TRBP matrix energy functional: %f" % trbp_mat.compute_energy_functional())
-        print ("Convex energy functional: %f" % cbp.compute_energy_functional())
+        print("TRBP matrix energy functional: %f" % trbp_mat.compute_energy_functional())
+        print("Convex energy functional: %f" % cbp.compute_energy_functional())
 
         assert np.allclose(trbp_mat.compute_energy_functional(), cbp.compute_energy_functional()), \
             "Energy functional is not exact. Convex: %f, Matrix TRBP: %f" % (cbp.compute_energy_functional(),
@@ -114,19 +114,19 @@ class TestConvexBP(unittest.TestCase):
         cbp.load_beliefs()
 
         for i in mn.variables:
-            print ("Convex unary marginal of %d: %s" % (i, repr(np.exp(cbp.var_beliefs[i]))))
-            print ("Matrix BP unary marginal of %d: %s" % (i, repr(np.exp(bp.var_beliefs[i]))))
+            print("Convex unary marginal of %d: %s" % (i, repr(np.exp(cbp.var_beliefs[i]))))
+            print("Matrix BP unary marginal of %d: %s" % (i, repr(np.exp(bp.var_beliefs[i]))))
             assert np.allclose(np.exp(cbp.var_beliefs[i]), np.exp(bp.var_beliefs[i])), "unary beliefs don't match"
 
-        print ("Convex pairwise marginal: " + repr(np.exp(cbp.pair_beliefs[(0, 1)])))
-        print ("Matrix BP pairwise marginal: " + repr(np.exp(bp.pair_beliefs[(0, 1)])))
+        print("Convex pairwise marginal: " + repr(np.exp(cbp.pair_beliefs[(0, 1)])))
+        print("Matrix BP pairwise marginal: " + repr(np.exp(bp.pair_beliefs[(0, 1)])))
 
         assert np.allclose(cbp.pair_beliefs[(0, 1)], bp.pair_beliefs[(0, 1)]), "Pair beliefs don't match: " + \
                                                                                      "\nCBP:" + repr(
             np.exp(cbp.pair_beliefs[(0, 1)])) + "\nMatBP:" + repr(np.exp(bp.pair_beliefs[(0, 1)]))
 
-        print ("Bethe matrix energy functional: %f" % bp.compute_energy_functional())
-        print ("Convex energy functional: %f" % cbp.compute_energy_functional())
+        print("Bethe matrix energy functional: %f" % bp.compute_energy_functional())
+        print("Convex energy functional: %f" % cbp.compute_energy_functional())
 
         assert np.allclose(bp.compute_energy_functional(), cbp.compute_energy_functional()), \
             "Energy functional is not exact. Convex: %f, BP: %f" % (cbp.compute_energy_functional(),

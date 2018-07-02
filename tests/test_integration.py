@@ -14,7 +14,7 @@ class TestIntegration(unittest.TestCase):
         loader = ImageLoader(10, 10)
 
         images, models, labels, names = loader.load_all_images_and_labels(os.path.join(os.path.dirname(__file__),
-                                                                                       'train'), 2, 3)
+                                                                                       'train_data'), 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 
@@ -78,7 +78,7 @@ class TestIntegration(unittest.TestCase):
         np.random.seed(0)
 
         images, models, labels, names = loader.load_all_images_and_labels(
-            os.path.join(os.path.dirname(__file__), 'train'), 2, 1)
+            os.path.join(os.path.dirname(__file__), 'train_data'), 2, 1)
         i = 0
 
         d_unary = 65
@@ -133,7 +133,7 @@ class TestIntegration(unittest.TestCase):
         np.random.seed(0)
 
         images, models, labels, names = loader.load_all_images_and_labels(
-            os.path.join(os.path.dirname(__file__), 'train'), 2, 1)
+            os.path.join(os.path.dirname(__file__), 'train_data'), 2, 1)
         i = 0
 
         d_unary = 65
@@ -194,7 +194,7 @@ class TestIntegration(unittest.TestCase):
         loader = ImageLoader(10, 10)
 
         images, models, labels, names = loader.load_all_images_and_labels(
-            os.path.join(os.path.dirname(__file__), 'train'), 2, 3)
+            os.path.join(os.path.dirname(__file__), 'train_data'), 2, 3)
 
         learner = Learner(MatrixBeliefPropagator)
 
@@ -246,7 +246,7 @@ class TestIntegration(unittest.TestCase):
         loader = ImageLoader(image_size, image_size)
 
         images, models, labels, names = loader.load_all_images_and_labels(
-            os.path.join(os.path.dirname(__file__), 'train'), 2, 2)
+            os.path.join(os.path.dirname(__file__), 'train_data'), 2, 2)
 
         # make latent variable
 

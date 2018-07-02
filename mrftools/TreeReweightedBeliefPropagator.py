@@ -3,8 +3,7 @@ from random import shuffle
 
 import numpy as np
 
-from BeliefPropagator import BeliefPropagator
-from BeliefPropagator import logsumexp
+from .BeliefPropagator import BeliefPropagator, logsumexp
 
 
 class TreeReweightedBeliefPropagator(BeliefPropagator):

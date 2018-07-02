@@ -1,8 +1,8 @@
 """Class to run max-product linear programming for linear-programming MAP inference."""
 import numpy as np
 
-from MatrixBeliefPropagator import sparse_dot
-from MaxProductBeliefPropagator import MaxProductBeliefPropagator
+from .MatrixBeliefPropagator import sparse_dot
+from .MaxProductBeliefPropagator import MaxProductBeliefPropagator
 
 
 class MaxProductLinearProgramming(MaxProductBeliefPropagator):

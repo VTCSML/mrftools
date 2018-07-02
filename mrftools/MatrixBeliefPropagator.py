@@ -1,7 +1,7 @@
 """BeliefPropagator class."""
 import numpy as np
 
-from Inference import Inference
+from .Inference import Inference
 
 class MatrixBeliefPropagator(Inference):
     """

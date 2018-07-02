@@ -47,7 +47,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         """Create a grid-structured MRF"""
         mn = MarkovNet()
 
-        length = 64
+        length = 16
 
         k = 8
 
@@ -66,7 +66,7 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         """Create a grid-structured MRFs with edge potentials that are attractive."""
         mn = MarkovNet()
 
-        length = 2
+        length = 16
 
         k = 8
 
