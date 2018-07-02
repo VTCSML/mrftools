@@ -28,7 +28,7 @@ class TreeReweightedBeliefPropagator(BeliefPropagator):
     def _set_tree_probabilities(self, tree_probabilities):
         self.tree_probabilities = tree_probabilities
 
-        for (edge, prob) in tree_probabilities.items():
+        for (edge, prob) in list(tree_probabilities.items()):
             if edge[::-1] not in tree_probabilities:
                 self.tree_probabilities[edge[::-1]] = prob
 

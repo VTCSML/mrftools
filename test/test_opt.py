@@ -16,10 +16,10 @@ class TestOpt(unittest.TestCase):
             solutions[optimizer] = optimizer(objective, gradient, start)
 
         for opt1, opt2 in itertools.combinations(optimizers, 2):
-            print "*****\n%s: " % opt1.__name__
-            print solutions[opt1]
-            print "%s: " % opt2.__name__
-            print solutions[opt2]
+            print("*****\n%s: " % opt1.__name__)
+            print(solutions[opt1])
+            print("%s: " % opt2.__name__)
+            print(solutions[opt2])
             assert np.allclose(solutions[opt1], solutions[opt2], rtol=1.e-1, atol=1.e-1), \
                 "%s and %s did not get similar solutions." % (opt1.__name__, opt2.__name__)
 
@@ -41,7 +41,7 @@ class TestOpt(unittest.TestCase):
         """Test that optimizers pass arguments to objective"""
 
         def simple_obj(x, args=None):
-            print args
+            print(args)
             if args and args['hello'] is 'world':
                 self.did_receive_obj_args = True
             else:

@@ -179,7 +179,7 @@ class TestMatrixTreeBeliefPropagator(unittest.TestCase):
             print ("Brute force log partition function: %f" % true_z)
 
             print ("Is the TRBP energy functional an upper bound? %s" %
-                   trbp_z >= true_z)
+                   (trbp_z >= true_z))
             assert trbp_z >= true_z, "TRBP energy functional was lower than true log partition"
 
             tr_diff[trial] = trbp_z - true_z

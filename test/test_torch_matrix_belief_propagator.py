@@ -3,6 +3,7 @@ from mrftools import *
 import unittest
 import time
 import torch as t
+import numpy as np
 
 class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     """Test class for TorchMatrixBeliefPropagator"""
@@ -228,7 +229,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             unary_belief = t.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
                 pair_belief = t.sum(t.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                print pair_belief, unary_belief
+                print(pair_belief, unary_belief)
                 if is_cuda:
                     assert np.allclose(pair_belief.cpu().numpy(),
                                        unary_belief.cpu().numpy()), "unary and pairwise beliefs are inconsistent"
@@ -600,9 +601,129 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                         "pairwise beliefs don't agree" + "\n" + repr(cuda_bp.pair_beliefs[edge]) \
                         + "\n" + repr(old_bp.pair_beliefs[edge])
         except AssertionError:
-            print "\n\nCUDA was not found within your PyTorch package\n\n"
+            print("\n\nCUDA was not found within your PyTorch package\n\n")
             assert True
 
+    def validate_params(self, unary_potentials, pairwise_params, edges):
+        n_states = unary_potentials.shape[-1]
+        if pairwise_params.shape == (n_states, n_states):
+            # only one matrix given
+            pairwise_potentials = np.repeat(pairwise_params[np.newaxis, :, :],
+                                            edges.shape[0], axis=0)
+        else:
+            if pairwise_params.shape != (edges.shape[0], n_states, n_states):
+                raise ValueError("Expected pairwise_params either to "
+                                 "be of shape n_states x n_states "
+                                 "or n_edges x n_states x n_states, but"
+                                 " got shape %s" % repr(pairwise_params.shape))
+            pairwise_potentials = pairwise_params
+        return n_states, pairwise_potentials
+
+    def inference_ogm(self, unary_potentials, pairwise_potentials, edges,
+                      return_energy=False, alg='dd', init=None,
+                      reserveNumFactorsPerVariable=2, **kwargs):
+        """Inference with OpenGM backend.
+
+        Parameters
+        ----------
+        unary_potentials : nd-array, shape (n_nodes, n_states)
+            Unary potentials of energy function.
+
+        pairwise_potentials : nd-array, shape (n_states, n_states) or (n_states, n_states, n_edges).
+            Pairwise potentials of energy function.
+            If the first case, edge potentials are assumed to be the same for all edges.
+            In the second case, the sequence needs to correspond to the edges.
+
+        edges : nd-array, shape (n_edges, 2)
+            Graph edges for pairwise potentials, given as pair of node indices. As
+            pairwise potentials are not assumed to be symmetric, the direction of
+            the edge matters.
+
+        alg : string
+            Possible choices currently are:
+                * 'bp' for Loopy Belief Propagation.
+                * 'dd' for Dual Decomposition via Subgradients.
+                * 'trws' for Vladimirs TRWs implementation.
+                * 'trw' for OGM  TRW.
+                * 'gibbs' for Gibbs sampling.
+                * 'lf' for Lazy Flipper
+                * 'fm' for Fusion Moves (alpha-expansion fusion)
+                * 'dyn' for Dynamic Programming (message passing in trees)
+                * 'gc' for Graph Cut
+                * 'alphaexp' for Alpha Expansion using Graph Cuts
+                * 'mqpbo' for multi-label qpbo
+
+        init : nd-array
+            Initial solution for starting inference (ignored by some algorithms).
+
+        reserveNumFactorsPerVariable :
+            reserve a certain number of factors for each variable can speed up
+            the building of a graphical model.
+            ( For a 2d grid with second order factors one should set this to 5
+             4 2-factors and 1 unary factor for most pixels )
+
+        Returns
+        -------
+        labels : nd-array
+            Approximate (usually) MAP variable assignment.
+        """
+        n_states, pairwise_potentials = self.validate_params(unary_potentials, pairwise_potentials, edges)
+        n_nodes = len(unary_potentials)
+
+        gm = opengm.gm(np.ones(n_nodes, dtype=opengm.label_type) * n_states)
+
+        nFactors = int(n_nodes + edges.shape[0])
+        gm.reserveFactors(nFactors)
+        gm.reserveFunctions(nFactors, 'explicit')
+
+        # all unaries as one numpy array
+        # (opengm's value_type == float64 but all types are accepted)
+        unaries = np.require(unary_potentials, dtype=opengm.value_type) * -1.0
+        # add all unart functions at once
+        fidUnaries = gm.addFunctions(unaries)
+        visUnaries = np.arange(n_nodes, dtype=opengm.label_type)
+        # add all unary factors at once
+        gm.addFactors(fidUnaries, visUnaries)
+
+        # add all pariwise functions at once
+        # - first axis of secondOrderFunctions iterates over the function)
+
+        secondOrderFunctions = -np.require(pairwise_potentials,
+                                           dtype=opengm.value_type)
+        fidSecondOrder = gm.addFunctions(secondOrderFunctions)
+        gm.addFactors(fidSecondOrder, edges.astype(np.uint64))
+
+        return gm
+
+    def create_grid_model_opengm(self, my_l, my_k):
+        np.random.seed(1)
+        length = my_l
+        k = my_k
+
+        unary_potentials = np.zeros((length * length, k))
+        for x in range(length * length):
+            unary_potentials[x] = np.random.random(k)
+
+        n_edges = 0
+        for x in range(length - 1):
+            for y in range(length):
+                n_edges += 2
+        edges = np.zeros((n_edges, 2))
+        count = 0
+        for x in range((length - 1) * length):
+            edges[count] = [x, x + 1]
+            count += 1
+            edges[count] = [x + 1, x]
+            count += 1
+
+        pairwise_potentials = np.zeros((n_edges, k, k))
+        for x in range(n_edges):
+            pairwise_potentials[x] = np.random.random((k, k))
+
+        gm = self.inference_ogm(unary_potentials=unary_potentials, pairwise_potentials=pairwise_potentials,
+                                edges=np.sort(edges))
+
+        return gm
 
     def test_speedup_multi(self):
         self.my_l = 8
@@ -652,6 +773,19 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                 t1 = time.time()
                 old_bp_time = t1 - t0
 
+                opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
+                t0 = time.time()
+                # infer
+                t1 = time.time()
+                opengm_time = t1 - t0
+
+
+                opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
+                t0 = time.time()
+                # infer with asynchronous opengm
+                t1 = time.time()
+                opengm_async_time = t1 - t0
+
                 if slow:
                     slow_bp = BeliefPropagator(old_mn)
                     slow_bp.set_max_iter(1000)
@@ -667,11 +801,11 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                     start_time = start_time - slow_bp_time
 
                 if slow:
-                    print("%d\t%f\t%f\t%f\t%f\t%f" %
-                          (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, start_time))
+                    print("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f" %
+                          (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, opengm_time, opengm_async_time, start_time))
                 else:
-                    print("%d\t%f\t%f\t%f\t%f" %
-                          (self.my_l, cuda_bp_time, bp_time, old_bp_time, start_time))
+                    print("%d\t%f\t%f\t%f\t%f\t%f\t%f" %
+                          (self.my_l, cuda_bp_time, bp_time, old_bp_time, opengm_time, opengm_async_time, start_time))
                 self.my_l *= 2
                 """
                 try:
@@ -690,7 +824,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             print("Total runtime took %f" % (total_time))
 
         except AssertionError:
-            print "\n\nCUDA was not found within your PyTorch package\n\n"
+            print("\n\nCUDA was not found within your PyTorch package\n\n")
             assert True
 
     def test_cuda_time_loss(self):
@@ -719,7 +853,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             print("In this case, this is a factor of %f times slower" % (time_diff/cuda_bp_time))
 
         except AssertionError:
-            print "\n\nCUDA was not found within your PyTorch package\n\n"
+            print("\n\nCUDA was not found within your PyTorch package\n\n")
             assert True
 
 
@@ -730,4 +864,4 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         bp.infer(display='full')
 
         bp.load_beliefs()
-        print bp.autograd_unary()
+        print(bp.autograd_unary())

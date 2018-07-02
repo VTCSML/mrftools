@@ -44,7 +44,7 @@ class TestTreeBeliefPropagator(unittest.TestCase):
             unary_belief = np.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                print pair_belief, unary_belief
+                print(pair_belief, unary_belief)
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_normalization(self):
@@ -151,7 +151,7 @@ class TestTreeBeliefPropagator(unittest.TestCase):
             print ("Brute force log partition function: %f" % true_z)
 
             print ("Is the TRBP energy functional an upper bound? %s" %
-                   trbp_z >= true_z)
+                   (trbp_z >= true_z))
             assert trbp_z >= true_z, "TRBP energy functional was lower than true log partition"
 
             tr_diff[trial] = trbp_z - true_z

@@ -83,6 +83,6 @@ class TestTorchMarkovNet(unittest.TestCase):
 
             assert mn.unary_mat.shape == (max_states, 5)
         except AssertionError:
-            print "\n\nCUDA was not found within your PyTorch package\n\n"
+            print("\n\nCUDA was not found within your PyTorch package\n\n")
             assert True
 

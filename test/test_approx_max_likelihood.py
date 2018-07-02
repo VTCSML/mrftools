@@ -38,9 +38,9 @@ class TestApproxMaxLikelihood(unittest.TestCase):
         for var in new_model.variables:
             learned_marg = np.exp(learned_bp.var_beliefs[var])
             true_marg = np.exp(bp.var_beliefs[var])
-            print "Learned vs true marginals for %d:" % var
-            print learned_marg
-            print true_marg
+            print("Learned vs true marginals for %d:" % var)
+            print(learned_marg)
+            print(true_marg)
             assert np.argmax(learned_marg) == np.argmax(true_marg), "learned marginal decoding disagrees with truth"
 
 

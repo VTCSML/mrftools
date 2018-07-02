@@ -168,11 +168,11 @@ class TestConvexBP(unittest.TestCase):
             z[i] = bp.compute_inconsistency()
 
         bp.load_beliefs()
-        print np.exp(bp.var_beliefs[0])
-        print np.exp(bp.pair_beliefs[(0, 1)])
+        print(np.exp(bp.var_beliefs[0]))
+        print(np.exp(bp.pair_beliefs[(0, 1)]))
 
-        print ("Minimum dual objective: %f" % np.min(y))
-        print ("Inconsistency at argmin: %f" % z[np.argmin(y)])
+        print("Minimum dual objective: %f" % np.min(y))
+        print("Inconsistency at argmin: %f" % z[np.argmin(y)])
 
         # plt.plot(x, y)
         # plt.show()
@@ -181,7 +181,7 @@ class TestConvexBP(unittest.TestCase):
 
         deriv = y[1:] - y[:-1]
         second_deriv = deriv[1:] - deriv[:-1]
-        print second_deriv
+        print(second_deriv)
         assert np.all(second_deriv >= 0), "Estimated second derivative was not non-negative"
 
     def create_chain_model(self):
@@ -224,10 +224,10 @@ class TestConvexBP(unittest.TestCase):
         bp = ConvexBeliefPropagator(mn, sharp_counting_numbers)
         bp.infer(display='full')
         bp.load_beliefs()
-        print bp.var_beliefs
+        print(bp.var_beliefs)
 
         bf = BruteForce(mn)
-        print bf.map_inference()
+        print(bf.map_inference())
         assert (np.allclose(np.exp(bp.belief_mat), np.exp(bf.map_inference()))), "beliefs are not exact"
 
 

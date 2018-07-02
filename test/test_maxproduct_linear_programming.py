@@ -56,8 +56,8 @@ class TestMaxProductLinearProgramming(unittest.TestCase):
             unary_belief = np.exp(bp.var_beliefs[var])
             for neighbor in mn.get_neighbors(var):
                 pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
-                print pair_belief
-                print unary_belief
+                print(pair_belief)
+                print(unary_belief)
                 assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
     def test_exactness(self):
@@ -68,8 +68,8 @@ class TestMaxProductLinearProgramming(unittest.TestCase):
         bp.load_beliefs()
 
         bf = BruteForce(mn)
-        print bp.belief_mat
-        print bf.map_inference()
+        print(bp.belief_mat)
+        print(bf.map_inference())
         assert (np.array_equal(bp.belief_mat,bf.map_inference())), "beliefs are not exact"
 
     def test_overflow(self):

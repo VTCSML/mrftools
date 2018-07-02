@@ -103,7 +103,7 @@ class TestIntegration(unittest.TestCase):
                 unary_belief = np.exp(bp.var_beliefs[var])
                 assert np.allclose(np.sum(unary_belief), 1.0), "Unary belief not normalized"
                 unary_error = np.sum(np.abs(bf.unary_marginal(var) - unary_belief))
-                print "Unary marginal for %s. Error compared to brute force: %e" % (repr(var), unary_error)
+                print("Unary marginal for %s. Error compared to brute force: %e" % (repr(var), unary_error))
                 assert unary_error < 1e-3, "Unary error was too large compared to brute force"
 
             # check pairwise marginal agreement with brute force
@@ -111,7 +111,7 @@ class TestIntegration(unittest.TestCase):
                 for neighbor in sorted(bp.mn.get_neighbors(var)):
                     edge_error = np.sum(
                         np.abs(bf.pairwise_marginal(var, neighbor) - np.exp(bp.pair_beliefs[(var, neighbor)])))
-                    print "Pair %s marginal error compared to brute force: %e" % (repr((var, neighbor)), edge_error)
+                    print("Pair %s marginal error compared to brute force: %e" % (repr((var, neighbor)), edge_error))
                     assert edge_error < 1e-3, "Pairwise error was too large compared to brute force"
 
             # check consistency
@@ -122,10 +122,10 @@ class TestIntegration(unittest.TestCase):
                     pair_belief = np.sum(np.exp(bp.pair_beliefs[(var, neighbor)]), 1)
                     assert np.allclose(np.sum(pair_belief), 1.0), "Pair belief not normalized"
 
-                    print pair_belief, unary_belief
+                    print(pair_belief, unary_belief)
                     assert np.allclose(pair_belief, unary_belief), "unary and pairwise beliefs are inconsistent"
 
-            print "Finished and passed tests for " + repr(inference_type)
+            print("Finished and passed tests for " + repr(inference_type))
 
     def test_belief_propagators(self):
         """Compare belief propagator implementations on image-segmentation MRFs"""
@@ -208,7 +208,7 @@ class TestIntegration(unittest.TestCase):
         start = time.time()
         subgrad_weights = learner.learn(weights, optimizer=ada_grad, opt_args=args)
         subgrad_time = time.time() - start
-        print "Learner took %f seconds" % subgrad_time
+        print("Learner took %f seconds" % subgrad_time)
 
         learner = PairedDual(MatrixBeliefPropagator)
         learner.set_regularization(0.0, 1.0)
@@ -221,11 +221,11 @@ class TestIntegration(unittest.TestCase):
         start = time.time()
         paired_weights = learner.learn(weights, optimizer=ada_grad, opt_args=args)
         pd_time = time.time() - start
-        print "PD took %f seconds" % pd_time
+        print("PD took %f seconds" % pd_time)
 
         assert pd_time < subgrad_time, "Paired dual learning took longer than subgradient"
 
-        print learner.subgrad_obj(subgrad_weights), learner.subgrad_obj(paired_weights)
+        print(learner.subgrad_obj(subgrad_weights), learner.subgrad_obj(paired_weights))
 
         assert learner.subgrad_obj(subgrad_weights) >= learner.subgrad_obj(paired_weights), \
             "subgrad reached lower minimum than paired dual"
@@ -252,8 +252,8 @@ class TestIntegration(unittest.TestCase):
 
         for label in labels:
             # print "Number of labels: %d" % len(label)
-            for x in range(image_size / 2):
-                for y in range(image_size / 2):
+            for x in range(int(image_size / 2)):
+                for y in range(int(image_size / 2)):
                     del label[(x, y)]
             # print "Number of labels after removing quadrant: %d" % len(label)
 
@@ -278,11 +278,11 @@ class TestIntegration(unittest.TestCase):
 
             weights = learner.learn(prev_weights, callback=op.callback)
             subgrad_time = time.time() - start
-            print "Learner took %f seconds" % subgrad_time
+            print("Learner took %f seconds" % subgrad_time)
 
             objectives.append(learner.subgrad_obj(weights))
 
-            print "After i %d of optimization, objective was %e." % (i, objectives[i])
+            print("After i %d of optimization, objective was %e." % (i, objectives[i]))
 
         for i in range(len(objectives) - 1):
             assert objectives[i] - objectives[i + 1] < 1e-2, \

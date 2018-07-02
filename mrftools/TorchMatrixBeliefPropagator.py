@@ -384,7 +384,7 @@ class TorchMatrixBeliefPropagator(Inference):
             self.belief_mat.backward()
             return self.belief_mat.grad
         else:
-            print "Variables flag (var_on) not set to True to allow for autograd"
+            print("Variables flag (var_on) not set to True to allow for autograd")
             return
 
     def autograd_pairwise(self):
@@ -396,7 +396,7 @@ class TorchMatrixBeliefPropagator(Inference):
             self.pair_beliefs.backward()
             return self.pair_beliefs.grad
         else:
-            print "Variables flag (var_on) not set to True to allow for autograd"
+            print("Variables flag (var_on) not set to True to allow for autograd")
             return
 
 def torch_logsumexp(matrix, dim=None):

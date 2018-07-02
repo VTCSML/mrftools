@@ -185,7 +185,7 @@ class TestImageSegmentation(unittest.TestCase):
 
             label_dict = self.data[i][0]
             # remove observed (latent) pixels
-            for key in label_dict.keys():
+            for key in list(label_dict.keys()):
                 if label_dict[key] is None:
                     del label_dict[key]
 
@@ -276,7 +276,7 @@ class TestImageSegmentation(unittest.TestCase):
         subgrad_accuracy_ave_train = self.get_average_accuracy(subgrad_weight_record)
 
         for i in range(len(subgrad_accuracy_ave_train)):
-            print "iter %d: accuracy %e" % (i, subgrad_accuracy_ave_train[i])
+            print("iter %d: accuracy %e" % (i, subgrad_accuracy_ave_train[i]))
             if i != len(subgrad_accuracy_ave_train) - 1:
                 assert (subgrad_accuracy_ave_train[i] <=
                         subgrad_accuracy_ave_train[i + 1]), "subgradient accuracy is not increasing"
@@ -298,7 +298,7 @@ class TestImageSegmentation(unittest.TestCase):
         em_accuracy_ave_train = self.get_average_accuracy(em_weight_record)
 
         for i in range(len(em_accuracy_ave_train)):
-            print "iter %d: accuracy %e" % (i, em_accuracy_ave_train[i])
+            print("iter %d: accuracy %e" % (i, em_accuracy_ave_train[i]))
             if i != len(em_accuracy_ave_train) - 1:
                 assert (em_accuracy_ave_train[i] <= em_accuracy_ave_train[i + 1]), \
                     "EM accuracy is not increasing"
@@ -320,7 +320,7 @@ class TestImageSegmentation(unittest.TestCase):
         paired_dual_accuracy_ave_train = self.get_average_accuracy(weight_record)
 
         for i in range(len(paired_dual_accuracy_ave_train)):
-            print "iter %d: accuracy %e" % (i, paired_dual_accuracy_ave_train[i])
+            print("iter %d: accuracy %e" % (i, paired_dual_accuracy_ave_train[i]))
             if i != len(paired_dual_accuracy_ave_train) - 1:
                 assert (paired_dual_accuracy_ave_train[i] <= paired_dual_accuracy_ave_train[
                     i + 1]), "paired dual accuracy is not increasing"
@@ -343,7 +343,7 @@ class TestImageSegmentation(unittest.TestCase):
         primal_dual_accuracy_train = self.get_average_accuracy(weight_record)
 
         for i in range(len(primal_dual_accuracy_train)):
-            print "iter %d: accuracy %e" % (i, primal_dual_accuracy_train[i])
+            print("iter %d: accuracy %e" % (i, primal_dual_accuracy_train[i]))
             if i != len(primal_dual_accuracy_train) - 1:
                 assert (primal_dual_accuracy_train[i] <= primal_dual_accuracy_train[
                     i + 1]), "primal dual accuracy is not increasing"
