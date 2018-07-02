@@ -1,7 +1,7 @@
 """Optimization utility class containing various optimizers and utility objects for callback functions"""
 import time
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import save_load_weights
 import os.path as osp
@@ -22,9 +22,9 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
     t = 0
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 1e-4)
+    x_tol = args.get('x_tol', 1e-6)
     g_tol = args.get('g_tol', 1e-6)
-    max_iter = args.get('max_iter', 20001)
+    max_iter = args.get('max_iter', 50001)
     grad_norm = np.inf
     x_change = np.inf
     lr_list = list()
@@ -39,9 +39,10 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
 
 
         #lr = pow(t+ 1e1, -0.5)
+        lr = 0.5
         #lr = 2e-3 #scene_lr
         #lr = 5e-3 # horse_lr
-        lr = 1e-3 # whole scene lr
+        #lr = 1e-3 # whole scene lr
         change = lr * g
         lr_list.append(lr)
 
@@ -53,6 +54,9 @@ def sgd(func, grad, x, output_dir, args={}, callback=None):
         x_change = np.sqrt(change.dot(change))
 
         t += 1
+
+    if callback:
+        callback(x, output_dir, final=True)
 
     return x
 
@@ -121,11 +125,12 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
     t = 0
     if not args:
         args = {}
-    x_tol = args.get('x_tol', 1e-4)
-    g_tol = args.get('g_tol', 1e-6)
-    eta = args.get('eta', 3e-2)
-    offset = args.get('offset', 3e-2)
+    x_tol = args.get('x_tol', 1e-15)
+    g_tol = args.get('g_tol', 1e-15)
+    eta = args.get('eta', 1.0)
+    offset = args.get('offset', 1.0)
     max_iter = args.get('max_iter', 20001)
+    #max_iter = args.get('max_iter', 330)
 
     grad_norm = np.inf
     x_change = np.inf
@@ -161,13 +166,11 @@ def ada_grad(func, grad, x, output_dir, args={}, callback=None):
 
         grad_norm = np.sqrt(g.dot(g))
         x_change = np.sqrt(change.dot(change))
-
-
         t += 1
     print "end at iteration %d"%t
 
-    # if callback:
-    #     callback(x, output_dir)
+    if callback:
+        callback(x, output_dir, final=True)
     return x
 
 
@@ -403,7 +406,7 @@ class ObjectivePlotter(object):
         if self.grad:
             print("Iter\tf(x)\t\t\tnorm(g)\t\t\tdx")
 
-    def callback(self, x, output_dir):
+    def callback(self, x, output_dir, final = False):
         """
         Plot the current objectvie value and the current solution, and prints diagnostic information about
         the current solution, objective, and gradient, when available.
@@ -419,7 +422,7 @@ class ObjectivePlotter(object):
             self.starttime = time.clock()
 
 
-        if ((0 < self.t < 10) or self.t % 5 == 0):
+        if ((0 < self.t < 10) or self.t % 5 == 0 or final == True):
             #print "fun2"
             objective_value = self.func(x)
 
@@ -477,6 +480,41 @@ class ObjectivePlotter(object):
 
         self.last_x = x
         self.t += 1
+
+
+
+    def callback1(self, x, output_dir, final = False):
+        """
+        Plot the current objectvie value and the current solution, and prints diagnostic information about
+        the current solution, objective, and gradient, when available.
+        :param x: current iterate
+        :return:
+        """
+
+        running_time = None
+
+        if self.t < 1:
+            self.starttime = time.clock()
+
+
+        if ((0 < self.t < 10) or self.t % 5 == 0 or final == True):
+
+
+            running_time = time.clock() - self.starttime
+            weight_path = osp.join(output_dir, "weights_%d.txt"%self.t)
+            save_load_weights.save_weights(x, weight_path)
+            with open(osp.join(output_dir, "time.txt"), "a") as f_t:
+                f_t.write(str(self.t) + "\t")
+                f_t.write(str(running_time))
+                f_t.write("\n")
+
+
+
+
+        self.t += 1
+
+
+
 
 
 
