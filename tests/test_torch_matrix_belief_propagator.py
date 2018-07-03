@@ -623,9 +623,8 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             pairwise_potentials = pairwise_params
         return n_states, pairwise_potentials
 
-    def inference_ogm(self, unary_potentials, pairwise_potentials, edges,
-                      return_energy=False, alg='dd', init=None,
-                      reserveNumFactorsPerVariable=2, **kwargs):
+    def init_ogm(self, unary_potentials, pairwise_potentials, edges,
+                 reserveNumFactorsPerVariable=4, **kwargs):
         """Inference with OpenGM backend.
 
         Parameters
@@ -643,20 +642,6 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             pairwise potentials are not assumed to be symmetric, the direction of
             the edge matters.
 
-        alg : string
-            Possible choices currently are:
-                * 'bp' for Loopy Belief Propagation.
-                * 'dd' for Dual Decomposition via Subgradients.
-                * 'trws' for Vladimirs TRWs implementation.
-                * 'trw' for OGM  TRW.
-                * 'gibbs' for Gibbs sampling.
-                * 'lf' for Lazy Flipper
-                * 'fm' for Fusion Moves (alpha-expansion fusion)
-                * 'dyn' for Dynamic Programming (message passing in trees)
-                * 'gc' for Graph Cut
-                * 'alphaexp' for Alpha Expansion using Graph Cuts
-                * 'mqpbo' for multi-label qpbo
-
         init : nd-array
             Initial solution for starting inference (ignored by some algorithms).
 
@@ -666,10 +651,6 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             ( For a 2d grid with second order factors one should set this to 5
              4 2-factors and 1 unary factor for most pixels )
 
-        Returns
-        -------
-        labels : nd-array
-            Approximate (usually) MAP variable assignment.
         """
         n_states, pairwise_potentials = self.validate_params(unary_potentials, pairwise_potentials, edges)
         n_nodes = len(unary_potentials)
@@ -724,8 +705,8 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         for x in range(n_edges):
             pairwise_potentials[x] = np.random.random((k, k))
 
-        gm = self.inference_ogm(unary_potentials=unary_potentials, pairwise_potentials=pairwise_potentials,
-                                edges=np.sort(edges))
+        gm = self.init_ogm(unary_potentials=unary_potentials, pairwise_potentials=pairwise_potentials,
+                           edges=np.sort(edges))
 
         return gm
 
@@ -786,6 +767,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             inf = opengm.inference.BeliefPropagation(opengm_mn, parameter=opengm.InfParam(steps=1000, damping=0,
                                                                                           convergenceBound=1e-8,
                                                                                           isAcyclic=True))
+            inf.infer()
             t1 = time.time()
             opengm_time = t1 - t0
 
@@ -795,6 +777,7 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             inf = opengm.inference.BeliefPropagation(opengm_mn, parameter=opengm.InfParam(steps=1000, damping=0,
                                                                                           convergenceBound=1e-8,
                                                                                           isAcyclic=False))
+            inf.infer()
             t1 = time.time()
             opengm_async_time = t1 - t0
 
