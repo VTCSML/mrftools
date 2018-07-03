@@ -4,6 +4,10 @@ import unittest
 import time
 import torch as t
 import numpy as np
+try:
+    import opengm
+except:
+    print("Could not load opengm package. At least one test will fail.")
 
 class TestTorchMatrixBeliefPropagator(unittest.TestCase):
     """Test class for TorchMatrixBeliefPropagator"""
@@ -523,86 +527,86 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
 
     def test_gpu_speedup(self):
+        if not t.cuda.is_available():
+            print("CUDA is not available.")
+            return
+
         self.my_l = 8
         self.my_k = 8
         slow = True
 
-        try:
-            # CUDA must be "started up" in order to achieve max speeds
-            # Approximate loss of X seconds on first run otherwise
-            init_mn = self.create_grid_model(is_cuda=True, my_l=2, my_k=2)
-            init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
-            init_bp.set_max_iter(1000)
-            init_bp.infer(display='off')
+        # CUDA must be "started up" in order to achieve max speeds
+        # Approximate loss of X seconds on first run otherwise
+        init_mn = self.create_grid_model(is_cuda=True, my_l=2, my_k=2)
+        init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
+        init_bp.set_max_iter(1000)
+        init_bp.infer(display='off')
 
-            t_prime0 = time.time()
+        t_prime0 = time.time()
 
-            cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
-            cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
-            cuda_bp.set_max_iter(1000)
+        cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
+        cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
+        cuda_bp.set_max_iter(1000)
+        t0 = time.time()
+        cuda_bp.infer(display='off')
+        t1 = time.time()
+        cuda_bp_time = t1-t0
+
+        mn = self.create_grid_model(is_cuda=False, my_l=self.my_l, my_k=self.my_k)
+        bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False, var_on=False)
+        bp.set_max_iter(1000)
+        t0 = time.time()
+        bp.infer(display='off')
+        t1 = time.time()
+        bp_time = t1 - t0
+
+        old_mn = self.create_grid_model_old(my_l=self.my_l, my_k=self.my_k)
+        old_bp = MatrixBeliefPropagator(old_mn)
+        old_bp.set_max_iter(1000)
+        t0 = time.time()
+        old_bp.infer(display='off')
+        t1 = time.time()
+        old_bp_time = t1 - t0
+
+        if slow:
+            slow_bp = BeliefPropagator(old_mn)
+            slow_bp.set_max_iter(1000)
             t0 = time.time()
-            cuda_bp.infer(display='off')
+            slow_bp.infer(display='off')
             t1 = time.time()
-            cuda_bp_time = t1-t0
+            slow_bp_time = t1 - t0
 
-            mn = self.create_grid_model(is_cuda=False, my_l=self.my_l, my_k=self.my_k)
-            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False, var_on=False)
-            bp.set_max_iter(1000)
-            t0 = time.time()
-            bp.infer(display='off')
-            t1 = time.time()
-            bp_time = t1 - t0
+        t_prime1 = time.time()
 
-            old_mn = self.create_grid_model_old(my_l=self.my_l, my_k=self.my_k)
-            old_bp = MatrixBeliefPropagator(old_mn)
-            old_bp.set_max_iter(1000)
-            t0 = time.time()
-            old_bp.infer(display='off')
-            t1 = time.time()
-            old_bp_time = t1 - t0
+        start_time = (t_prime1-t_prime0) - cuda_bp_time - bp_time - old_bp_time
+        if slow:
+            start_time = start_time - slow_bp_time
 
-            if slow:
-                slow_bp = BeliefPropagator(old_mn)
-                slow_bp.set_max_iter(1000)
-                t0 = time.time()
-                slow_bp.infer(display='off')
-                t1 = time.time()
-                slow_bp_time = t1 - t0
+        print("Build time took %f" %
+              (start_time))
+        print("CUDA Torch Matrix BP took %f" %
+              (cuda_bp_time))
+        print("Torch Matrix BP took %f" %
+              (bp_time))
+        print("Sparse Matrix BP took %f" %
+              (old_bp_time))
+        if slow:
+            print("Loop Matrix BP took %f" %
+                  (slow_bp_time))
+        #assert bp_time > old_bp_time, "Torch Matrix BP was faster than Matrix BP"
+        #assert cuda_bp_time < bp_time, "CUDA Torch Matrix BP was slower than Torch Matrix BP"
 
-            t_prime1 = time.time()
+        # check marginals
+        cuda_bp.load_beliefs()
+        old_bp.load_beliefs()
 
-            start_time = (t_prime1-t_prime0) - cuda_bp_time - bp_time - old_bp_time
-            if slow:
-                start_time = start_time - slow_bp_time
-
-            print("Build time took %f" %
-                  (start_time))
-            print("CUDA Torch Matrix BP took %f" %
-                  (cuda_bp_time))
-            print("Torch Matrix BP took %f" %
-                  (bp_time))
-            print("Sparse Matrix BP took %f" %
-                  (old_bp_time))
-            if slow:
-                print("Loop Matrix BP took %f" %
-                      (slow_bp_time))
-            #assert bp_time > old_bp_time, "Torch Matrix BP was faster than Matrix BP"
-            #assert cuda_bp_time < bp_time, "CUDA Torch Matrix BP was slower than Torch Matrix BP"
-
-            # check marginals
-            cuda_bp.load_beliefs()
-            old_bp.load_beliefs()
-
-            for var in mn.variables:
-                assert np.allclose(cuda_bp.var_beliefs[var].cpu().numpy(), old_bp.var_beliefs[var]), "unary beliefs don't agree"
-                for neighbor in mn.get_neighbors(var):
-                    edge = (var, neighbor)
-                    assert np.allclose(cuda_bp.pair_beliefs[edge].cpu().numpy(), old_bp.pair_beliefs[edge]), \
-                        "pairwise beliefs don't agree" + "\n" + repr(cuda_bp.pair_beliefs[edge]) \
-                        + "\n" + repr(old_bp.pair_beliefs[edge])
-        except AssertionError:
-            print("\n\nCUDA was not found within your PyTorch package\n\n")
-            assert True
+        for var in mn.variables:
+            assert np.allclose(cuda_bp.var_beliefs[var].cpu().numpy(), old_bp.var_beliefs[var]), "unary beliefs don't agree"
+            for neighbor in mn.get_neighbors(var):
+                edge = (var, neighbor)
+                assert np.allclose(cuda_bp.pair_beliefs[edge].cpu().numpy(), old_bp.pair_beliefs[edge]), \
+                    "pairwise beliefs don't agree" + "\n" + repr(cuda_bp.pair_beliefs[edge]) \
+                    + "\n" + repr(old_bp.pair_beliefs[edge])
 
     def validate_params(self, unary_potentials, pairwise_params, edges):
         n_states = unary_potentials.shape[-1]
@@ -730,24 +734,25 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         self.my_k = 8
         slow = True
 
-        try:
-            # CUDA must be "started up" in order to achieve max speeds
-            # Approximate loss of X seconds on first run otherwise
+        # CUDA must be "started up" in order to achieve max speeds
+        # Approximate loss of X seconds on first run otherwise
+        if t.cuda.is_available():
             init_mn = self.create_grid_model(is_cuda=True, my_l=2, my_k=2)
             init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
             init_bp.set_max_iter(1000)
             init_bp.infer(display='off')
 
-            t_total0 = time.time()
-            print("k = %d" % self.my_k)
-            if slow:
-                print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tLoop-Py\tBuild Time")
-            else:
-                print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tBuild Time")
+        t_total0 = time.time()
+        print("k = %d" % self.my_k)
+        if slow:
+            print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tLoop-Py \tOpenGM-P\tOpenGM-A\tBuild Time")
+        else:
+            print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tOpenGM-P\tOpenGM-A\tBuild Time")
 
-            while self.my_k <= 64:
-                t_prime0 = time.time()
+        while self.my_k <= 64:
+            t_prime0 = time.time()
 
+            if t.cuda.is_available():
                 cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
                 cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
                 cuda_bp.set_max_iter(1000)
@@ -756,108 +761,113 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
                 cuda_bp.infer(display='off')
                 t1 = time.time()
                 cuda_bp_time = t1 - t0
+            else:
+                cuda_bp_time = np.nan  # if cuda is not available
 
-                mn = self.create_grid_model(is_cuda=False, my_l=self.my_l, my_k=self.my_k)
-                bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False, var_on=False)
-                bp.set_max_iter(1000)
+            mn = self.create_grid_model(is_cuda=False, my_l=self.my_l, my_k=self.my_k)
+            bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=False, var_on=False)
+            bp.set_max_iter(1000)
+            t0 = time.time()
+            bp.infer(display='off')
+            t1 = time.time()
+            bp_time = t1 - t0
+
+            old_mn = self.create_grid_model_old(my_l=self.my_l, my_k=self.my_k)
+            old_bp = MatrixBeliefPropagator(old_mn)
+            old_bp.set_max_iter(1000)
+            t0 = time.time()
+            old_bp.infer(display='off')
+            t1 = time.time()
+            old_bp_time = t1 - t0
+
+            opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
+            t0 = time.time()
+            # infer with parallel opengm
+            inf = opengm.inference.BeliefPropagation(opengm_mn, parameter=opengm.InfParam(steps=1000, damping=0,
+                                                                                          convergenceBound=1e-8,
+                                                                                          isAcyclic=True))
+            t1 = time.time()
+            opengm_time = t1 - t0
+
+            opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
+            t0 = time.time()
+            # infer with asynchronous opengm
+            inf = opengm.inference.BeliefPropagation(opengm_mn, parameter=opengm.InfParam(steps=1000, damping=0,
+                                                                                          convergenceBound=1e-8,
+                                                                                          isAcyclic=False))
+            t1 = time.time()
+            opengm_async_time = t1 - t0
+
+            if slow:
+                slow_bp = BeliefPropagator(old_mn)
+                slow_bp.set_max_iter(1000)
                 t0 = time.time()
-                bp.infer(display='off')
+                slow_bp.infer(display='off')
                 t1 = time.time()
-                bp_time = t1 - t0
+                slow_bp_time = t1 - t0
 
-                old_mn = self.create_grid_model_old(my_l=self.my_l, my_k=self.my_k)
-                old_bp = MatrixBeliefPropagator(old_mn)
-                old_bp.set_max_iter(1000)
-                t0 = time.time()
-                old_bp.infer(display='off')
-                t1 = time.time()
-                old_bp_time = t1 - t0
+            t_prime1 = time.time()
 
-                opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
-                t0 = time.time()
-                # infer
-                t1 = time.time()
-                opengm_time = t1 - t0
+            start_time = (t_prime1 - t_prime0) - cuda_bp_time - bp_time - old_bp_time
+            if slow:
+                start_time = start_time - slow_bp_time
 
-
-                opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
-                t0 = time.time()
-                # infer with asynchronous opengm
-                t1 = time.time()
-                opengm_async_time = t1 - t0
-
-                if slow:
-                    slow_bp = BeliefPropagator(old_mn)
-                    slow_bp.set_max_iter(1000)
-                    t0 = time.time()
-                    slow_bp.infer(display='off')
-                    t1 = time.time()
-                    slow_bp_time = t1 - t0
-
-                t_prime1 = time.time()
-
-                start_time = (t_prime1 - t_prime0) - cuda_bp_time - bp_time - old_bp_time
-                if slow:
-                    start_time = start_time - slow_bp_time
-
-                if slow:
-                    print("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f" %
-                          (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, opengm_time, opengm_async_time, start_time))
-                else:
-                    print("%d\t%f\t%f\t%f\t%f\t%f\t%f" %
-                          (self.my_l, cuda_bp_time, bp_time, old_bp_time, opengm_time, opengm_async_time, start_time))
-                self.my_l *= 2
-                """
-                try:
-                    self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
-                except Exception:
-                    self.my_l = 8
-                    self.my_k *= 2
-                    print("k = %d" % self.my_k)
-                """
-                if ((self.my_l * self.my_k) >= 8192):
-                    self.my_l = 8
-                    self.my_k *= 2
-                    print("k = %d" % self.my_k)
-            t_total1 = time.time()
-            total_time = (t_total1 - t_total0)
-            print("Total runtime took %f" % (total_time))
-
-        except AssertionError:
-            print("\n\nCUDA was not found within your PyTorch package\n\n")
-            assert True
+            if slow:
+                print("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f" %
+                      (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, opengm_time, opengm_async_time, start_time))
+            else:
+                print("%d\t%f\t%f\t%f\t%f\t%f\t%f" %
+                      (self.my_l, cuda_bp_time, bp_time, old_bp_time, opengm_time, opengm_async_time, start_time))
+            self.my_l *= 2
+            """
+            try:
+                self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
+            except Exception:
+                self.my_l = 8
+                self.my_k *= 2
+                print("k = %d" % self.my_k)
+            """
+            if ((self.my_l * self.my_k) >= 8192):
+                self.my_l = 8
+                self.my_k *= 2
+                print("k = %d" % self.my_k)
+        t_total1 = time.time()
+        total_time = (t_total1 - t_total0)
+        print("Total runtime took %f" % (total_time))
 
     def test_cuda_time_loss(self):
+        if not t.cuda.is_available():
+            print("CUDA is not available.")
+            return
+
         self.my_l = 8
         self.my_k = 8
-        try:
-            init_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
-            init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
-            init_bp.set_max_iter(1000)
-            init_time0 = time.time()
-            init_bp.infer(display='off')
-            init_time1 = time.time()
+        init_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
+        init_bp = TorchMatrixBeliefPropagator(markov_net=init_mn, is_cuda=True, var_on=False)
+        init_bp.set_max_iter(1000)
+        init_time0 = time.time()
+        init_bp.infer(display='off')
+        init_time1 = time.time()
 
-            init_time = init_time1 - init_time0
+        init_time = init_time1 - init_time0
 
-            cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
-            cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
-            cuda_bp.set_max_iter(1000)
-            t0 = time.time()
-            cuda_bp.infer(display='off')
-            t1 = time.time()
-            cuda_bp_time = t1 - t0
+        cuda_mn = self.create_grid_model(is_cuda=True, my_l=self.my_l, my_k=self.my_k)
+        cuda_bp = TorchMatrixBeliefPropagator(markov_net=cuda_mn, is_cuda=True, var_on=False)
+        cuda_bp.set_max_iter(1000)
+        t0 = time.time()
+        cuda_bp.infer(display='off')
+        t1 = time.time()
+        cuda_bp_time = t1 - t0
 
-            time_diff = init_time - cuda_bp_time
-            print("Total time lost to CUDA initialization %f" % (time_diff))
-            print("In this case, this is a factor of %f times slower" % (time_diff/cuda_bp_time))
-
-        except AssertionError:
-            print("\n\nCUDA was not found within your PyTorch package\n\n")
-            assert True
-
+        time_diff = init_time - cuda_bp_time
+        print("Total time lost to CUDA initialization %f" % (time_diff))
+        print("In this case, this is a factor of %f times slower" % (time_diff/cuda_bp_time))
 
     def test_autograd(self):
+        if not t.cuda.is_available():
+            print("CUDA is not available.")
+            return
+
         is_cuda = True
         mn = self.create_grid_model(is_cuda=is_cuda, my_l=64, my_k=8)
         bp = TorchMatrixBeliefPropagator(markov_net=mn, is_cuda=is_cuda, var_on=False)

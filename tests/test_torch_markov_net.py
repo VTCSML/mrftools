@@ -68,21 +68,21 @@ class TestTorchMarkovNet(unittest.TestCase):
         assert mn.unary_mat.shape == (max_states, 5)
 
     def test_cuda(self):
-        try:
-            mn = self.create_chain_model(True)
+        if not torch.cuda.is_available():
+            print("CUDA is not available")
+            return
 
-            k = [4, 3, 6, 2, 5]
+        mn = self.create_chain_model(True)
 
-            max_states = max(k)
+        k = [4, 3, 6, 2, 5]
 
-            assert mn.matrix_mode == False, "Matrix mode flag was set prematurely"
+        max_states = max(k)
 
-            mn.create_matrices()
+        assert mn.matrix_mode == False, "Matrix mode flag was set prematurely"
 
-            assert mn.matrix_mode, "Matrix mode flag wasn't set correctly"
+        mn.create_matrices()
 
-            assert mn.unary_mat.shape == (max_states, 5)
-        except AssertionError:
-            print("\n\nCUDA was not found within your PyTorch package\n\n")
-            assert True
+        assert mn.matrix_mode, "Matrix mode flag wasn't set correctly"
+
+        assert mn.unary_mat.shape == (max_states, 5)
 
