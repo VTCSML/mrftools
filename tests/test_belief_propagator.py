@@ -116,3 +116,22 @@ class TestBeliefPropagator(unittest.TestCase):
                 pair_belief = np.exp(bp.pair_beliefs[(var, neighbor)])
                 assert np.allclose(np.sum(pair_belief), 1.0), "pairwise belief is not normalize"
 
+    def test_sequential(self):
+        """
+        Test that sequential BP gets the same solution
+        :return: None
+        """
+        for mn in [self.create_chain_model(), self.create_loop_model()]:
+            pbp = BeliefPropagator(mn)
+            pbp.infer(display='full')
+
+            sbp = BeliefPropagator(mn)
+            sbp.sequential_infer(display='full')
+
+            for var in mn.variables:
+                unary_belief = np.exp(sbp.var_beliefs[var])
+                assert np.allclose(np.sum(unary_belief), 1.0), "unary belief is not normalized"
+                for neighbor in mn.get_neighbors(var):
+                    pair_belief = np.exp(sbp.pair_beliefs[(var, neighbor)])
+                    assert np.allclose(np.sum(pair_belief), 1.0), "pairwise belief is not normalized"
+                assert np.allclose(unary_belief, np.exp(pbp.var_beliefs[var]))

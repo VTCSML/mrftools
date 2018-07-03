@@ -726,9 +726,9 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
         t_total0 = time.time()
         print("k = %d" % self.my_k)
         if slow:
-            print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tLoop-Py \tOpenGM-P\tOpenGM-A\tBuild Time")
+            print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tLoop-Py \tOpenGM\tSeq-Loop-BP\tBuild Time")
         else:
-            print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tOpenGM-P\tOpenGM-A\tBuild Time")
+            print("length\tTorch-CUDA\tTorch-Py\tSparse-Py\tOpenGM\tSeq-Loop-BP\tBuild Time")
 
         while self.my_k <= 64:
             t_prime0 = time.time()
@@ -761,25 +761,24 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
             t1 = time.time()
             old_bp_time = t1 - t0
 
+            t0 = time.time()
+            # infer with asynchronous BP
+            seq_bp = BeliefPropagator(old_mn)
+            seq_bp.set_max_iter(1000)
+            t0 = time.time()
+            seq_bp.sequential_infer(display='off')
+            t1 = time.time()
+            sequential_bp_time = t1 - t0
+
             opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
             t0 = time.time()
             # infer with parallel opengm
             inf = opengm.inference.BeliefPropagation(opengm_mn, parameter=opengm.InfParam(steps=1000, damping=0,
                                                                                           convergenceBound=1e-8,
-                                                                                          isAcyclic=True))
-            inf.infer()
-            t1 = time.time()
-            opengm_time = t1 - t0
-
-            opengm_mn = self.create_grid_model_opengm(my_l=self.my_l, my_k=self.my_k)
-            t0 = time.time()
-            # infer with asynchronous opengm
-            inf = opengm.inference.BeliefPropagation(opengm_mn, parameter=opengm.InfParam(steps=1000, damping=0,
-                                                                                          convergenceBound=1e-8,
                                                                                           isAcyclic=False))
             inf.infer()
             t1 = time.time()
-            opengm_async_time = t1 - t0
+            opengm_time = t1 - t0
 
             if slow:
                 slow_bp = BeliefPropagator(old_mn)
@@ -791,16 +790,16 @@ class TestTorchMatrixBeliefPropagator(unittest.TestCase):
 
             t_prime1 = time.time()
 
-            start_time = (t_prime1 - t_prime0) - cuda_bp_time - bp_time - old_bp_time
+            start_time = (t_prime1 - t_prime0) - cuda_bp_time - bp_time - old_bp_time - opengm_time - sequential_bp_time
             if slow:
                 start_time = start_time - slow_bp_time
 
             if slow:
                 print("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f" %
-                      (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, opengm_time, opengm_async_time, start_time))
+                      (self.my_l, cuda_bp_time, bp_time, old_bp_time, slow_bp_time, opengm_time, sequential_bp_time, start_time))
             else:
                 print("%d\t%f\t%f\t%f\t%f\t%f\t%f" %
-                      (self.my_l, cuda_bp_time, bp_time, old_bp_time, opengm_time, opengm_async_time, start_time))
+                      (self.my_l, cuda_bp_time, bp_time, old_bp_time, opengm_time, sequential_bp_time, start_time))
             self.my_l *= 2
             """
             try:

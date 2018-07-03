@@ -185,6 +185,37 @@ class BeliefPropagator(Inference):
         if display == 'final' or display == 'full' or display == 'iter':
             print("Belief propagation finished in %d iterations." % iteration)
 
+    def sequential_infer(self, tolerance=1e-8, display='iter'):
+        change = np.inf
+        iteration = 0
+        while change > tolerance and iteration < self.max_iter:
+            change = 0
+
+            # update each variable and update its outgoing messages
+            for var in self.mn.variables:
+                belief = self.mn.unary_potentials[var]
+                for neighbor in self.mn.get_neighbors(var):
+                    belief = belief + self.messages[(neighbor, var)]
+                log_z = logsumexp(belief)
+                belief = belief - log_z
+                self.var_beliefs[var] = belief
+                for neighbor in self.mn.get_neighbors(var):
+                    new_message = self.compute_message(var, neighbor)
+                    change += np.sum(np.abs(new_message - self.messages[(var, neighbor)]))
+                    self.messages[(var, neighbor)] = new_message
+
+            if display == "full":
+                disagreement = self.compute_inconsistency()
+                energy_func = self.compute_energy_functional()
+                dual_obj = self.compute_dual_objective()
+                print("Iteration %d, change in messages %f. Calibration disagreement: %f, energy functional: %f, "
+                      "dual obj: %f" % (iteration, change, disagreement, energy_func, dual_obj))
+            elif display == "iter":
+                print("Iteration %d, change in messages %f." % (iteration, change))
+            iteration += 1
+        if display == 'final' or display == 'full' or display == 'iter':
+            print("Belief propagation finished in %d iterations." % iteration)
+
     def compute_bethe_entropy(self):
         """
         Compute Bethe entropy from current beliefs. 
