@@ -6,4 +6,4 @@ build
 *.xls
 dist/*
 mrftools.egg-info/
-venv/
+virtualenvs/
