@@ -52,7 +52,7 @@ class TestImageLoader(unittest.TestCase):
         num_features = 65
         num_states = 2
 
-        all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train_data'), num_features, 1)
+        all_pixel, all_label = load_all_images_and_labels(os.path.join(os.path.dirname(__file__), 'train_data'), num_features, 3)
 
         initial_w = np.zeros(num_features * num_states)
         res = minimize(objective, initial_w, method="L-BFGS-B", args=(all_pixel, all_label, num_features, num_states),
@@ -169,9 +169,8 @@ def accuracy(weights, features, label_vec, num_features, num_states):
     :rtype: float
     """
     total_error = 0
-    probabilities = np.dot(features, weights.reshape((num_features, num_states)))
-    probabilities = softmax(probabilities)
-    positive_vec = np.argmax(probabilities, axis=1)
+    scores = np.dot(features, weights.reshape((num_features, num_states)))
+    positive_vec = np.argmax(scores, axis=1)
     error = np.sum(np.abs(positive_vec - label_vec))
     num_pixels = np.shape(label_vec)
 
@@ -194,7 +193,7 @@ def load_all_images_and_labels(path, num_features, num_images):
     :rtype: tuple
     """
     loader = ImageLoader()
-    all_pixel = np.random.randn(0, num_features)
+    all_pixel = np.zeros((0, num_features))
     all_label = []
 
     # files = [x for x in os.listdir('./train') if x.endswith(".jpg") or x.endswith('.png')]

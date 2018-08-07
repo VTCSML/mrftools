@@ -71,7 +71,8 @@ class MatrixTRBeliefPropagator(MatrixBeliefPropagator):
         messages = np.squeeze(logsumexp(self.mn.edge_pot_tensor / self.tree_probabilities + adjusted_message_prod, 1))
         messages = np.nan_to_num(messages - messages.max(0))
 
-        change = np.sum(np.abs(messages - self.message_mat))
+        with np.errstate(over='ignore'):
+            change = np.sum(np.abs(messages - self.message_mat))
 
         self.message_mat = messages
 

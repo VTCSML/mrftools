@@ -204,14 +204,14 @@ class TestMatrixBeliefPropagator(unittest.TestCase):
         mn = self.create_chain_model()
 
         # set a really large factor
-        mn.set_unary_factor(0, [1000, 2000, 3000, 4000])
+        mn.set_unary_factor(0, [.1, .2, .3, .4])
 
         mn.create_matrices()
 
         bp = MatrixBeliefPropagator(mn)
 
         with np.errstate(all='raise'):
-            bp.infer()
+            bp.infer(display='iter')
             bp.load_beliefs()
 
     def test_grid_consistency(self):
