@@ -6,11 +6,13 @@ Python. This is done by casting low-level message passing indexing as sparse-mat
 
 If you use this work in an academic study, please cite our paper
 
->@inproceedings{bixler:uai18,
+```
+@inproceedings{bixler:uai18,
 	Author = {Reid Bixler and Bert Huang},
 	Booktitle = {Proceedings of the Conference on Uncertainty in Artificial Intelligence},
 	Title = {Sparse-Matrix Belief Propagation},
 	Year = {2018}}
+```
 
 For now, this software is very experimental, but a lot of useful parts are functioning.
 It is available as open-source software under a Creative Commons Attribution License.
